@@ -9,8 +9,8 @@ on:
         description: "Deneme: e-posta gönderme, kaydetme"
         type: boolean
         default: false
-      probe:
-        description: "Sadece teşhis"
+      resend:
+        description: "Son 10 özelgeyi yeniden gönder"
         type: boolean
         default: false
 
@@ -39,7 +39,7 @@ jobs:
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
           KEYWORDS: ${{ vars.KEYWORDS }}
-        run: python ${{ inputs.probe && 'probe.py' || 'ozelge.py' }} ${{ inputs.dry_run && '--dry-run' || '' }}
+        run: python ozelge.py ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.resend && '--resend' || '' }}
       - name: Durumu kaydet
         run: |
           [ -f seen.json ] || exit 0

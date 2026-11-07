@@ -27,6 +27,7 @@ import sys
 from datetime import datetime, timezone, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.utils import formatdate, make_msgid, formataddr
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
@@ -37,6 +38,7 @@ STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seen.json
 TR = timezone(timedelta(hours=3))
 NO_OZELGE_HOUR = 18
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130 Safari/537.36"
+RESEND = "--resend" in sys.argv
 DRY = "--dry-run" in sys.argv or not os.environ.get("SMTP_PASS")
 # 359. maddeye gerçekten değinen metni yakalar (ör. "359. madde", "359 uncu maddesi", "VUK'nun 359").
 MADDE_359 = re.compile(
@@ -189,7 +191,11 @@ def send(subject, text, body):
     user = os.environ["SMTP_USER"]
     sender = os.environ.get("MAIL_FROM") or user
     msg = MIMEMultipart("alternative")
-    msg["Subject"], msg["From"], msg["To"] = subject, f"Özelge Bildirimi <{sender}>", ", ".join(to)
+    msg["Subject"] = subject
+    msg["From"] = formataddr(("Özelge Bildirimi", sender))
+    msg["To"] = ", ".join(to)
+    msg["Date"] = formatdate(localtime=False)
+    msg["Message-ID"] = make_msgid(domain=sender.split("@")[-1])
     msg.attach(MIMEText(text, "plain", "utf-8"))
     msg.attach(MIMEText(body, "html", "utf-8"))
     host = os.environ.get("SMTP_HOST") or "smtp.gmail.com"
@@ -233,6 +239,9 @@ def main():
 
     # Özelgeler
     ozelgeler = get_ozelgeler()
+    if RESEND:
+        send(*build_mail(ozelgeler[:10], [], today, "GİB'de yayımlanan son 10 özelge:"))
+        return
     first_ozelge = "last_id" not in state
     last_id = state.get("last_id", 0)
     new_oz = [it for it in ozelgeler if it["id"] > last_id]
