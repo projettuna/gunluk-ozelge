@@ -177,7 +177,7 @@ def build_mail(ozelgeler, kararlar, today, ozelge_intro=None, karar_intro=None):
             f'<p style="font-size:12px;color:#666">Kararın tamamı: <a href="{DANISTAY}">karararama.danistay.gov.tr</a> (esas/karar no ile aranabilir)</p>')
         txt_parts.append(f"VUK 359 YARGI KARARLARI\n{intro}\n\n{karar_txt(kararlar)}\n\nKararın tamamı: {DANISTAY}")
     subject = ", ".join(parts_subject)
-    subject = subject[:1].upper() + subject[1:] + f" ({today})"
+    subject = "COSKUNS NEWS - OZELGE | " + subject[:1].upper() + subject[1:] + f" ({today})"
     body = ('<div style="font-family:Arial,sans-serif;max-width:680px">' + "".join(html_parts)
             + '<p style="color:#999;font-size:12px">Kaynak: gib.gov.tr özelgeler, karararama.danistay.gov.tr</p></div>')
     return subject, "\n\n".join(txt_parts), body
