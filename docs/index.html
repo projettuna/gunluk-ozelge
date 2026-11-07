@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vergi Mevzuat Takibi</title>
+<meta name="description" content="GİB özelge, tebliğ, sirküler, kanun, Resmî Gazete, Danıştay ve Anayasa Mahkemesi takibi">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mevzuat">
+<meta name="theme-color" content="#1f3a5f">
+<style>
+:root{
+  --bg:#f5f6f8;--card:#fff;--text:#1b1f24;--muted:#626b76;--line:#e3e6ea;--accent:#1f3a5f;--accent-soft:#e7eef7;
+  --star:#d99a00;--unread:#2463eb;
+  --c-ozelge:#2463eb;--c-teblig:#7c3aed;--c-sirkuler:#0d9488;--c-kanun:#b91c1c;--c-cb:#c2410c;--c-ic:#4b5563;
+  --c-rg:#a16207;--c-danistay:#15803d;--c-aym:#9d174d;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#111418;--card:#1a1f25;--text:#e8eaed;--muted:#9aa3ad;--line:#2a3038;--accent:#8fb4e3;--accent-soft:#1e2a38;
+  --star:#f5c043;--unread:#6ea0ff;
+  --c-ozelge:#6ea0ff;--c-teblig:#b18cff;--c-sirkuler:#3ccfbe;--c-kanun:#f17a7a;--c-cb:#fb9a5b;--c-ic:#aab2bd;
+  --c-rg:#e3b341;--c-danistay:#4cc779;--c-aym:#f07bb0;
+}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-text-size-adjust:100%}
+a{color:inherit}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:calc(10px + env(safe-area-inset-top)) 16px 10px}
+.wrap{max-width:860px;margin:0 auto}
+.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+h1{font-size:19px;margin:0;color:var(--accent);letter-spacing:-.2px}
+.upd{font-size:12px;color:var(--muted);white-space:nowrap}
+.search{margin-top:10px;display:flex;gap:8px}
+.search input{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font-size:15px}
+.search button{padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font-size:14px;cursor:pointer}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:6px 11px;font-size:13px;cursor:pointer;white-space:nowrap}
+.chip b{font-weight:600;color:var(--muted);margin-left:4px}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip.on b{color:#ffffffcc}
+@media (prefers-color-scheme: dark){.chip.on{color:#111418}.chip.on b{color:#111418aa}}
+main{padding:8px 16px calc(40px + env(safe-area-inset-bottom))}
+.day{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:18px 2px 8px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;position:relative}
+.item.unread{border-left:3px solid var(--unread)}
+.row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--tc,var(--accent))}
+.time{font-size:12px;color:var(--muted)}
+.actions{margin-left:auto;display:flex;gap:2px}
+.icon{border:0;background:none;color:var(--muted);font-size:18px;line-height:1;padding:4px 6px;cursor:pointer;border-radius:6px}
+.icon.star.on{color:var(--star)}
+.title{font-weight:600;font-size:15px;text-decoration:none;display:block}
+.title:hover{text-decoration:underline}
+.meta{font-size:13px;color:var(--muted);margin-top:3px}
+.ozet{font-size:13.5px;margin-top:6px;color:var(--text);opacity:.88}
+.ozet.clip{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.more{font-size:12.5px;color:var(--accent);background:none;border:0;padding:4px 0 0;cursor:pointer}
+.empty{text-align:center;color:var(--muted);padding:40px 0}
+.bar{display:flex;gap:8px;align-items:center;margin-top:8px;font-size:13px;color:var(--muted)}
+.bar label{display:flex;gap:5px;align-items:center;cursor:pointer}
+.bar .sp{flex:1}
+.bar button{border:0;background:none;color:var(--accent);font-size:13px;cursor:pointer;padding:2px 0}
+mark{background:#ffe58a;color:inherit;border-radius:2px}
+@media (prefers-color-scheme: dark){mark{background:#6b5a12}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="top"><h1>Vergi Mevzuat Takibi</h1><span class="upd" id="upd">yükleniyor…</span></div>
+  <div class="search"><input id="q" type="search" placeholder="Ara: başlık, sayı, kanun, konu…" autocomplete="off"><button id="refresh" title="Yenile">↻</button></div>
+  <div class="chips" id="chips"></div>
+  <div class="bar">
+    <label><input type="checkbox" id="onlyUnread"> Okunmamışlar</label>
+    <label><input type="checkbox" id="onlyStar"> Yıldızlılar</label>
+    <span class="sp"></span>
+    <button id="markAll">Tümünü okundu say</button>
+  </div>
+</div></header>
+<main><div class="wrap" id="list"></div></main>
+<script>
+const COLORS = {"Özelge":"--c-ozelge","Tebliğ":"--c-teblig","Sirküler":"--c-sirkuler","Kanun":"--c-kanun","CB Kararı":"--c-cb",
+  "İç Genelge":"--c-ic","Resmî Gazete":"--c-rg","Danıştay (VUK 359)":"--c-danistay","Anayasa Mahkemesi":"--c-aym"};
+const ORDER = Object.keys(COLORS);
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d }catch{ return d } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)) }catch{} }
+};
+let items = [], filter = store.get("filter", "Tümü"), read = new Set(store.get("read", [])), stars = new Set(store.get("stars", []));
+let firstVisit = store.get("read", null) === null;
+const $ = id => document.getElementById(id);
+const key = it => it.tur + "|" + it.url + "|" + it.title;
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const norm = s => String(s ?? "").toLocaleLowerCase("tr");
+
+function hl(text, q){
+  const t = esc(text); if(!q) return t;
+  const words = q.split(/\s+/).filter(w => w.length > 1).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  if(!words.length) return t;
+  return t.replace(new RegExp("(" + words.join("|") + ")", "gi"), "<mark>$1</mark>");
+}
+function dayLabel(iso){
+  if(!iso) return "Önceki kayıtlar";
+  const d = new Date(iso), now = new Date();
+  const a = new Date(d.getFullYear(), d.getMonth(), d.getDate()), b = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diff = Math.round((b - a) / 864e5);
+  if(diff === 0) return "Bugün"; if(diff === 1) return "Dün";
+  return d.toLocaleDateString("tr-TR", {day:"numeric", month:"long", year:"numeric", weekday:"long"});
+}
+function renderChips(){
+  const counts = {}; items.forEach(i => counts[i.tur] = (counts[i.tur] || 0) + 1);
+  const types = ["Tümü", ...ORDER.filter(t => counts[t]), ...Object.keys(counts).filter(t => !ORDER.includes(t))];
+  $("chips").innerHTML = types.map(t => `<button class="chip ${t === filter ? "on" : ""}" data-t="${esc(t)}">${esc(t)}<b>${t === "Tümü" ? items.length : counts[t]}</b></button>`).join("");
+}
+function render(){
+  renderChips();
+  const q = norm($("q").value.trim());
+  const words = q.split(/\s+/).filter(Boolean);
+  const list = items.filter(i =>
+    (filter === "Tümü" || i.tur === filter) &&
+    (!$("onlyUnread").checked || !read.has(key(i))) &&
+    (!$("onlyStar").checked || stars.has(key(i))) &&
+    words.every(w => norm(i.title + " " + i.meta + " " + i.ozet + " " + i.tur).includes(w)));
+  if(!list.length){ $("list").innerHTML = `<div class="empty">Kayıt bulunamadı.</div>`; return; }
+  let html = "", last = null;
+  for(const i of list.slice(0, 400)){
+    const dl = dayLabel(i.eklendi);
+    if(dl !== last){ html += `<div class="day">${esc(dl)}</div>`; last = dl; }
+    const k = key(i), unread = !read.has(k), long = (i.ozet || "").length > 220;
+    html += `<div class="item ${unread ? "unread" : ""}" data-k="${esc(k)}">
+      <div class="row"><span class="tag" style="--tc:var(${COLORS[i.tur] || "--accent"})">${esc(i.tur)}</span>
+        <span class="time">${i.eklendi ? new Date(i.eklendi).toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"}) : ""}</span>
+        <span class="actions"><button class="icon star ${stars.has(k) ? "on" : ""}" title="Yıldızla">${stars.has(k) ? "★" : "☆"}</button>
+        <button class="icon rd" title="${unread ? "Okundu say" : "Okunmadı say"}">${unread ? "○" : "●"}</button></span></div>
+      <a class="title" href="${esc(i.url)}" target="_blank" rel="noopener">${hl(i.title, q)}</a>
+      ${i.meta ? `<div class="meta">${hl(i.meta, q)}</div>` : ""}
+      ${i.ozet ? `<div class="ozet ${long ? "clip" : ""}">${hl(i.ozet, q)}</div>${long ? `<button class="more">Devamını göster</button>` : ""}` : ""}
+    </div>`;
+  }
+  if(list.length > 400) html += `<div class="empty">İlk 400 kayıt gösteriliyor. Aramayı daraltın.</div>`;
+  $("list").innerHTML = html;
+}
+async function load(){
+  $("upd").textContent = "yükleniyor…";
+  try{
+    const r = await fetch("feed.json?t=" + Date.now(), {cache: "no-store"});
+    const d = await r.json();
+    items = d.items || [];
+    if(firstVisit){ items.forEach(i => read.add(key(i))); store.set("read", [...read]); firstVisit = false; }
+    $("upd").textContent = d.guncellendi ? "Son kontrol: " + new Date(d.guncellendi).toLocaleString("tr-TR", {day:"numeric", month:"short", hour:"2-digit", minute:"2-digit"}) : "";
+  }catch(e){
+    $("upd").textContent = "Bağlantı hatası";
+  }
+  render();
+}
+$("chips").addEventListener("click", e => { const b = e.target.closest(".chip"); if(!b) return; filter = b.dataset.t; store.set("filter", filter); render(); });
+$("list").addEventListener("click", e => {
+  const it = e.target.closest(".item"); if(!it) return; const k = it.dataset.k;
+  if(e.target.closest(".star")){ stars.has(k) ? stars.delete(k) : stars.add(k); store.set("stars", [...stars]); render(); return; }
+  if(e.target.closest(".rd")){ read.has(k) ? read.delete(k) : read.add(k); store.set("read", [...read]); render(); return; }
+  if(e.target.closest(".more")){ const o = it.querySelector(".ozet"); o.classList.toggle("clip"); e.target.textContent = o.classList.contains("clip") ? "Devamını göster" : "Daralt"; return; }
+  if(e.target.closest(".title")){ read.add(k); store.set("read", [...read]); it.classList.remove("unread"); }
+});
+let t; $("q").addEventListener("input", () => { clearTimeout(t); t = setTimeout(render, 150); });
+$("onlyUnread").addEventListener("change", render);
+$("onlyStar").addEventListener("change", render);
+$("refresh").addEventListener("click", load);
+$("markAll").addEventListener("click", () => { items.forEach(i => read.add(key(i))); store.set("read", [...read]); render(); });
+document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible") load(); });
+setInterval(load, 10 * 60 * 1000);
+load();
+</script>
+</body>
+</html>

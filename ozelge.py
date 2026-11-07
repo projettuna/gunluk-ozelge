@@ -24,6 +24,7 @@ import re
 import smtplib
 import ssl
 import sys
+import time
 from datetime import datetime, timezone, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -276,7 +277,9 @@ def karar_snippet(karar_id):
 
 def enrich_kararlar(kararlar):
     out = []
-    for k in kararlar:
+    for n, k in enumerate(kararlar):
+        if n:
+            time.sleep(2)  # Danıştay hızlı isteklerde 429 veriyor
         try:
             snip, doc = karar_snippet(k["id"])
         except Exception as e:  # noqa: BLE001
@@ -424,9 +427,10 @@ def load_state():
 ARCHIVE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "feed.json")
 
 
-def archive_entries(new_oz=(), new_k=(), new_t=(), extra=()):
+def archive_entries(new_oz=(), new_k=(), new_t=(), extra=(), seed=False):
     """Web uygulaması için kayıtları docs/feed.json arşivine ekler."""
     now = datetime.now(TR).isoformat(timespec="minutes")
+    stamp = "" if seed else now
     rows = []
     for it in new_oz:
         rows.append({"tur": "Özelge", "title": it["title"], "meta": it["meta"], "url": it["url"], "ozet": it.get("ozet", "")})
@@ -451,8 +455,11 @@ def archive_entries(new_oz=(), new_k=(), new_t=(), extra=()):
     known = {(r["tur"], r["url"], r["title"]) for r in feed["items"]}
     for r in rows:
         if (r["tur"], r["url"], r["title"]) not in known:
-            r["eklendi"] = now
-            feed["items"].insert(0, r)
+            r["eklendi"] = stamp
+            if seed:
+                feed["items"].append(r)
+            else:
+                feed["items"].insert(0, r)
     feed["items"] = feed["items"][:3000]
     feed["guncellendi"] = now
     os.makedirs(os.path.dirname(ARCHIVE_FILE), exist_ok=True)
@@ -471,8 +478,7 @@ def seed_archive():
     extra.append(("Anayasa Mahkemesi kararları", "", get_aym(), None))
     extra.append(("Resmî Gazete (vergiyle ilgili)", "", get_resmi_gazete(), None))
     # eskiden yeniye ekle ki en yeni en üstte kalsın
-    archive_entries(list(reversed(oz)), list(reversed(kar)), list(reversed(tebs)),
-                    [(t, s_, list(reversed(i)), n) for t, s_, i, n in extra])
+    archive_entries(oz, kar, tebs, extra, seed=True)
     print("Arşiv dolduruldu")
 
 
