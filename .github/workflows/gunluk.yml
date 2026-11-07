@@ -25,6 +25,10 @@ on:
         description: "Eski arşivi (feed.json) veritabanına taşı"
         type: boolean
         default: false
+      diag:
+        description: "Veritabanı teşhis (yalnızca sayılar)"
+        type: boolean
+        default: false
       test_push:
         description: "Kayıtlı cihazlara deneme bildirimi gönder"
         type: boolean
@@ -59,7 +63,7 @@ jobs:
           SUPABASE_URL: https://hnolhapzcisavhkwyzhs.supabase.co
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           MAIL_ENABLED: ${{ vars.MAIL_ENABLED }}
-        run: python ozelge.py ${{ inputs.seed && '--seed' || '' }} ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.resend && '--resend' || '' }} ${{ inputs.resend_karar && '--resend-karar' || '' }} ${{ inputs.migrate && '--migrate' || '' }} ${{ inputs.test_push && '--test-push' || '' }}
+        run: python ozelge.py ${{ inputs.seed && '--seed' || '' }} ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.resend && '--resend' || '' }} ${{ inputs.resend_karar && '--resend-karar' || '' }} ${{ inputs.migrate && '--migrate' || '' }} ${{ inputs.test_push && '--test-push' || '' }} ${{ inputs.diag && '--diag' || '' }}
       - name: Durumu kaydet
         run: |
           [ -f seen.json ] || [ -f docs/feed.json ] || exit 0

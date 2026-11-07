@@ -45,6 +45,7 @@ RESEND_KARAR = "--resend-karar" in sys.argv
 DRY = "--dry-run" in sys.argv
 MIGRATE = "--migrate" in sys.argv
 TEST_PUSH = "--test-push" in sys.argv
+DIAG = "--diag" in sys.argv
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY") or ""
 # Gizli anahtar yoksa Supabase devre dışı (eski e-posta düzeni sürer)
 SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").rstrip("/") if SUPABASE_KEY else ""
@@ -625,6 +626,26 @@ def main():
         return
     if TEST_PUSH:
         push_test()
+        return
+    if DIAG:
+        # Depo herkese açık: yalnızca sayılar yazdırılır, içerik/kimlik yazdırılmaz
+        def safe(q):
+            try:
+                return db("GET", q) or []
+            except Exception as e:  # noqa: BLE001
+                print("HATA", q.split("?")[0], getattr(e, "code", e))
+                return []
+        m = safe("messages?select=room,created_at&order=id.desc&limit=500")
+        rooms = {}
+        for r in m:
+            k = "dm" if r["room"].startswith("dm:") else "grup" if r["room"].startswith("g:") else r["room"]
+            rooms[k] = rooms.get(k, 0) + 1
+        print("Mesaj sayısı (oda türüne göre):", rooms, "| son:", m[0]["created_at"] if m else "-")
+        print("Grup:", len(safe("chat_groups?select=id")), "| grup üyeliği:", len(safe("chat_group_members?select=group_id")))
+        st = {}
+        for p in safe("profiles?select=role,status"):
+            st[p["role"] + "/" + p["status"]] = st.get(p["role"] + "/" + p["status"], 0) + 1
+        print("Profiller:", st, "| bildirim cihazı:", len(safe("push_subs?select=id")))
         return
 
     # Özelgeler
