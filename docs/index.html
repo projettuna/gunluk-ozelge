@@ -255,6 +255,9 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
 .room .row{gap:8px}
 .thread{display:flex;flex-direction:column;gap:2px}
 .head .sub .linkbtn{vertical-align:baseline}
+body.typing .tabbar{display:none}
+body.typing .composer{bottom:0;padding-bottom:8px}
+body.typing main{padding-bottom:80px}
 </style>
 </head>
 <body>
@@ -273,6 +276,7 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
     <label class="field"><span>Ad Soyad</span><input placeholder="Ad Soyad" aria-label="Ad Soyad" name="full_name" autocomplete="name" required></label>
     <label class="field"><span>Kullanıcı Adı</span><input placeholder="Kullanıcı Adı" aria-label="Kullanıcı Adı" name="username" autocomplete="username" autocapitalize="none" pattern="[a-zA-Z0-9._]{3,20}" title="3-20 karakter: harf, rakam, nokta veya alt çizgi" required></label>
     <label class="field"><span>Şifre (En Az 8 Karakter)</span><input placeholder="Şifre (En Az 8 Karakter)" aria-label="Şifre (En Az 8 Karakter)" name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+    <label class="field"><span>Ünvan (İsteğe Bağlı)</span><input placeholder="Ünvan (İsteğe Bağlı)" aria-label="Ünvan" name="unvan" list="unvanlar" maxlength="60"></label>
     <label class="field"><span>Telefon (İsteğe Bağlı)</span><input placeholder="Telefon (İsteğe Bağlı)" aria-label="Telefon (İsteğe Bağlı)" name="phone" type="tel" autocomplete="tel"></label>
     </div><div class="err" id="signupErr"></div>
     <button class="btn" type="submit">Talep Oluştur</button>
@@ -280,6 +284,7 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
   </form>
 </div></section>
 
+<datalist id="unvanlar"><option>Vergi Müfettişi</option><option>Vergi Müfettiş Yardımcısı</option><option>Baş Vergi Müfettişi</option><option>Gelir Uzmanı</option><option>Vergi Dairesi Müdürü</option><option>Yeminli Mali Müşavir</option><option>Serbest Muhasebeci Mali Müşavir</option><option>Avukat</option><option>Hâkim</option><option>Savcı</option><option>Akademisyen</option></datalist>
 <!-- ONAY BEKLİYOR / SÜRESİ DOLDU -->
 <section class="auth" id="pendingView" hidden><div class="wrap">
   <div class="mark"><img src="icon-192.png" alt=""><h1>TMPRO</h1></div>
@@ -390,7 +395,7 @@ $("signupForm").addEventListener("submit", async e => {
   const { data: taken } = await sb.rpc("username_taken", { u: username });
   if(taken){ btn.disabled = false; $("signupErr").textContent = "Bu kullanıcı adı alınmış, başka bir tane deneyin."; return; }
   const { error } = await sb.auth.signUp({ email: toEmail(username), password: f.get("password"),
-    options: { data: { username, full_name: f.get("full_name").trim(), phone: f.get("phone").trim() } } });
+    options: { data: { username, full_name: f.get("full_name").trim(), phone: f.get("phone").trim(), unvan: (f.get("unvan") || "").trim() } } });
   btn.disabled = false;
   if(error){ $("signupErr").textContent = error.message.includes("Password") ? "Şifre en az 8 karakter olmalı." : "Talep oluşturulamadı: " + error.message; return; }
   boot();
@@ -615,7 +620,7 @@ function memberName(uid){ const m = members?.find(x => x.id === uid); if(m) retu
 const initialsOf = n => String(n || "?").split(/\s+/).map(w => w[0]).slice(0, 2).join("").toLocaleUpperCase("tr");
 async function startChat(){
   if(chatStarted) return; chatStarted = true;
-  const { data } = await sb.from("messages").select("id,room,user_id,username,body,created_at").order("id", { ascending: false }).limit(1000);
+  const { data } = await sb.from("messages").select("*").order("id", { ascending: false }).limit(1000);
   msgs = (data || []).reverse();
   await loadGroups();
   if(store.get("chatSeenRooms", null) === null){ const m = {}; msgs.forEach(x => m[x.room] = x.id); store.set("chatSeenRooms", m); }
@@ -629,7 +634,7 @@ async function startChat(){
 async function fetchNewMsgs(){
   if(!chatStarted) return;
   const max = msgs.length ? msgs[msgs.length - 1].id : 0;
-  const { data } = await sb.from("messages").select("id,room,user_id,username,body,created_at").gt("id", max).order("id").limit(500);
+  const { data } = await sb.from("messages").select("*").gt("id", max).order("id").limit(500);
   if(data && data.length){
     data.forEach(m => { if(!msgs.some(x => x.id === m.id)) msgs.push(m); });
     if(data.some(m => m.room.startsWith("g:") && !groups.some(g => "g:" + g.id === m.room))) await loadGroups();
@@ -698,7 +703,7 @@ function renderRoom(){
     const d = new Date(m.created_at), dl = dayLabel(m.created_at);
     if(dl !== lastDay){ html += `<div class="chatday">${esc(dl)}</div>`; lastDay = dl; lastUser = null; }
     const mine = m.user_id === me.id;
-    html += `<div class="msg ${mine ? "me" : ""}" data-id="${m.id}">${!mine && !room.startsWith("dm:") && lastUser !== m.user_id ? `<div class="who">${esc(m.username || "üye")}</div>` : ""}
+    html += `<div class="msg ${mine ? "me" : ""}" data-id="${m.id}">${!mine && !room.startsWith("dm:") && lastUser !== m.user_id ? `<div class="who">${esc(m.username || "üye")}${m.unvan ? ` · <span style="color:var(--gold)">${esc(m.unvan)}</span>` : ""}</div>` : ""}
       <div class="bub">${esc(m.body)}</div><div class="tm">${d.toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"})}</div></div>`;
     lastUser = m.user_id;
   }
@@ -739,7 +744,7 @@ function openJoin(g){
     e.preventDefault(); const pass = new FormData(e.target).get("pass");
     const { data, error } = await sb.rpc("join_group", { gid: g.id, gpass: pass || null });
     if(error || !data){ $("joinErr").textContent = g.locked ? "Şifre yanlış." : "Katılınamadı."; return; }
-    const r = "g:" + g.id; const { data: old } = await sb.from("messages").select("id,room,user_id,username,body,created_at").eq("room", r).order("id").limit(500);
+    const r = "g:" + g.id; const { data: old } = await sb.from("messages").select("*").eq("room", r).order("id").limit(500);
     (old || []).forEach(m => { if(!msgs.some(x => x.id === m.id)) msgs.push(m); }); msgs.sort((a, b) => a.id - b.id);
     await loadGroups(); room = r; toast("Gruba katıldınız"); render();
   };
@@ -747,7 +752,7 @@ function openJoin(g){
 async function openMembers(){
   if(!members){ const { data } = await sb.rpc("list_members"); members = data || []; }
   $("msgs").innerHTML = `<div class="sect" style="margin-top:8px">Kime Yazmak İstiyorsunuz?</div><div class="list">${members.length ? members.map(m =>
-    `<button class="li room" data-room="${esc(dmRoom(m.id))}"><div class="rav ava2">${esc(initialsOf(m.full_name || m.username))}</div><div class="grow"><b class="rn">${esc(m.full_name || m.username)}</b><small>@${esc(m.username)}</small></div></button>`).join("")
+    `<button class="li room" data-room="${esc(dmRoom(m.id))}"><div class="rav ava2">${esc(initialsOf(m.full_name || m.username))}</div><div class="grow"><b class="rn">${esc(m.full_name || m.username)}</b><small>${m.unvan ? esc(m.unvan) + " · " : ""}@${esc(m.username)}</small></div></button>`).join("")
     : `<div class="li"><small>Henüz başka aktif üye yok.</small></div>`}</div>`;
   $("heading").textContent = "Yeni Mesaj"; $("back").hidden = false; room = "__pick";
 }
@@ -766,6 +771,8 @@ $("msgs").addEventListener("click", async e => {
   if(!error){ msgs = msgs.filter(x => x.id !== msg.id); renderChat(); }
 });
 const msgIn = $("msgIn");
+msgIn.addEventListener("focus", () => { document.body.classList.add("typing"); setTimeout(() => scrollTo({ top: document.body.scrollHeight }), 350); });
+msgIn.addEventListener("blur", () => setTimeout(() => { if(document.activeElement !== msgIn) document.body.classList.remove("typing"); }, 100));
 msgIn.addEventListener("input", () => { $("sendBtn").disabled = !msgIn.value.trim(); msgIn.style.height = "auto"; msgIn.style.height = Math.min(msgIn.scrollHeight, 120) + "px"; });
 msgIn.addEventListener("keydown", e => { if(e.key === "Enter" && !e.shiftKey && !e.isComposing){ e.preventDefault(); $("composer").requestSubmit(); } });
 $("composer").addEventListener("submit", async e => {
@@ -817,9 +824,12 @@ async function renderAccount(){
   const initials = (me.full_name || me.username).split(/\s+/).map(w => w[0]).slice(0, 2).join("").toLocaleUpperCase("tr");
   const showHint = !pushSupported || !standalone;
   $("account").innerHTML = `
-    <div class="list"><div class="li" style="padding:14px 16px"><div class="ava">${esc(initials)}</div><div class="grow"><b style="font-weight:600;font-size:20px">${esc(me.full_name || me.username)}</b><small>@${esc(me.username)}</small></div><span class="pill ${me.role === "admin" ? "ok" : "ok"}">${esc(sub)}</span></div></div>
+    <div class="list"><div class="li" style="padding:14px 16px"><div class="ava">${esc(initials)}</div><div class="grow"><b style="font-weight:600;font-size:20px">${esc(me.full_name || me.username)}</b><small>${me.unvan ? esc(me.unvan) + " · " : ""}@${esc(me.username)}</small></div><span class="pill ${me.role === "admin" ? "ok" : "ok"}">${esc(sub)}</span></div></div>
+    <div class="sect">Ünvan</div>
+    <div class="group"><label class="field"><input id="unvanIn" list="unvanlar" maxlength="60" placeholder="Örn. Vergi Müfettişi" value="${esc(me.unvan || "")}"></label></div>
+    <div class="foot">Sohbette adınızın yanında görünür.</div>
     <div class="sect">Bildirimler</div>
-    ${showHint ? `<div class="hint">Anlık Bildirim için TMPRO'yu ana ekrana ekleyip oradan açın: Safari'de <b>Paylaş</b>, ardından <b>Ana Ekrana Ekle</b>.</div>` : ""}
+    ${showHint ? `<div class="hint">Anlık bildirim için TMPRO'yu ana ekrana ekleyip oradan açın: Safari'de <b>Paylaş</b>, ardından <b>Ana Ekrana Ekle</b>.</div>` : ""}
     <div class="list">
       <div class="li"><div class="tdot" style="--c:var(--danger)">${icon("Tebliğ", 17).replace('stroke-width="1.9"', 'stroke-width="2.2"')}</div><div class="grow"><b>Anlık Bildirim</b></div>
         <label class="switch"><input type="checkbox" id="pushToggle" ${on ? "checked" : ""} ${!pushSupported ? "disabled" : ""}><span></span></label></div>
@@ -836,6 +846,7 @@ async function renderAccount(){
     <div class="sect"></div>
     <div class="list"><button class="li" id="logout" style="width:100%;border:0;background:none;justify-content:center;color:var(--danger);font-size:17px;cursor:pointer">Çıkış Yap</button></div>
     <p class="small muted" style="text-align:center;margin-top:24px">TMPRO · GİB, Resmî Gazete, Danıştay, Anayasa Mahkemesi</p>`;
+  $("unvanIn").onchange = async e => { const v = e.target.value.trim(); const { error } = await sb.rpc("set_my_unvan", { u: v }); if(error){ toast("Kaydedilemedi"); return; } me.unvan = v || null; toast("Ünvan kaydedildi"); renderAccount(); };
   $("chatNotify").onchange = async e => { const on = e.target.checked; const { error } = await sb.rpc("set_chat_notify", { enabled: on }); if(error){ e.target.checked = !on; toast("Kaydedilemedi"); return; } me.chat_notify = on; toast(on ? "Sohbet Bildirimleri açık" : "Sohbet Bildirimleri kapalı"); };
   $("themeSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; setTheme(b.dataset.th); renderAccount(); };
   $("logout").onclick = async () => { await sb.auth.signOut(); me = null; show("authView"); };
@@ -873,7 +884,7 @@ async function renderAdmin(){
   const other = users.filter(u => !pending.includes(u) && !active.includes(u));
   const seg = (k, l, n) => `<button data-seg="${k}" class="${adminSeg === k ? "on" : ""}">${l}${n ? ` (${n})` : ""}</button>`;
   const person = (u, actions) => `<div class="li" style="display:block"><div class="row"><div class="grow"><b>${esc(u.full_name || u.username)}</b>
-      <small>@${esc(u.username)}${u.phone ? " · " + esc(u.phone) : ""} · Kod: ${esc(u.pay_code || "")}</small>
+      <small>${u.unvan ? esc(u.unvan) + " · " : ""}@${esc(u.username)}${u.phone ? " · " + esc(u.phone) : ""} · Kod: ${esc(u.pay_code || "")}</small>
       <small>Talep: ${fmtDate(u.created_at)}${u.expires_at ? " · Bitiş: " + fmtDate(u.expires_at) : u.status === "active" ? " · Süresiz" : ""}</small></div>
       ${statusPill(u)}</div><div class="acts2">${actions(u)}</div></div>`;
   let body = "";
