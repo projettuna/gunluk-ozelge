@@ -4,11 +4,6 @@ on:
   schedule:
     - cron: "0 5 * * *"   # 05:00 UTC = 08:00 Türkiye
   workflow_dispatch:
-    inputs:
-      debug:
-        description: "Ham yanıtları kaydet (debug)"
-        type: boolean
-        default: false
 
 permissions:
   contents: write
@@ -30,18 +25,12 @@ jobs:
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
           KEYWORDS: ${{ vars.KEYWORDS }}
-        run: python ozelge.py ${{ inputs.debug && '--debug' || '' }}
-      - name: Debug çıktısını yükle
-        if: always() && inputs.debug
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug
-          path: debug/
-      - name: Görülen özelgeleri kaydet
+        run: python ozelge.py
+      - name: Son görülen özelgeyi kaydet
         run: |
+          [ -f seen.json ] || exit 0
           git config user.name "ozelge-bot"
           git config user.email "ozelge-bot@users.noreply.github.com"
-          [ -f seen.json ] || exit 0
           git add seen.json
-          git diff --cached --quiet || git commit -m "Görülen özelgeleri güncelle"
+          git diff --cached --quiet || git commit -m "Son görülen özelgeyi güncelle"
           git push
