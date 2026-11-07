@@ -12,240 +12,258 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="TMPRO">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#f7f6f2" media="(prefers-color-scheme: light)" id="tcL">
-<meta name="theme-color" content="#0a0e16" media="(prefers-color-scheme: dark)" id="tcD">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)" id="tcL">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" id="tcD">
 <script>try{const t=localStorage.getItem("tmpro:theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch{}</script>
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.79.0/dist/umd/supabase.js"></script>
 <style>
 :root{
-  --bg:#f7f6f2; --surface:#ffffff; --surface-2:#efede7; --text:#111827; --muted:#6b7280; --faint:#9ca3af;
-  --line:#e7e4dc; --ink:#0f1a2e; --ink-text:#ffffff; --gold:#b8913c; --gold-2:#d9b25a; --accent:#0f1a2e; --danger:#b42318; --ok:#067647;
-  --shadow:0 1px 2px rgba(17,24,39,.04),0 4px 14px rgba(17,24,39,.05);
-  --t-ozelge:#2f5bd3; --t-teblig:#6d4bd8; --t-sirkuler:#0f8a7e; --t-kanun:#c0392b; --t-cb:#c25a12;
-  --t-ic:#4b5563; --t-rg:#a16207; --t-danistay:#18794e; --t-aym:#a3175a;
+  --bg:#f2f2f7; --surface:#ffffff; --fill:rgba(118,118,128,.12); --fill-2:rgba(118,118,128,.08);
+  --text:#000000; --muted:rgba(60,60,67,.62); --faint:rgba(60,60,67,.32); --line:rgba(60,60,67,.14);
+  --accent:#0071e3; --gold:#b98a2e; --danger:#ff3b30; --ok:#34c759;
+  --btn:#1d1d1f; --btn-text:#ffffff; --seg-on:#ffffff; --bar:rgba(249,249,249,.82);
+  --shadow:0 1px 1px rgba(0,0,0,.02),0 4px 16px rgba(0,0,0,.04);
+  --t-ozelge:#007aff; --t-teblig:#5856d6; --t-sirkuler:#30b0c7; --t-kanun:#ff3b30; --t-cb:#ff9500;
+  --t-ic:#8e8e93; --t-rg:#d4a200; --t-danistay:#34c759; --t-aym:#ff2d55;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0a0e16; --surface:#121824; --surface-2:#1a2130; --text:#eceef2; --muted:#9aa3b2; --faint:#6e7787;
-  --line:#222a39; --ink:#d9b25a; --ink-text:#0a0e16; --gold:#d9b25a; --gold-2:#f0d48a; --accent:#d9b25a; --danger:#f97066; --ok:#47cd89;
-  --shadow:none;
-  --t-ozelge:#7aa2ff; --t-teblig:#b39cff; --t-sirkuler:#4fd1c2; --t-kanun:#ff8a80; --t-cb:#ffab70;
-  --t-ic:#aab3c0; --t-rg:#f0c060; --t-danistay:#5fd39a; --t-aym:#f58bbd;
+  --bg:#000000; --surface:#1c1c1e; --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.16);
+  --text:#ffffff; --muted:rgba(235,235,245,.62); --faint:rgba(235,235,245,.3); --line:rgba(84,84,88,.5);
+  --accent:#0a84ff; --gold:#e0b44e; --danger:#ff453a; --ok:#30d158;
+  --btn:#ffffff; --btn-text:#000000; --seg-on:#636366; --bar:rgba(22,22,24,.8); --shadow:none;
+  --t-ozelge:#0a84ff; --t-teblig:#5e5ce6; --t-sirkuler:#40c8e0; --t-kanun:#ff453a; --t-cb:#ff9f0a;
+  --t-ic:#98989d; --t-rg:#ffd60a; --t-danistay:#30d158; --t-aym:#ff375f;
 }}
 :root[data-theme="dark"]{
-  --bg:#0a0e16; --surface:#121824; --surface-2:#1a2130; --text:#eceef2; --muted:#9aa3b2; --faint:#6e7787;
-  --line:#222a39; --ink:#d9b25a; --ink-text:#0a0e16; --gold:#d9b25a; --gold-2:#f0d48a; --accent:#d9b25a; --danger:#f97066; --ok:#47cd89;
-  --shadow:none;
-  --t-ozelge:#7aa2ff; --t-teblig:#b39cff; --t-sirkuler:#4fd1c2; --t-kanun:#ff8a80; --t-cb:#ffab70;
-  --t-ic:#aab3c0; --t-rg:#f0c060; --t-danistay:#5fd39a; --t-aym:#f58bbd;
+  --bg:#000000; --surface:#1c1c1e; --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.16);
+  --text:#ffffff; --muted:rgba(235,235,245,.62); --faint:rgba(235,235,245,.3); --line:rgba(84,84,88,.5);
+  --accent:#0a84ff; --gold:#e0b44e; --danger:#ff453a; --ok:#30d158;
+  --btn:#ffffff; --btn-text:#000000; --seg-on:#636366; --bar:rgba(22,22,24,.8); --shadow:none;
+  --t-ozelge:#0a84ff; --t-teblig:#5e5ce6; --t-sirkuler:#40c8e0; --t-kanun:#ff453a; --t-cb:#ff9f0a;
+  --t-ic:#98989d; --t-rg:#ffd60a; --t-danistay:#30d158; --t-aym:#ff375f;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--text)}
-body{font:15px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
-button,input,select,textarea{font:inherit;color:inherit}
+body{font:17px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;letter-spacing:-.2px;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit;letter-spacing:inherit}
 a{color:inherit}
 svg{display:block}
 [hidden]{display:none!important}
-.wrap{max-width:720px;margin:0 auto}
-.serif{font-family:"Playfair Display",Georgia,serif}
-
-/* ortak bileşenler */
-.btn{border:0;border-radius:14px;padding:13px 18px;font-weight:600;font-size:15px;cursor:pointer;background:var(--ink);color:var(--ink-text);width:100%}
-.btn:active{transform:scale(.99)}
-.btn.ghost{background:var(--surface-2);color:var(--text)}
-.btn.small{width:auto;padding:8px 12px;font-size:13px;border-radius:10px}
-.btn.ok{background:var(--ok);color:#fff}
-.btn.danger{background:transparent;color:var(--danger);border:1px solid color-mix(in srgb,var(--danger) 35%,transparent)}
-.btn[disabled]{opacity:.55}
-.field{display:block;margin-bottom:12px}
-.field span{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 6px 2px}
-.field input,.field textarea{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;font-size:16px;outline:none}
-.field input:focus,.field textarea:focus{border-color:var(--gold)}
-.err{color:var(--danger);font-size:13px;min-height:18px;margin:4px 2px 10px}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
+.wrap{max-width:680px;margin:0 auto}
 .muted{color:var(--muted)}
-.small{font-size:13px}
+.small{font-size:13px;letter-spacing:-.05px}
 .row{display:flex;align-items:center;gap:10px}
 .spacer{flex:1}
-.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(16px);opacity:0;
-  background:var(--text);color:var(--bg);font-size:13px;font-weight:500;padding:10px 16px;border-radius:12px;transition:.25s;pointer-events:none;z-index:50;max-width:90vw;text-align:center}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* giriş ekranı */
-.auth{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 24px)}
+/* düğmeler ve form */
+.btn{border:0;border-radius:14px;height:50px;padding:0 20px;font-weight:600;font-size:17px;cursor:pointer;background:var(--btn);color:var(--btn-text);width:100%;transition:opacity .15s,transform .15s}
+.btn:active{opacity:.75;transform:scale(.985)}
+.btn.ghost{background:var(--fill);color:var(--accent)}
+.btn.plain{background:none;color:var(--accent);font-weight:500}
+.btn.small{width:auto;height:34px;padding:0 14px;font-size:15px;border-radius:999px}
+.btn.ok{background:var(--accent);color:#fff}
+.btn.danger{background:var(--fill);color:var(--danger)}
+.btn[disabled]{opacity:.45}
+.group{background:var(--surface);border-radius:14px;overflow:hidden;margin-bottom:8px}
+.field{display:block;position:relative}
+.field+.field::before{content:"";position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--line)}
+.field span{display:none}
+.field input{width:100%;border:0;background:transparent;padding:0 16px;height:50px;font-size:17px;outline:none}
+.field input::placeholder{color:var(--faint)}
+.err{color:var(--danger);font-size:13px;min-height:18px;margin:6px 16px 10px}
+.note{font-size:13px;color:var(--muted);margin:12px 16px 0;line-height:1.45}
+
+/* bildirim balonu */
+.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 10px);transform:translateX(-50%) translateY(-20px) scale(.96);opacity:0;
+  background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);color:var(--text);
+  font-size:15px;font-weight:600;padding:12px 20px;border-radius:999px;transition:.3s cubic-bezier(.2,.8,.2,1);pointer-events:none;z-index:50;max-width:90vw;text-align:center;
+  box-shadow:0 8px 30px rgba(0,0,0,.12)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}
+
+/* giriş */
+.auth{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:calc(env(safe-area-inset-top) + 32px) 20px calc(env(safe-area-inset-bottom) + 32px)}
 .auth .wrap{max-width:400px;width:100%}
-.mark{display:flex;flex-direction:column;align-items:center;margin-bottom:28px}
-.mark img{width:76px;height:76px;border-radius:20px;box-shadow:0 10px 30px rgba(15,26,46,.25)}
-.mark h1{margin:16px 0 2px;font-family:"Playfair Display",Georgia,serif;font-size:30px;letter-spacing:1px}
-.mark h1 span{color:var(--gold)}
-.mark p{margin:0;color:var(--muted);font-size:14px}
-.seg{display:flex;background:var(--surface-2);border-radius:12px;padding:4px;margin-bottom:16px}
-.seg button{flex:1;border:0;background:none;padding:9px;border-radius:9px;font-weight:600;font-size:14px;color:var(--muted);cursor:pointer}
-.seg button.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
-.pay{border:1px dashed color-mix(in srgb,var(--gold) 60%,transparent);border-radius:14px;padding:14px;margin:14px 0;background:color-mix(in srgb,var(--gold) 6%,transparent)}
-.pay dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:14px}
-.pay dt{color:var(--muted)}
-.pay dd{margin:0;font-weight:600;word-break:break-all}
-.copy{border:0;background:none;color:var(--gold);font-weight:600;font-size:12.5px;cursor:pointer;padding:0 0 0 6px}
-.status{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--surface-2)}
+.mark{display:flex;flex-direction:column;align-items:center;margin-bottom:32px;text-align:center}
+.mark img{width:84px;height:84px;border-radius:19px;box-shadow:0 12px 32px rgba(0,0,0,.14)}
+.mark h1{margin:18px 0 4px;font-size:30px;font-weight:700;letter-spacing:.5px}
+.mark p{margin:0;color:var(--muted);font-size:17px}
+.seg{display:flex;background:var(--fill);border-radius:10px;padding:2px;margin-bottom:20px}
+.seg button{flex:1;border:0;background:none;height:32px;border-radius:8px;font-weight:500;font-size:14px;cursor:pointer;color:var(--text);transition:background .2s}
+.seg button.on{background:var(--seg-on);font-weight:600;box-shadow:0 3px 8px rgba(0,0,0,.12),0 1px 1px rgba(0,0,0,.04)}
+.panel{background:var(--surface);border-radius:14px;padding:18px 16px}
+.pay{margin:16px 0;border-radius:12px;background:var(--fill-2);padding:4px 14px}
+.pay dl{margin:0}
+.pay .pr{display:flex;align-items:center;gap:10px;padding:11px 0;font-size:15px}
+.pay .pr+.pr{border-top:.5px solid var(--line)}
+.pay dt{color:var(--muted);width:78px;flex:none}
+.pay dd{margin:0;font-weight:600;word-break:break-all;flex:1}
+.copy{border:0;background:none;color:var(--accent);font-weight:500;font-size:15px;cursor:pointer;padding:0;flex:none}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--fill);color:var(--muted)}
 .status i{width:7px;height:7px;border-radius:50%;background:var(--gold)}
 
-/* uygulama */
-.appbar{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 86%,transparent);
-  backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);padding:calc(env(safe-area-inset-top) + 10px) 16px 0}
-.brand{display:flex;align-items:center;gap:10px;height:44px}
-.brand img{width:32px;height:32px;border-radius:9px}
-.brand b{font-family:"Playfair Display",Georgia,serif;font-size:21px;letter-spacing:.8px}
-.brand b span{color:var(--gold)}
-.iconbtn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;color:var(--muted)}
-.iconbtn.spin svg{animation:spin .8s linear infinite}
+/* üst çubuk */
+.appbar{position:sticky;top:0;z-index:10;padding-top:env(safe-area-inset-top);background:transparent;transition:background .25s}
+.appbar.solid{background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 .5px 0 var(--line)}
+.bar{height:48px;display:flex;align-items:center;padding:0 16px;position:relative}
+.bar img{width:28px;height:28px;border-radius:7px}
+.navtitle{position:absolute;left:50%;transform:translateX(-50%);font-size:17px;font-weight:600;opacity:0;transition:opacity .2s;white-space:nowrap}
+.appbar.solid .navtitle{opacity:1}
+.navbtn{width:34px;height:34px;border-radius:50%;border:0;background:var(--fill);display:grid;place-items:center;cursor:pointer;color:var(--accent);margin-left:auto}
+.navbtn.spin svg{animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.searchbox{margin-top:8px;position:relative}
-.searchbox svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--faint)}
-.searchbox input{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:11px 12px 11px 38px;font-size:16px;outline:none}
-.searchbox input:focus{border-color:var(--gold)}
-.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 16px 12px;margin:0 -16px;scrollbar-width:none}
+main{padding:0 16px calc(96px + env(safe-area-inset-bottom))}
+.eyebrow{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.2px;margin:4px 4px 0}
+.head{display:flex;align-items:flex-end;justify-content:space-between;margin:2px 4px 12px}
+.head h2{font-size:34px;font-weight:700;margin:0;letter-spacing:.3px;line-height:1.15}
+.head .sub{font-size:15px;color:var(--muted);margin-top:2px}
+.linkbtn{border:0;background:none;color:var(--accent);font-size:17px;cursor:pointer;padding:6px 0}
+.back{display:inline-flex;align-items:center;gap:2px;border:0;background:none;color:var(--accent);font-size:17px;padding:2px 0 6px;margin-left:-6px;cursor:pointer}
+.searchbox{position:relative;margin:0 0 4px}
+.searchbox svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.searchbox input{width:100%;border:0;background:var(--fill);border-radius:11px;height:38px;padding:0 10px 0 34px;font-size:17px;outline:none;-webkit-appearance:none}
+.searchbox input::placeholder{color:var(--muted)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 4px;margin:0 -16px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px}
-.chip i{width:6px;height:6px;border-radius:50%;background:var(--c,var(--faint))}
-.chip em{font-style:normal;color:var(--faint);font-size:12px}
-.chip.on{background:var(--ink);border-color:var(--ink);color:var(--ink-text)}
-.chip.on em{color:inherit;opacity:.7}
-.chip.on i{background:currentColor}
-.hairline{height:1px;background:var(--line);margin:0 -16px}
-main{padding:4px 16px calc(100px + env(safe-area-inset-bottom))}
-.head{display:flex;align-items:flex-end;justify-content:space-between;margin:16px 2px 4px}
-.head h2{font-family:"Playfair Display",Georgia,serif;font-size:26px;font-weight:700;margin:0;letter-spacing:.2px}
-.head .sub{font-size:12.5px;color:var(--muted)}
-.linkbtn{border:0;background:none;color:var(--gold);font-size:13px;font-weight:600;cursor:pointer;padding:6px 0}
-.day{font-size:11.5px;font-weight:600;color:var(--muted);margin:22px 4px 8px;letter-spacing:.8px;text-transform:uppercase}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 14px 12px 16px;margin-bottom:10px;position:relative}
-.card.unread{border-color:color-mix(in srgb,var(--gold) 55%,var(--line))}
-.card.unread::after{content:"";position:absolute;top:18px;right:14px;width:7px;height:7px;border-radius:50%;background:var(--gold)}
-.ctop{display:flex;align-items:center;gap:8px;margin-bottom:6px;padding-right:14px}
-.type{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--c)}
-.dot{width:3px;height:3px;border-radius:50%;background:var(--faint)}
-.when{font-size:12px;color:var(--faint)}
-.title{display:block;font-weight:600;font-size:15.5px;line-height:1.42;text-decoration:none}
-.meta{font-size:12.5px;color:var(--muted);margin-top:4px}
-.ozet{font-size:13.5px;opacity:.85;margin-top:8px;line-height:1.55}
-.ozet.clip{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.cfoot{display:flex;align-items:center;gap:4px;margin-top:10px}
-.more{border:0;background:none;color:var(--gold);font-size:12.5px;font-weight:600;padding:4px 0;cursor:pointer}
-.open{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:600;color:var(--muted);text-decoration:none;margin-right:auto}
-.act{border:0;background:none;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--faint);cursor:pointer}
-.act:active{background:var(--surface-2)}
-.act.on{color:var(--gold)}
-.empty{text-align:center;color:var(--muted);padding:56px 20px}
-.empty svg{margin:0 auto 12px;color:var(--faint)}
-mark{background:color-mix(in srgb,var(--gold) 30%,transparent);color:inherit;border-radius:3px;padding:0 1px}
-
-.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:color-mix(in srgb,var(--surface) 90%,transparent);
-  backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
-.tabs{display:flex;max-width:560px;margin:0 auto}
-.tab{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;font-size:10.5px;font-weight:600;color:var(--faint);cursor:pointer;position:relative}
-.tab.on{color:var(--accent)}
-.badge{position:absolute;top:0;left:calc(50% + 6px);min-width:18px;height:18px;border-radius:9px;background:var(--gold);color:#fff;font-size:10.5px;font-weight:700;display:grid;place-items:center;padding:0 5px}
-
+.chip{flex:none;border:0;background:var(--surface);border-radius:999px;height:32px;padding:0 14px;font-size:15px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.chip i{display:none}
+.chip em{font-style:normal;color:var(--muted);font-size:13px}
+.chip.on{background:var(--btn);color:var(--btn-text)}
+.chip.on em{color:inherit;opacity:.65}
 
 /* kategori ızgarası */
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 4px}
-.tile{aspect-ratio:1/1;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px;display:flex;flex-direction:column;
-  justify-content:space-between;text-align:left;cursor:pointer;position:relative;box-shadow:var(--shadow);transition:transform .12s}
-.tile:active{transform:scale(.97)}
-.tile .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;color:var(--c);background:color-mix(in srgb,var(--c) 13%,transparent)}
-.tile b{display:block;font-size:13.5px;font-weight:600;line-height:1.2}
-.tile small{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
-.tile .nb{position:absolute;top:10px;right:10px;min-width:20px;height:20px;border-radius:10px;background:var(--gold);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 6px}
-.tile.all{grid-column:1/-1;aspect-ratio:auto;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;background:var(--ink);border-color:var(--ink);color:var(--ink-text)}
-.tile.all .ic{background:rgba(255,255,255,.14);color:var(--ink-text)}
-.tile.all small{color:inherit;opacity:.7}
-.tile.all .nb{position:static;margin-left:auto;background:var(--ink-text);color:var(--ink)}
-.tile.all .ic{flex:none}
-.back{display:inline-flex;align-items:center;gap:4px;border:0;background:none;color:var(--muted);font-weight:600;font-size:13.5px;padding:8px 0 0;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0 0}
+.tile{aspect-ratio:1/1;background:var(--surface);border:0;border-radius:20px;padding:14px;display:flex;flex-direction:column;justify-content:space-between;
+  text-align:left;cursor:pointer;position:relative;box-shadow:var(--shadow);transition:transform .2s cubic-bezier(.2,.8,.2,1)}
+.tile:active{transform:scale(.95)}
+.tile .ic{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;color:#fff;background:var(--c)}
+.tile b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px;font-weight:600;line-height:1.2;letter-spacing:-.3px}
+.tile small{display:block;font-size:13px;color:var(--muted);margin-top:2px}
+.tile .nb{position:absolute;top:12px;right:12px;min-width:22px;height:22px;border-radius:11px;background:var(--danger);color:#fff;font-size:13px;font-weight:600;display:grid;place-items:center;padding:0 7px}
+.tile.all{grid-column:1/-1;aspect-ratio:auto;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;padding:12px 14px}
+.tile.all .ic{flex:none;background:var(--btn);color:var(--btn-text)}
+.tile.all .nb{position:static;margin-left:auto}
+.tile.all::after{content:"";width:8px;height:8px;border-top:2px solid var(--faint);border-right:2px solid var(--faint);transform:rotate(45deg);margin:0 4px 0 6px;flex:none}
+.tile.all:not(:has(.nb))::after{margin-left:auto}
 
-/* hesap & yönetim */
-.list{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:16px}
-.li{display:flex;align-items:center;gap:12px;padding:13px 14px;border-top:1px solid var(--line)}
-.li:first-child{border-top:0}
+/* kayıt kartları */
+.day{font-size:20px;font-weight:700;margin:26px 4px 10px;letter-spacing:.2px}
+.card{background:var(--surface);border-radius:18px;padding:16px 16px 10px;margin-bottom:12px;position:relative;box-shadow:var(--shadow)}
+.ctop{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.card.unread .ctop::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
+.type{font-size:13px;font-weight:600;color:var(--c)}
+.dot{width:3px;height:3px;border-radius:50%;background:var(--faint)}
+.when{font-size:13px;color:var(--muted)}
+.title{display:block;font-weight:600;font-size:17px;line-height:1.32;text-decoration:none;letter-spacing:-.35px}
+.meta{font-size:13px;color:var(--muted);margin-top:4px}
+.ozet{font-size:15px;color:var(--muted);margin-top:8px;line-height:1.45}
+.ozet.clip{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cfoot{display:flex;align-items:center;gap:2px;margin-top:8px;border-top:.5px solid var(--line);padding-top:6px}
+.more{border:0;background:none;color:var(--accent);font-size:15px;padding:4px 0;cursor:pointer}
+.open{display:inline-flex;align-items:center;gap:4px;font-size:15px;color:var(--accent);text-decoration:none;margin-right:auto;padding:6px 0}
+.act{border:0;background:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--muted);cursor:pointer}
+.act:active{background:var(--fill)}
+.act.on{color:var(--gold)}
+.empty{text-align:center;color:var(--muted);padding:64px 24px;font-size:15px}
+.empty svg{margin:0 auto 14px;color:var(--faint)}
+mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;border-radius:3px;padding:0 1px}
+
+/* sekme çubuğu */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  box-shadow:0 -.5px 0 var(--line);padding:6px 4px calc(4px + env(safe-area-inset-bottom))}
+.tabs{display:flex;max-width:560px;margin:0 auto}
+.tab{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:2px 0;font-size:10px;font-weight:500;color:var(--faint);cursor:pointer;position:relative;letter-spacing:.1px}
+.tab svg{width:26px;height:26px}
+.tab.on{color:var(--accent)}
+.badge{position:absolute;top:-2px;left:calc(50% + 5px);min-width:18px;height:18px;border-radius:9px;background:var(--danger);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center;padding:0 5px}
+
+/* hesap ve yönetim: iOS gruplu listeler */
+.list{background:var(--surface);border-radius:14px;overflow:hidden;margin-bottom:8px}
+.li{display:flex;align-items:center;gap:12px;padding:11px 16px;min-height:50px;position:relative}
+.li+.li::before{content:"";position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--line)}
 .li .grow{flex:1;min-width:0}
-.li b{display:block;font-weight:600;font-size:14.5px}
-.li small{display:block;color:var(--muted);font-size:12.5px;overflow:hidden;text-overflow:ellipsis}
-.sect{font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin:20px 4px 8px}
-.switch{position:relative;width:46px;height:28px;flex:none}
+.li b{display:block;font-weight:400;font-size:17px}
+.li small{display:block;color:var(--muted);font-size:13px;line-height:1.35;margin-top:1px;overflow:hidden;text-overflow:ellipsis}
+.li .ava{width:56px;height:56px;border-radius:50%;background:linear-gradient(160deg,#8e8e93,#636366);color:#fff;display:grid;place-items:center;font-size:22px;font-weight:600;flex:none}
+.sect{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.1px;margin:26px 16px 7px}
+.foot{font-size:13px;color:var(--muted);margin:7px 16px 0;line-height:1.4}
+.switch{position:relative;width:51px;height:31px;flex:none}
 .switch input{opacity:0;width:0;height:0}
-.switch span{position:absolute;inset:0;background:var(--surface-2);border-radius:999px;transition:.2s;cursor:pointer;border:1px solid var(--line)}
-.switch span::before{content:"";position:absolute;width:22px;height:22px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.switch input:checked+span{background:var(--ok);border-color:var(--ok)}
-.switch input:checked+span::before{transform:translateX(18px)}
-.pill{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:var(--surface-2);color:var(--muted);white-space:nowrap}
-.pill.ok{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
+.switch span{position:absolute;inset:0;background:var(--fill);border-radius:999px;transition:.25s;cursor:pointer}
+.switch span::before{content:"";position:absolute;width:27px;height:27px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.25s cubic-bezier(.2,.8,.2,1);box-shadow:0 3px 8px rgba(0,0,0,.15),0 1px 1px rgba(0,0,0,.06)}
+.switch input:checked+span{background:var(--ok)}
+.switch input:checked+span::before{transform:translateX(20px)}
+.switch input:disabled+span{opacity:.5}
+.li .tdot{width:29px;height:29px;border-radius:7px;background:var(--c);display:grid;place-items:center;color:#fff;flex:none}
+.pill{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--fill);color:var(--muted);white-space:nowrap}
+.pill.ok{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
 .pill.warn{background:color-mix(in srgb,var(--gold) 18%,transparent);color:var(--gold)}
-.pill.bad{background:color-mix(in srgb,var(--danger) 12%,transparent);color:var(--danger)}
-.acts2{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
-.hint{font-size:13px;color:var(--muted);background:var(--surface-2);border-radius:12px;padding:12px 14px;margin-bottom:12px}
+.pill.bad{background:color-mix(in srgb,var(--danger) 14%,transparent);color:var(--danger)}
+.acts2{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.hint{font-size:15px;color:var(--muted);background:var(--surface);border-radius:14px;padding:14px 16px;margin-bottom:8px;line-height:1.45}
+.hint b{color:var(--text);font-weight:600}
+#admin .seg,#account .seg{margin:0 0 8px}
+#setForm{background:none;padding:0}
+#setForm .field span{display:block;font-size:13px;color:var(--muted);padding:10px 16px 0}
+#setForm .field input{height:40px}
 </style>
 </head>
 <body>
 
 <!-- GİRİŞ / ABONELİK TALEBİ -->
 <section class="auth" id="authView" hidden><div class="wrap">
-  <div class="mark"><img src="icon-192.png" alt=""><h1>TM<span>PRO</span></h1><p>Vergi mevzuatı, tek ekranda.</p></div>
+  <div class="mark"><img src="icon-192.png" alt=""><h1>TMPRO</h1><p>Vergi mevzuatı, tek ekranda.</p></div>
   <div class="seg"><button data-mode="login" class="on">Giriş</button><button data-mode="signup">Abonelik talebi</button></div>
-  <form id="loginForm" class="panel">
-    <label class="field"><span>Kullanıcı adı</span><input name="username" autocomplete="username" autocapitalize="none" required></label>
-    <label class="field"><span>Şifre</span><input name="password" type="password" autocomplete="current-password" required></label>
-    <div class="err" id="loginErr"></div>
+  <form id="loginForm"><div class="group">
+    <label class="field"><span>Kullanıcı adı</span><input placeholder="Kullanıcı adı" aria-label="Kullanıcı adı" name="username" autocomplete="username" autocapitalize="none" required></label>
+    <label class="field"><span>Şifre</span><input placeholder="Şifre" aria-label="Şifre" name="password" type="password" autocomplete="current-password" required></label>
+    </div><div class="err" id="loginErr"></div>
     <button class="btn" type="submit">Giriş yap</button>
   </form>
-  <form id="signupForm" class="panel" hidden>
-    <label class="field"><span>Ad soyad</span><input name="full_name" autocomplete="name" required></label>
-    <label class="field"><span>Kullanıcı adı</span><input name="username" autocomplete="username" autocapitalize="none" pattern="[a-zA-Z0-9._]{3,20}" title="3-20 karakter: harf, rakam, nokta veya alt çizgi" required></label>
-    <label class="field"><span>Şifre (en az 8 karakter)</span><input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
-    <label class="field"><span>Telefon (isteğe bağlı)</span><input name="phone" type="tel" autocomplete="tel"></label>
-    <div class="err" id="signupErr"></div>
+  <form id="signupForm" hidden><div class="group">
+    <label class="field"><span>Ad soyad</span><input placeholder="Ad soyad" aria-label="Ad soyad" name="full_name" autocomplete="name" required></label>
+    <label class="field"><span>Kullanıcı adı</span><input placeholder="Kullanıcı adı" aria-label="Kullanıcı adı" name="username" autocomplete="username" autocapitalize="none" pattern="[a-zA-Z0-9._]{3,20}" title="3-20 karakter: harf, rakam, nokta veya alt çizgi" required></label>
+    <label class="field"><span>Şifre (en az 8 karakter)</span><input placeholder="Şifre (en az 8 karakter)" aria-label="Şifre (en az 8 karakter)" name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+    <label class="field"><span>Telefon (isteğe bağlı)</span><input placeholder="Telefon (isteğe bağlı)" aria-label="Telefon (isteğe bağlı)" name="phone" type="tel" autocomplete="tel"></label>
+    </div><div class="err" id="signupErr"></div>
     <button class="btn" type="submit">Talep oluştur</button>
-    <p class="small muted" style="margin:12px 2px 0">Talebinizden sonra ödeme bilgileri gösterilir. Ödemeniz onaylanınca hesabınız açılır.</p>
+    <p class="note">Talebinizden sonra ödeme bilgileri gösterilir. Ödemeniz onaylanınca hesabınız açılır.</p>
   </form>
 </div></section>
 
 <!-- ONAY BEKLİYOR / SÜRESİ DOLDU -->
 <section class="auth" id="pendingView" hidden><div class="wrap">
-  <div class="mark"><img src="icon-192.png" alt=""><h1>TM<span>PRO</span></h1></div>
+  <div class="mark"><img src="icon-192.png" alt=""><h1>TMPRO</h1></div>
   <div class="panel">
     <div class="row"><span class="status"><i></i><span id="pendTitle">Onay bekleniyor</span></span><span class="spacer"></span><span class="small muted" id="pendUser"></span></div>
     <p id="pendText" style="margin:14px 0 0">Talebiniz alındı. Aşağıdaki hesaba ödemeyi yapın; ödeme onaylanınca uygulama otomatik açılır.</p>
     <div class="pay"><dl>
-      <dt>Tutar</dt><dd id="payAmount"></dd>
-      <dt>Alıcı</dt><dd id="payName"></dd>
-      <dt>IBAN</dt><dd><span id="payIban"></span><button class="copy" data-copy="payIban">Kopyala</button></dd>
-      <dt>Açıklama</dt><dd><span id="payCode"></span><button class="copy" data-copy="payCode">Kopyala</button></dd>
+      <div class="pr"><dt>Tutar</dt><dd id="payAmount"></dd></div>
+      <div class="pr"><dt>Alıcı</dt><dd id="payName"></dd></div>
+      <div class="pr"><dt>IBAN</dt><dd id="payIban"></dd><button class="copy" data-copy="payIban">Kopyala</button></div>
+      <div class="pr"><dt>Açıklama</dt><dd id="payCode"></dd><button class="copy" data-copy="payCode">Kopyala</button></div>
     </dl></div>
-    <p class="small muted" style="margin:0 0 14px">Açıklamaya yukarıdaki kodu yazmayı unutmayın; ödemeniz bu kodla eşleştirilir.</p>
+    <p class="small muted" style="margin:0 0 16px">Açıklamaya yukarıdaki kodu yazmayı unutmayın; ödemeniz bu kodla eşleştirilir.</p>
     <button class="btn ghost" id="pendRefresh">Durumu yenile</button>
-    <button class="btn ghost" id="pendLogout" style="margin-top:8px;background:none">Çıkış yap</button>
+    <button class="btn plain" id="pendLogout" style="margin-top:4px">Çıkış yap</button>
   </div>
 </div></section>
 
 <!-- UYGULAMA -->
 <div id="appView" hidden>
-<header class="appbar"><div class="wrap">
-  <div class="brand"><img src="icon-192.png" alt=""><b>TM<span>PRO</span></b><span class="spacer"></span>
-    <button class="iconbtn" id="refresh" aria-label="Yenile"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>
-  </div>
-  <div id="feedTools">
-    <div class="searchbox"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="Ara: 359, sahte fatura, KDV, sayı…" autocomplete="off" enterkeyhint="search"></div>
-    <div class="chips" id="chips"></div>
-  </div>
-  <div class="hairline"></div>
+<header class="appbar" id="appbar"><div class="wrap bar">
+  <img src="icon-192.png" alt=""><span class="navtitle" id="navTitle">Akış</span>
+  <button class="navbtn" id="refresh" aria-label="Yenile"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>
 </div></header>
 <main><div class="wrap">
-  <button class="back" id="back" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Kategoriler</button>
-  <div class="head"><div><h2 id="heading">Akış</h2><div class="sub" id="sub"></div></div><button class="linkbtn" id="markAll" hidden>Tümünü okundu say</button></div>
+  <button class="back" id="back" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Akış</button>
+  <div class="eyebrow" id="eyebrow"></div>
+  <div class="head" id="headRow"><div><h2 id="heading">Akış</h2><div class="sub" id="sub"></div></div><button class="linkbtn" id="markAll" hidden>Tümünü oku</button></div>
+  <div id="feedTools">
+    <div class="searchbox"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Ara" autocomplete="off" enterkeyhint="search"></div>
+    <div class="chips" id="chips"></div>
+  </div>
   <div id="grid" class="grid" hidden></div>
   <div id="list"></div>
   <div id="account" hidden></div>
@@ -279,7 +297,7 @@ const IC = {
   "Danıştay (VUK 359)":'<path d="m14 13-7.5 7.5a2.1 2.1 0 0 1-3-3L11 10"/><path d="m16 16 6-6M8 8l6-6M9 7l8 8M21 11l-8-8"/>',
   "Anayasa Mahkemesi":'<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/>'
 };
-const SHORT = t => ({"Danıştay (VUK 359)":"Danıştay 359","Anayasa Mahkemesi":"AYM","Resmî Gazete":"Resmî Gazete"}[t] || t);
+const SHORT = t => ({"Danıştay (VUK 359)":"Danıştay","Anayasa Mahkemesi":"AYM","Resmî Gazete":"R. Gazete"}[t] || t);
 const icon = (t, n = 20) => `<svg width="${n}" height="${n}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${IC[t] || IC["Tümü"]}</svg>`;
 
 const $ = id => document.getElementById(id);
@@ -393,6 +411,13 @@ const ICON_READ = r => `<svg width="18" height="18" viewBox="0 0 24 24" fill="no
 const ICON_OPEN = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>';
 
 function render(){
+  _render();
+  $("navTitle").textContent = $("heading").textContent;
+  const home = tab === "feed" && filter === "Tümü" && !$("q").value.trim();
+  $("eyebrow").textContent = home ? new Date().toLocaleDateString("tr-TR", {weekday:"long", day:"numeric", month:"long"}) : "";
+  $("eyebrow").hidden = !home;
+}
+function _render(){
   document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
   const unreadCount = items.filter(i => !read.has(i.id)).length;
   $("badge").hidden = !unreadCount; $("badge").textContent = unreadCount > 99 ? "99+" : unreadCount;
@@ -418,16 +443,16 @@ function render(){
     const tile = (t, cls) => `<button class="tile ${cls || ""}" data-t="${esc(t)}" style="--c:var(${TYPES[t] || "--gold"})">
       ${(t === "Tümü" ? unreadCount : un[t]) ? `<span class="nb">${t === "Tümü" ? unreadCount : un[t]}</span>` : ""}
       <span class="ic">${icon(t)}</span><span><b>${esc(t === "Tümü" ? "Tüm kayıtlar" : SHORT(t))}</b><small>${t === "Tümü" ? items.length : (all[t] || 0)} kayıt</small></span></button>`;
-    $("grid").innerHTML = ORDER.map(t => tile(t)).join("") + tile("Tümü", "all").replace(/(<span class="nb">.*?<\/span>)([\s\S]*)(<\/button>)$/, "$2$1$3") + `<div class="day" style="grid-column:1/-1;margin:14px 2px 0">Son eklenenler</div>`;
+    $("grid").innerHTML = ORDER.map(t => tile(t)).join("") + tile("Tümü", "all").replace(/(<span class="nb">.*?<\/span>)([\s\S]*)(<\/button>)$/, "$2$1$3");
   }
   const list = base.filter(i => filter === "Tümü" || filter === "__all" || i.tur === filter).slice(0, home ? 30 : undefined);
-  $("sub").textContent = home ? "Kategoriler" : `${list.length} kayıt`;
+  $("sub").textContent = home ? "" : `${list.length} kayıt`;
   if(!list.length){
     const msg = tab === "unread" ? "Yeni kayıt yok. Her şey güncel." : tab === "star" ? "Saklamak istediğiniz kayıtlarda yıldıza dokunun; burada toplanır." : "Kayıt bulunamadı.";
     $("list").innerHTML = `<div class="empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>${msg}</div>`;
     return;
   }
-  let html = "", last = null;
+  let html = home ? `<div class="day">Son eklenenler</div>` : "", last = null;
   for(const i of list.slice(0, 300)){
     const dl = dayLabel(i.eklendi);
     if(dl !== last && !home){ html += `<div class="day">${esc(dl)}</div>`; last = dl; }
@@ -489,8 +514,8 @@ function setTheme(t){
 }
 function applyThemeColor(){
   const t = getTheme(), L = $("tcL"), D = $("tcD");
-  if(t === "auto"){ L.media = "(prefers-color-scheme: light)"; D.media = "(prefers-color-scheme: dark)"; L.content = "#f7f6f2"; D.content = "#0a0e16"; }
-  else { const c = t === "dark" ? "#0a0e16" : "#f7f6f2"; L.media = D.media = "all"; L.content = D.content = c; }
+  if(t === "auto"){ L.media = "(prefers-color-scheme: light)"; D.media = "(prefers-color-scheme: dark)"; L.content = "#f2f2f7"; D.content = "#000000"; }
+  else { const c = t === "dark" ? "#000000" : "#f2f2f7"; L.media = D.media = "all"; L.content = D.content = c; }
 }
 applyThemeColor();
 
@@ -500,23 +525,25 @@ async function renderAccount(){
   const types = me.notify_types || ORDER;
   const sub = me.role === "admin" ? "Yönetici" : me.expires_at ? `Bitiş: ${fmtDate(me.expires_at)}` : "Süresiz";
   $("sub").textContent = "";
+  const initials = (me.full_name || me.username).split(/\s+/).map(w => w[0]).slice(0, 2).join("").toLocaleUpperCase("tr");
+  const showHint = !pushSupported || !standalone;
   $("account").innerHTML = `
-    <div class="list"><div class="li"><div class="grow"><b>${esc(me.full_name || me.username)}</b><small>@${esc(me.username)}</small></div><span class="pill ok">${esc(sub)}</span></div></div>
+    <div class="list"><div class="li" style="padding:14px 16px"><div class="ava">${esc(initials)}</div><div class="grow"><b style="font-weight:600;font-size:20px">${esc(me.full_name || me.username)}</b><small>@${esc(me.username)}</small></div><span class="pill ${me.role === "admin" ? "ok" : "ok"}">${esc(sub)}</span></div></div>
+    <div class="sect">Bildirimler</div>
+    ${showHint ? `<div class="hint">Anlık bildirim için TMPRO'yu ana ekrana ekleyip oradan açın: Safari'de <b>Paylaş</b>, ardından <b>Ana Ekrana Ekle</b>.</div>` : ""}
+    <div class="list">
+      <div class="li"><div class="tdot" style="--c:var(--danger)">${icon("Tebliğ", 17).replace('stroke-width="1.9"', 'stroke-width="2.2"')}</div><div class="grow"><b>Anlık bildirim</b></div>
+        <label class="switch"><input type="checkbox" id="pushToggle" ${on ? "checked" : ""} ${!pushSupported ? "disabled" : ""}><span></span></label></div>
+    </div>
+    <div class="foot">22:00 ile 08:00 arası bildirim gelmez; gece çıkanlar sabah tek bildirimde toplanır.</div>
+    <div class="sect">Bildirim gelecek türler</div>
+    <div class="list" id="typeList">${ORDER.map(t => `<div class="li"><div class="tdot" style="--c:var(${TYPES[t]})">${icon(t, 17)}</div><div class="grow"><b>${esc(t)}</b></div><label class="switch"><input type="checkbox" data-type="${esc(t)}" ${types.includes(t) ? "checked" : ""}><span></span></label></div>`).join("")}</div>
     <div class="sect">Görünüm</div>
     <div class="seg" id="themeSeg">${["auto:Otomatik","light:Açık","dark:Koyu"].map(x => { const [k, l] = x.split(":"); return `<button data-th="${k}" class="${getTheme() === k ? "on" : ""}">${l}</button>`; }).join("")}</div>
-    <p class="small muted" style="margin:-8px 4px 0">Otomatik: telefonunuzun açık/koyu ayarını izler.</p>
-    <div class="sect">Bildirimler</div>
-    ${!pushSupported || !standalone ? `<div class="hint">Anlık bildirim için TMPRO'yu ana ekrana ekleyip oradan açın: Safari'de <b>Paylaş</b> → <b>Ana Ekrana Ekle</b>.</div>` : ""}
-    <div class="list">
-      <div class="li"><div class="grow"><b>Anlık bildirim</b><small>Yeni kayıt çıkınca telefonunuza bildirim gelir</small></div>
-        <label class="switch"><input type="checkbox" id="pushToggle" ${on ? "checked" : ""} ${!pushSupported ? "disabled" : ""}><span></span></label></div>
-      <div class="li"><div class="grow"><b>Sessiz saatler</b><small>22:00–08:00 arası bildirim gelmez; gece çıkanlar sabah tek bildirimde gelir</small></div></div>
-    </div>
-    <div class="sect">Hangi türler için bildirim gelsin?</div>
-    <div class="list" id="typeList">${ORDER.map(t => `<div class="li"><div class="grow"><b>${esc(t)}</b></div><label class="switch"><input type="checkbox" data-type="${esc(t)}" ${types.includes(t) ? "checked" : ""}><span></span></label></div>`).join("")}</div>
-    <div class="sect">Hesap</div>
-    <div class="list"><div class="li"><div class="grow"><b>Çıkış yap</b></div><button class="btn small ghost" id="logout">Çıkış</button></div></div>
-    <p class="small muted" style="text-align:center;margin-top:20px">TMPRO · Kaynaklar: GİB, Resmî Gazete, Danıştay, Anayasa Mahkemesi</p>`;
+    <div class="foot" style="margin-top:0">Otomatik, telefonunuzun açık/koyu ayarını izler.</div>
+    <div class="sect"></div>
+    <div class="list"><button class="li" id="logout" style="width:100%;border:0;background:none;justify-content:center;color:var(--danger);font-size:17px;cursor:pointer">Çıkış yap</button></div>
+    <p class="small muted" style="text-align:center;margin-top:24px">TMPRO · GİB, Resmî Gazete, Danıştay, Anayasa Mahkemesi</p>`;
   $("themeSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; setTheme(b.dataset.th); renderAccount(); };
   $("logout").onclick = async () => { await sb.auth.signOut(); me = null; show("authView"); };
   $("pushToggle").onchange = async e => {
@@ -598,6 +625,7 @@ function statusPill(u){
   return `<span class="pill ok">Aktif</span>`;
 }
 
+new IntersectionObserver(([e]) => $("appbar").classList.toggle("solid", !e.isIntersecting), { rootMargin: "-56px 0px 0px 0px" }).observe($("headRow"));
 sb.auth.onAuthStateChange(ev => { if(ev === "SIGNED_OUT"){ me = null; show("authView"); } });
 setInterval(async () => { if(me && !$("appView").hidden && document.visibilityState === "visible"){ await loadItems(); if(["feed","unread","star"].includes(tab)) render(); } }, 5 * 60 * 1000);
 boot();
