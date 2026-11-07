@@ -29,6 +29,10 @@ on:
         description: "Veritabanı teşhis (yalnızca sayılar)"
         type: boolean
         default: false
+      chat_test:
+        description: "Sohbet uçtan uca testi"
+        type: boolean
+        default: false
       test_push:
         description: "Kayıtlı cihazlara deneme bildirimi gönder"
         type: boolean
@@ -63,7 +67,9 @@ jobs:
           SUPABASE_URL: https://hnolhapzcisavhkwyzhs.supabase.co
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           MAIL_ENABLED: ${{ vars.MAIL_ENABLED }}
-        run: python ozelge.py ${{ inputs.seed && '--seed' || '' }} ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.resend && '--resend' || '' }} ${{ inputs.resend_karar && '--resend-karar' || '' }} ${{ inputs.migrate && '--migrate' || '' }} ${{ inputs.test_push && '--test-push' || '' }} ${{ inputs.diag && '--diag' || '' }}
+        run: |
+          if [ "${{ inputs.chat_test }}" = "true" ]; then SUPABASE_PUBLISHABLE_KEY=sb_publishable_tlfwqtscxxv2vdSHe3PstQ_XO1db8p9 python tools/chat_test.py; exit 0; fi
+          python ozelge.py ${{ inputs.seed && '--seed' || '' }} ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.resend && '--resend' || '' }} ${{ inputs.resend_karar && '--resend-karar' || '' }} ${{ inputs.migrate && '--migrate' || '' }} ${{ inputs.test_push && '--test-push' || '' }} ${{ inputs.diag && '--diag' || '' }}
       - name: Durumu kaydet
         run: |
           [ -f seen.json ] || [ -f docs/feed.json ] || exit 0
