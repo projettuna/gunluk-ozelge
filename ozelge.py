@@ -44,6 +44,7 @@ SEED = "--seed" in sys.argv
 RESEND_KARAR = "--resend-karar" in sys.argv
 DRY = "--dry-run" in sys.argv
 MIGRATE = "--migrate" in sys.argv
+TEST_PUSH = "--test-push" in sys.argv
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY") or ""
 # Gizli anahtar yoksa Supabase devre dışı (eski e-posta düzeni sürer)
 SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").rstrip("/") if SUPABASE_KEY else ""
@@ -457,6 +458,22 @@ def migrate_feed():
     db_insert_items(rows)
 
 
+def push_test():
+    """Tüm kayıtlı cihazlara deneme bildirimi yollar."""
+    from pywebpush import webpush, WebPushException
+    vapid = db("GET", "private_settings?key=eq.vapid_private&select=value")[0]["value"]
+    subs = db("GET", "push_subs?select=id,endpoint,p256dh,auth") or []
+    payload = json.dumps({"title": "TMPRO", "body": "Bildirimler açık. Yeni mevzuat çıkınca buradan haber vereceğim.", "url": APP_URL, "tag": "tmpro-test"})
+    for s in subs:
+        try:
+            webpush({"endpoint": s["endpoint"], "keys": {"p256dh": s["p256dh"], "auth": s["auth"]}}, payload,
+                    vapid_private_key=vapid, vapid_claims={"sub": "mailto:bildirim@tmpro.app"}, ttl=3600)
+            print("Deneme bildirimi gönderildi:", s["endpoint"][:40])
+        except WebPushException as e:
+            print("Deneme bildirimi hatası:", getattr(e.response, "status_code", None), str(e)[:300])
+    print(f"Cihaz sayısı: {len(subs)}")
+
+
 def notify_users():
     """Aktif kullanıcılara son bildirimden beri eklenen kayıtlar için tek bir anlık bildirim yollar."""
     now = datetime.now(TR)
@@ -605,6 +622,9 @@ def main():
         return
     if MIGRATE:
         migrate_feed()
+        return
+    if TEST_PUSH:
+        push_test()
         return
 
     # Özelgeler
