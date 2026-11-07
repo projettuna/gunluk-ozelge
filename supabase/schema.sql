@@ -64,12 +64,15 @@ $$;
 create or replace function public.handle_new_user() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
-  insert into profiles (id, username, full_name, phone, pay_code)
+  -- İlk kaydolan kişi otomatik yönetici olur
+  insert into profiles (id, username, full_name, phone, pay_code, role, status)
   values (new.id,
           lower(coalesce(new.raw_user_meta_data->>'username', split_part(new.email, '@', 1))),
           new.raw_user_meta_data->>'full_name',
           new.raw_user_meta_data->>'phone',
-          'TM' || lpad((floor(random() * 900000) + 100000)::int::text, 6, '0'));
+          'TM' || lpad((floor(random() * 900000) + 100000)::int::text, 6, '0'),
+          case when exists (select 1 from profiles) then 'user' else 'admin' end,
+          case when exists (select 1 from profiles) then 'pending' else 'active' end);
   return new;
 end $$;
 drop trigger if exists on_auth_user_created on auth.users;
