@@ -261,21 +261,21 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
 
 <!-- GİRİŞ / ABONELİK TALEBİ -->
 <section class="auth" id="authView" hidden><div class="wrap">
-  <div class="mark"><img src="icon-192.png" alt=""><h1>TMPRO</h1><p>Vergi mevzuatı, tek ekranda.</p></div>
-  <div class="seg"><button data-mode="login" class="on">Giriş</button><button data-mode="signup">Abonelik talebi</button></div>
+  <div class="mark"><img src="icon-192.png" alt=""><h1>TMPRO</h1><p>Vergi Mevzuatı, Tek Ekranda</p></div>
+  <div class="seg"><button data-mode="login" class="on">Giriş</button><button data-mode="signup">Abonelik Talebi</button></div>
   <form id="loginForm"><div class="group">
-    <label class="field"><span>Kullanıcı adı</span><input placeholder="Kullanıcı adı" aria-label="Kullanıcı adı" name="username" autocomplete="username" autocapitalize="none" required></label>
+    <label class="field"><span>Kullanıcı Adı</span><input placeholder="Kullanıcı Adı" aria-label="Kullanıcı Adı" name="username" autocomplete="username" autocapitalize="none" required></label>
     <label class="field"><span>Şifre</span><input placeholder="Şifre" aria-label="Şifre" name="password" type="password" autocomplete="current-password" required></label>
     </div><div class="err" id="loginErr"></div>
-    <button class="btn" type="submit">Giriş yap</button>
+    <button class="btn" type="submit">Giriş Yap</button>
   </form>
   <form id="signupForm" hidden><div class="group">
-    <label class="field"><span>Ad soyad</span><input placeholder="Ad soyad" aria-label="Ad soyad" name="full_name" autocomplete="name" required></label>
-    <label class="field"><span>Kullanıcı adı</span><input placeholder="Kullanıcı adı" aria-label="Kullanıcı adı" name="username" autocomplete="username" autocapitalize="none" pattern="[a-zA-Z0-9._]{3,20}" title="3-20 karakter: harf, rakam, nokta veya alt çizgi" required></label>
-    <label class="field"><span>Şifre (en az 8 karakter)</span><input placeholder="Şifre (en az 8 karakter)" aria-label="Şifre (en az 8 karakter)" name="password" type="password" autocomplete="new-password" minlength="8" required></label>
-    <label class="field"><span>Telefon (isteğe bağlı)</span><input placeholder="Telefon (isteğe bağlı)" aria-label="Telefon (isteğe bağlı)" name="phone" type="tel" autocomplete="tel"></label>
+    <label class="field"><span>Ad Soyad</span><input placeholder="Ad Soyad" aria-label="Ad Soyad" name="full_name" autocomplete="name" required></label>
+    <label class="field"><span>Kullanıcı Adı</span><input placeholder="Kullanıcı Adı" aria-label="Kullanıcı Adı" name="username" autocomplete="username" autocapitalize="none" pattern="[a-zA-Z0-9._]{3,20}" title="3-20 karakter: harf, rakam, nokta veya alt çizgi" required></label>
+    <label class="field"><span>Şifre (En Az 8 Karakter)</span><input placeholder="Şifre (En Az 8 Karakter)" aria-label="Şifre (En Az 8 Karakter)" name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+    <label class="field"><span>Telefon (İsteğe Bağlı)</span><input placeholder="Telefon (İsteğe Bağlı)" aria-label="Telefon (İsteğe Bağlı)" name="phone" type="tel" autocomplete="tel"></label>
     </div><div class="err" id="signupErr"></div>
-    <button class="btn" type="submit">Talep oluştur</button>
+    <button class="btn" type="submit">Talep Oluştur</button>
     <p class="note">Talebinizden sonra ödeme bilgileri gösterilir. Ödemeniz onaylanınca hesabınız açılır.</p>
   </form>
 </div></section>
@@ -284,7 +284,7 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
 <section class="auth" id="pendingView" hidden><div class="wrap">
   <div class="mark"><img src="icon-192.png" alt=""><h1>TMPRO</h1></div>
   <div class="panel">
-    <div class="row"><span class="status"><i></i><span id="pendTitle">Onay bekleniyor</span></span><span class="spacer"></span><span class="small muted" id="pendUser"></span></div>
+    <div class="row"><span class="status"><i></i><span id="pendTitle">Onay Bekleniyor</span></span><span class="spacer"></span><span class="small muted" id="pendUser"></span></div>
     <p id="pendText" style="margin:14px 0 0">Talebiniz alındı. Aşağıdaki hesaba ödemeyi yapın; ödeme onaylanınca uygulama otomatik açılır.</p>
     <div class="pay"><dl>
       <div class="pr"><dt>Tutar</dt><dd id="payAmount"></dd></div>
@@ -293,8 +293,8 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
       <div class="pr"><dt>Açıklama</dt><dd id="payCode"></dd><button class="copy" data-copy="payCode">Kopyala</button></div>
     </dl></div>
     <p class="small muted" style="margin:0 0 16px">Açıklamaya yukarıdaki kodu yazmayı unutmayın; ödemeniz bu kodla eşleştirilir.</p>
-    <button class="btn ghost" id="pendRefresh">Durumu yenile</button>
-    <button class="btn plain" id="pendLogout" style="margin-top:4px">Çıkış yap</button>
+    <button class="btn ghost" id="pendRefresh">Durumu Yenile</button>
+    <button class="btn plain" id="pendLogout" style="margin-top:4px">Çıkış Yap</button>
   </div>
 </div></section>
 
@@ -307,7 +307,7 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
 <main><div class="wrap">
   <button class="back" id="back" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Akış</button>
   <div class="eyebrow" id="eyebrow"></div>
-  <div class="head" id="headRow"><div><h2 id="heading">Akış</h2><div class="sub" id="sub"></div></div><button class="linkbtn" id="markAll" hidden>Tümünü oku</button></div>
+  <div class="head" id="headRow"><div><h2 id="heading">Akış</h2><div class="sub" id="sub"></div></div><button class="linkbtn" id="markAll" hidden>Tümünü Oku</button></div>
   <div id="feedTools">
     <div class="searchbox"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="q" type="search" placeholder="Ara" autocomplete="off" enterkeyhint="search"></div>
@@ -380,7 +380,7 @@ $("loginForm").addEventListener("submit", async e => {
   const btn = e.target.querySelector("button"); btn.disabled = true;
   const { error } = await sb.auth.signInWithPassword({ email: toEmail(f.get("username")), password: f.get("password") });
   btn.disabled = false;
-  if(error){ $("loginErr").textContent = "Kullanıcı adı veya şifre hatalı."; return; }
+  if(error){ $("loginErr").textContent = "Kullanıcı Adı veya şifre hatalı."; return; }
   boot();
 });
 $("signupForm").addEventListener("submit", async e => {
@@ -424,7 +424,7 @@ async function boot(){
 }
 function renderPending(){
   const expired = me.status === "active" || me.status === "cancelled";
-  $("pendTitle").textContent = me.status === "rejected" ? "Talep reddedildi" : expired ? "Abonelik sona erdi" : "Onay bekleniyor";
+  $("pendTitle").textContent = me.status === "rejected" ? "Talep Reddedildi" : expired ? "Abonelik Sona Erdi" : "Onay Bekleniyor";
   $("pendText").textContent = expired ? "Aboneliğinizi yenilemek için aşağıdaki hesaba ödeme yapın; onaylanınca hesabınız yeniden açılır."
     : me.status === "rejected" ? "Talebiniz onaylanmadı. Bir hata olduğunu düşünüyorsanız ödeme bilgileriyle tekrar iletişime geçin."
     : "Talebiniz alındı. Aşağıdaki hesaba ödemeyi yapın; ödeme onaylanınca uygulama otomatik açılır.";
@@ -497,16 +497,16 @@ function _render(){
   $("chips").innerHTML = types.map(t => `<button class="chip ${t === filter ? "on" : ""}" data-t="${esc(t)}" style="--c:var(${TYPES[t] || "--faint"})">${t === "Tümü" ? "" : "<i></i>"}${esc(t.replace(" (VUK 359)", ""))}<em>${t === "Tümü" ? base.length : counts[t]}</em></button>`).join("");
   const home = tab === "feed" && filter === "Tümü" && !q;
   $("grid").hidden = !home; $("chips").hidden = tab === "feed"; $("back").hidden = !(tab === "feed" && filter !== "Tümü");
-  if(tab === "feed" && filter !== "Tümü") $("heading").textContent = filter === "__all" ? "Tüm kayıtlar" : filter;
+  if(tab === "feed" && filter !== "Tümü") $("heading").textContent = filter === "__all" ? "Tüm Kayıtlar" : filter;
   $("wx").hidden = !home; if(home) renderWeather();
   if(home){
     const all = {}, un = {}; items.forEach(i => { all[i.tur] = (all[i.tur] || 0) + 1; if(!read.has(i.id)) un[i.tur] = (un[i.tur] || 0) + 1; });
     const tile = (t, cls) => `<button class="tile ${cls || ""}" data-t="${esc(t)}" style="--c:var(${TYPES[t] || "--gold"})">
       ${(t === "Tümü" ? unreadCount : un[t]) ? `<span class="nb">${t === "Tümü" ? unreadCount : un[t]}</span>` : ""}
-      <span class="ic">${icon(t)}</span><span><b>${esc(t === "Tümü" ? "Tüm kayıtlar" : SHORT(t))}</b><small>${t === "Tümü" ? items.length : (all[t] || 0)} kayıt</small></span></button>`;
+      <span class="ic">${icon(t)}</span><span><b>${esc(t === "Tümü" ? "Tüm Kayıtlar" : SHORT(t))}</b><small>${t === "Tümü" ? items.length : (all[t] || 0)} kayıt</small></span></button>`;
     const wide = (t, ic, label, n, badge) => `<button class="tile all" data-t="${t}"><span class="ic">${ic}</span><span><b>${label}</b><small>${n} kayıt</small></span>${badge ? `<span class="nb">${badge}</span>` : ""}</button>`;
     const bell = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
-    $("grid").innerHTML = ORDER.map(t => tile(t)).join("") + (unreadCount ? wide("__unread", bell, "Okunmamış", unreadCount, unreadCount) : "") + wide("Tümü", icon("Tümü"), "Tüm kayıtlar", items.length, 0);
+    $("grid").innerHTML = ORDER.map(t => tile(t)).join("") + (unreadCount ? wide("__unread", bell, "Okunmamış", unreadCount, unreadCount) : "") + wide("Tümü", icon("Tümü"), "Tüm Kayıtlar", items.length, 0);
   }
   const list = base.filter(i => filter === "Tümü" || filter === "__all" || i.tur === filter).slice(0, home ? 30 : undefined);
   $("sub").textContent = home ? "" : `${list.length} kayıt`;
@@ -515,7 +515,7 @@ function _render(){
     $("list").innerHTML = `<div class="empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>${msg}</div>`;
     return;
   }
-  let html = home ? `<div class="day">Son eklenenler</div>` : "", last = null;
+  let html = home ? `<div class="day">Son Eklenenler</div>` : "", last = null;
   for(const i of list.slice(0, 300)){
     const dl = dayLabel(i.eklendi);
     if(dl !== last && !home){ html += `<div class="day">${esc(dl)}</div>`; last = dl; }
@@ -526,7 +526,7 @@ function _render(){
       <a class="title" href="${esc(i.url)}" target="_blank" rel="noopener">${hl(i.title, q)}</a>
       ${i.meta ? `<div class="meta">${hl(i.meta, q)}</div>` : ""}
       ${i.ozet ? `<div class="ozet ${long ? "clip" : ""}">${hl(i.ozet, q)}</div>${long ? `<button class="more">Devamı</button>` : ""}` : ""}
-      <div class="cfoot"><a class="open" href="${esc(i.url)}" target="_blank" rel="noopener">Kaynağı aç ${ICON_OPEN}</a>
+      <div class="cfoot"><a class="open" href="${esc(i.url)}" target="_blank" rel="noopener">Kaynağı Aç ${ICON_OPEN}</a>
         <button class="act rd" aria-label="${unread ? "Okundu say" : "Okunmadı say"}">${ICON_READ(!unread)}</button>
         <button class="act st ${st ? "on" : ""}" aria-label="Kaydet">${ICON_STAR(st)}</button></div>
     </article>`;
@@ -556,9 +556,9 @@ navigator.serviceWorker?.addEventListener("message", async e => {
 
 
 /* ---------------- hava durumu ---------------- */
-const WMO = c => c === 0 ? ["Açık", "☀️", "🌙"] : c <= 2 ? ["Az bulutlu", "🌤️", "☁️"] : c === 3 ? ["Kapalı", "☁️", "☁️"] : c <= 48 ? ["Sisli", "🌫️", "🌫️"]
+const WMO = c => c === 0 ? ["Açık", "☀️", "🌙"] : c <= 2 ? ["Az Bulutlu", "🌤️", "☁️"] : c === 3 ? ["Kapalı", "☁️", "☁️"] : c <= 48 ? ["Sisli", "🌫️", "🌫️"]
   : c <= 57 ? ["Çisenti", "🌦️", "🌧️"] : c <= 67 ? ["Yağmurlu", "🌧️", "🌧️"] : c <= 77 ? ["Karlı", "🌨️", "🌨️"] : c <= 82 ? ["Sağanak", "🌧️", "🌧️"]
-  : c <= 86 ? ["Kar sağanağı", "🌨️", "🌨️"] : ["Gök gürültülü", "⛈️", "⛈️"];
+  : c <= 86 ? ["Kar Sağanağı", "🌨️", "🌨️"] : ["Gök Gürültülü", "⛈️", "⛈️"];
 let wxData = null, wxLoading = false;
 function wxLoc(){ try{ return JSON.parse(localStorage.getItem("tmpro:wxloc")) }catch{ return null } }
 async function loadWeather(force){
@@ -573,14 +573,14 @@ async function loadWeather(force){
   if(!$("wx").hidden) renderWeather();
 }
 function renderWeather(){
-  if(!wxData){ $("wx").innerHTML = `<div class="city">Hava durumu yükleniyor…</div>`; loadWeather(); return; }
+  if(!wxData){ $("wx").innerHTML = `<div class="city">Hava Durumu Yükleniyor…</div>`; loadWeather(); return; }
   loadWeather();
   const { cur, daily, loc } = wxData, [cond, dIco, nIco] = WMO(cur.weather_code), day = cur.is_day === 1;
   $("wx").className = "wx" + (!day ? " night" : cur.weather_code >= 3 ? " cloud" : "");
   const days = daily.time.slice(1, 5).map((d, k) => `<div>${new Date(d).toLocaleDateString("tr-TR", {weekday:"short"})}<span>${WMO(daily.weather_code[k + 1])[1]}</span>${Math.round(daily.temperature_2m_max[k + 1])}°</div>`).join("");
   $("wx").innerHTML = `<div class="wtop"><div><div class="city">${esc(loc.city)}${loc.def ? "" : ' <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M21 3 3 10.5l7.5 3L14 21z"/></svg>'}</div>
       <div class="temp">${Math.round(cur.temperature_2m)}°</div></div><div style="text-align:right"><div class="wico">${day ? dIco : nIco}</div></div></div>
-    <div class="row" style="justify-content:space-between;margin-top:6px"><div><div class="cond" style="margin:0">${cond}</div><div class="hl">En yüksek ${Math.round(daily.temperature_2m_max[0])}° · En düşük ${Math.round(daily.temperature_2m_min[0])}°</div></div>
+    <div class="row" style="justify-content:space-between;margin-top:6px"><div><div class="cond" style="margin:0">${cond}</div><div class="hl">En Yüksek ${Math.round(daily.temperature_2m_max[0])}° · En Düşük ${Math.round(daily.temperature_2m_min[0])}°</div></div>
       ${loc.def ? `<button class="locbtn" id="locBtn">Konumum</button>` : ""}</div>
     <div class="days">${days}</div>`;
   const lb = $("locBtn"); if(lb) lb.onclick = e => { e.stopPropagation(); askLocation(); };
@@ -610,7 +610,7 @@ async function loadGroups(){ const { data } = await sb.rpc("list_groups"); group
 const seenMap = () => store.get("chatSeenRooms", {});
 const dmRoom = uid => "dm:" + [me.id, uid].sort().join(":");
 const dmOther = r => r.slice(3).split(":").find(x => x !== me.id);
-const roomName = r => r.startsWith("dm:") ? (memberName(dmOther(r)) || "Özel mesaj") : r.startsWith("g:") ? (groups.find(g => g.id === r.slice(2))?.name || "Grup") : (ROOMS.find(x => x.id === r)?.name || r);
+const roomName = r => r.startsWith("dm:") ? (memberName(dmOther(r)) || "Özel Mesaj") : r.startsWith("g:") ? (groups.find(g => g.id === r.slice(2))?.name || "Grup") : (ROOMS.find(x => x.id === r)?.name || r);
 function memberName(uid){ const m = members?.find(x => x.id === uid); if(m) return m.full_name || m.username; const msg = msgs.find(x => x.user_id === uid); return msg?.username || null; }
 const initialsOf = n => String(n || "?").split(/\s+/).map(w => w[0]).slice(0, 2).join("").toLocaleUpperCase("tr");
 async function startChat(){
@@ -663,20 +663,20 @@ function renderChat(){
     .sort((a, b) => Math.max(...msgs.filter(m => m.room === b).map(m => m.id)) - Math.max(...msgs.filter(m => m.room === a).map(m => m.id)));
   $("msgs").innerHTML = `<div class="sect" style="margin-top:8px">Odalar</div>
     <div class="list">${ROOMS.map(r => roomRow(r.id, r.name, roomIcon(r.c, r.ic))).join("")}</div>
-    <div class="sect row" style="margin-right:4px"><span>Gruplarım</span><span class="spacer"></span><button class="linkbtn" id="browseGroups" style="font-size:15px;text-transform:none;padding:0">Tüm gruplar</button></div>
+    <div class="sect row" style="margin-right:4px"><span>Gruplarım</span><span class="spacer"></span><button class="linkbtn" id="browseGroups" style="font-size:15px;text-transform:none;padding:0">Tüm Gruplar</button></div>
     <div class="list">${groups.filter(g => g.is_member).map(g => roomRow("g:" + g.id, g.name, roomIcon(gcolor(g.id), GROUP_IC))).join("")}
-      <button class="li room" id="newGroup"><div class="rav" style="--c:var(--fill);color:var(--accent)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div><div class="grow"><b class="rn" style="color:var(--accent)">Grup oluştur</b><small>İsterseniz şifre koyabilirsiniz</small></div></button></div>
-    <div class="sect row" style="margin-right:4px"><span>Özel mesajlar</span><span class="spacer"></span><button class="linkbtn" id="newDm" style="font-size:15px;text-transform:none;padding:0">Yeni mesaj</button></div>
+      <button class="li room" id="newGroup"><div class="rav" style="--c:var(--fill);color:var(--accent)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div><div class="grow"><b class="rn" style="color:var(--accent)">Grup Oluştur</b><small>İsterseniz şifre koyabilirsiniz</small></div></button></div>
+    <div class="sect row" style="margin-right:4px"><span>Özel Mesajlar</span><span class="spacer"></span><button class="linkbtn" id="newDm" style="font-size:15px;text-transform:none;padding:0">Yeni Mesaj</button></div>
     ${dms.length ? `<div class="list">${dms.map(r => roomRow(r, roomName(r), `<div class="rav ava2">${esc(initialsOf(roomName(r)))}</div>`)).join("")}</div>`
-      : `<div class="hint" style="text-align:center">Bir üyeye özel mesaj atmak için <b>Yeni mesaj</b>'a dokunun.</div>`}`;
+      : `<div class="hint" style="text-align:center">Bir üyeye özel mesaj atmak için <b>Yeni Mesaj</b>'a dokunun.</div>`}`;
   updateChatBadge();
 }
 function renderRoom(){
   const name = roomName(room);
   $("heading").textContent = name; $("navTitle").textContent = name;
   const grp = room.startsWith("g:") ? groups.find(g => g.id === room.slice(2)) : null;
-  $("sub").innerHTML = room.startsWith("dm:") ? "Özel mesaj" : grp ? `${grp.members} üye${grp.locked ? " · " + LOCK + " Şifreli" : ""} · <button class="linkbtn" id="grpAct" style="font-size:15px;padding:0">${grp.is_owner || me.role === "admin" ? "Grubu sil" : "Gruptan ayrıl"}</button>` : `${new Set(msgs.filter(m => m.room === room).map(m => m.user_id)).size} kişi yazdı`;
-  $("sub").insertAdjacentHTML("beforeend", ` · <button class="linkbtn" id="muteBtn" style="font-size:15px;padding:0">${isMuted(room) ? "Sesi aç" : "Sessize al"}</button>`);
+  $("sub").innerHTML = room.startsWith("dm:") ? "Özel Mesaj" : grp ? `${grp.members} üye${grp.locked ? " · " + LOCK + " Şifreli" : ""} · <button class="linkbtn" id="grpAct" style="font-size:15px;padding:0">${grp.is_owner || me.role === "admin" ? "Grubu Sil" : "Gruptan Ayrıl"}</button>` : `${new Set(msgs.filter(m => m.room === room).map(m => m.user_id)).size} kişi yazdı`;
+  $("sub").insertAdjacentHTML("beforeend", ` · <button class="linkbtn" id="muteBtn" style="font-size:15px;padding:0">${isMuted(room) ? "Sesi Aç" : "Sessize Al"}</button>`);
   $("muteBtn").onclick = async () => {
     const m = !isMuted(room); const { error } = await sb.rpc("set_room_mute", { r: room, muted: m });
     if(error){ toast("Kaydedilemedi"); return; }
@@ -707,12 +707,12 @@ function renderRoom(){
 }
 function openNewGroup(){
   room = "__pick"; $("back").hidden = false; $("composer").hidden = true;
-  $("heading").textContent = "Yeni grup"; $("navTitle").textContent = "Yeni grup"; $("sub").textContent = "";
-  $("msgs").innerHTML = `<form id="grpForm"><div class="sect" style="margin-top:8px">Grup bilgileri</div>
-    <div class="group"><label class="field"><input name="name" placeholder="Grup adı" maxlength="60" required></label>
-    <label class="field"><input name="pass" type="password" placeholder="Şifre (isteğe bağlı)" autocomplete="new-password"></label></div>
+  $("heading").textContent = "Yeni Grup"; $("navTitle").textContent = "Yeni Grup"; $("sub").textContent = "";
+  $("msgs").innerHTML = `<form id="grpForm"><div class="sect" style="margin-top:8px">Grup Bilgileri</div>
+    <div class="group"><label class="field"><input name="name" placeholder="Grup Adı" maxlength="60" required></label>
+    <label class="field"><input name="pass" type="password" placeholder="Şifre (İsteğe Bağlı)" autocomplete="new-password"></label></div>
     <div class="foot">Şifre koyarsanız gruba yalnızca şifreyi bilenler katılabilir. Boş bırakırsanız tüm üyeler katılabilir.</div>
-    <button class="btn" style="margin-top:20px">Grubu oluştur</button></form>`;
+    <button class="btn" style="margin-top:20px">Grubu Oluştur</button></form>`;
   $("grpForm").onsubmit = async e => {
     e.preventDefault(); const f = new FormData(e.target), btn = e.target.querySelector("button"); btn.disabled = true;
     const { data, error } = await sb.rpc("create_group", { gname: f.get("name").trim(), gpass: f.get("pass") || null });
@@ -723,18 +723,18 @@ function openNewGroup(){
 async function openBrowse(){
   await loadGroups();
   room = "__pick"; $("back").hidden = false; $("composer").hidden = true;
-  $("heading").textContent = "Tüm gruplar"; $("navTitle").textContent = "Tüm gruplar"; $("sub").textContent = `${groups.length} grup`;
+  $("heading").textContent = "Tüm Gruplar"; $("navTitle").textContent = "Tüm Gruplar"; $("sub").textContent = `${groups.length} grup`;
   $("msgs").innerHTML = groups.length ? `<div class="list" style="margin-top:8px">${groups.map(g => `<button class="li room" data-join="${g.id}">${roomIcon(gcolor(g.id), GROUP_IC)}
       <div class="grow"><b class="rn">${esc(g.name)}</b><small>${g.locked ? LOCK + " Şifreli · " : ""}${g.members} üye · ${esc(g.owner_name || "")}</small></div>
-      ${g.is_member ? `<span class="pill ok">Üyesiniz</span>` : `<span class="pill">${g.locked ? "Şifreyle katıl" : "Katıl"}</span>`}</button>`).join("")}</div>`
+      ${g.is_member ? `<span class="pill ok">Üyesiniz</span>` : `<span class="pill">${g.locked ? "Şifreyle Katıl" : "Katıl"}</span>`}</button>`).join("")}</div>`
     : `<div class="empty">Henüz grup yok. İlk grubu siz kurun.</div>`;
 }
 function openJoin(g){
   room = "__pick";
   $("heading").textContent = g.name; $("navTitle").textContent = g.name; $("sub").innerHTML = `${g.members} üye${g.locked ? " · " + LOCK + " Şifreli" : ""}`;
-  $("msgs").innerHTML = `<form id="joinForm" style="margin-top:8px">${g.locked ? `<div class="group"><label class="field"><input name="pass" type="password" placeholder="Grup şifresi" required autocomplete="off"></label></div>
+  $("msgs").innerHTML = `<form id="joinForm" style="margin-top:8px">${g.locked ? `<div class="group"><label class="field"><input name="pass" type="password" placeholder="Grup Şifresi" required autocomplete="off"></label></div>
     <div class="foot">Bu grup şifreli. Şifreyi grubu kuran kişiden (${esc(g.owner_name || "")}) öğrenebilirsiniz.</div>` : `<div class="hint">Bu gruba katılınca mesajları görebilir ve yazabilirsiniz.</div>`}
-    <div class="err" id="joinErr"></div><button class="btn">Gruba katıl</button></form>`;
+    <div class="err" id="joinErr"></div><button class="btn">Gruba Katıl</button></form>`;
   $("joinForm").onsubmit = async e => {
     e.preventDefault(); const pass = new FormData(e.target).get("pass");
     const { data, error } = await sb.rpc("join_group", { gid: g.id, gpass: pass || null });
@@ -746,10 +746,10 @@ function openJoin(g){
 }
 async function openMembers(){
   if(!members){ const { data } = await sb.rpc("list_members"); members = data || []; }
-  $("msgs").innerHTML = `<div class="sect" style="margin-top:8px">Kime yazmak istiyorsunuz?</div><div class="list">${members.length ? members.map(m =>
+  $("msgs").innerHTML = `<div class="sect" style="margin-top:8px">Kime Yazmak İstiyorsunuz?</div><div class="list">${members.length ? members.map(m =>
     `<button class="li room" data-room="${esc(dmRoom(m.id))}"><div class="rav ava2">${esc(initialsOf(m.full_name || m.username))}</div><div class="grow"><b class="rn">${esc(m.full_name || m.username)}</b><small>@${esc(m.username)}</small></div></button>`).join("")
     : `<div class="li"><small>Henüz başka aktif üye yok.</small></div>`}</div>`;
-  $("heading").textContent = "Yeni mesaj"; $("back").hidden = false; room = "__pick";
+  $("heading").textContent = "Yeni Mesaj"; $("back").hidden = false; room = "__pick";
 }
 $("msgs").addEventListener("click", async e => {
   if(e.target.closest("#newDm")) return openMembers();
@@ -819,24 +819,24 @@ async function renderAccount(){
   $("account").innerHTML = `
     <div class="list"><div class="li" style="padding:14px 16px"><div class="ava">${esc(initials)}</div><div class="grow"><b style="font-weight:600;font-size:20px">${esc(me.full_name || me.username)}</b><small>@${esc(me.username)}</small></div><span class="pill ${me.role === "admin" ? "ok" : "ok"}">${esc(sub)}</span></div></div>
     <div class="sect">Bildirimler</div>
-    ${showHint ? `<div class="hint">Anlık bildirim için TMPRO'yu ana ekrana ekleyip oradan açın: Safari'de <b>Paylaş</b>, ardından <b>Ana Ekrana Ekle</b>.</div>` : ""}
+    ${showHint ? `<div class="hint">Anlık Bildirim için TMPRO'yu ana ekrana ekleyip oradan açın: Safari'de <b>Paylaş</b>, ardından <b>Ana Ekrana Ekle</b>.</div>` : ""}
     <div class="list">
-      <div class="li"><div class="tdot" style="--c:var(--danger)">${icon("Tebliğ", 17).replace('stroke-width="1.9"', 'stroke-width="2.2"')}</div><div class="grow"><b>Anlık bildirim</b></div>
+      <div class="li"><div class="tdot" style="--c:var(--danger)">${icon("Tebliğ", 17).replace('stroke-width="1.9"', 'stroke-width="2.2"')}</div><div class="grow"><b>Anlık Bildirim</b></div>
         <label class="switch"><input type="checkbox" id="pushToggle" ${on ? "checked" : ""} ${!pushSupported ? "disabled" : ""}><span></span></label></div>
     </div>
     <div class="foot">Mevzuat bildirimleri 22:00 ile 08:00 arası gelmez; gece çıkanlar sabah tek bildirimde toplanır.</div>
-    <div class="list" style="margin-top:16px"><div class="li"><div class="tdot" style="--c:var(--t-ozelge)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></svg></div><div class="grow"><b>Sohbet bildirimleri</b></div>
+    <div class="list" style="margin-top:16px"><div class="li"><div class="tdot" style="--c:var(--t-ozelge)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></svg></div><div class="grow"><b>Sohbet Bildirimleri</b></div>
       <label class="switch"><input type="checkbox" id="chatNotify" ${me.chat_notify !== false ? "checked" : ""}><span></span></label></div></div>
-    <div class="foot">Tek tek sohbetleri, sohbetin içindeki <b>Sessize al</b> ile kapatabilirsiniz.</div>
-    <div class="sect">Bildirim gelecek türler</div>
+    <div class="foot">Tek tek sohbetleri, sohbetin içindeki <b>Sessize Al</b> ile kapatabilirsiniz.</div>
+    <div class="sect">Bildirim Gelecek Türler</div>
     <div class="list" id="typeList">${ORDER.map(t => `<div class="li"><div class="tdot" style="--c:var(${TYPES[t]})">${icon(t, 17)}</div><div class="grow"><b>${esc(t)}</b></div><label class="switch"><input type="checkbox" data-type="${esc(t)}" ${types.includes(t) ? "checked" : ""}><span></span></label></div>`).join("")}</div>
     <div class="sect">Görünüm</div>
     <div class="seg" id="themeSeg">${["auto:Otomatik","light:Açık","dark:Koyu"].map(x => { const [k, l] = x.split(":"); return `<button data-th="${k}" class="${getTheme() === k ? "on" : ""}">${l}</button>`; }).join("")}</div>
     <div class="foot" style="margin-top:0">Otomatik, telefonunuzun açık/koyu ayarını izler.</div>
     <div class="sect"></div>
-    <div class="list"><button class="li" id="logout" style="width:100%;border:0;background:none;justify-content:center;color:var(--danger);font-size:17px;cursor:pointer">Çıkış yap</button></div>
+    <div class="list"><button class="li" id="logout" style="width:100%;border:0;background:none;justify-content:center;color:var(--danger);font-size:17px;cursor:pointer">Çıkış Yap</button></div>
     <p class="small muted" style="text-align:center;margin-top:24px">TMPRO · GİB, Resmî Gazete, Danıştay, Anayasa Mahkemesi</p>`;
-  $("chatNotify").onchange = async e => { const on = e.target.checked; const { error } = await sb.rpc("set_chat_notify", { enabled: on }); if(error){ e.target.checked = !on; toast("Kaydedilemedi"); return; } me.chat_notify = on; toast(on ? "Sohbet bildirimleri açık" : "Sohbet bildirimleri kapalı"); };
+  $("chatNotify").onchange = async e => { const on = e.target.checked; const { error } = await sb.rpc("set_chat_notify", { enabled: on }); if(error){ e.target.checked = !on; toast("Kaydedilemedi"); return; } me.chat_notify = on; toast(on ? "Sohbet Bildirimleri açık" : "Sohbet Bildirimleri kapalı"); };
   $("themeSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; setTheme(b.dataset.th); renderAccount(); };
   $("logout").onclick = async () => { await sb.auth.signOut(); me = null; show("authView"); };
   $("pushToggle").onchange = async e => {
@@ -878,17 +878,17 @@ async function renderAdmin(){
       ${statusPill(u)}</div><div class="acts2">${actions(u)}</div></div>`;
   let body = "";
   if(adminSeg === "pending"){
-    body = pending.length ? `<div class="list">${pending.map(u => person(u, u => `<button class="btn small ok" data-act="approve" data-id="${u.id}">Onayla (${settings.sure_gun || 30} gün)</button><button class="btn small danger" data-act="reject" data-id="${u.id}">Reddet</button>`)).join("")}</div>`
+    body = pending.length ? `<div class="list">${pending.map(u => person(u, u => `<button class="btn small ok" data-act="approve" data-id="${u.id}">Onayla (${settings.sure_gun || 30} Gün)</button><button class="btn small danger" data-act="reject" data-id="${u.id}">Reddet</button>`)).join("")}</div>`
       : `<div class="empty">Bekleyen talep yok.</div>`;
   }else if(adminSeg === "active"){
-    body = `<div class="list">${active.map(u => person(u, u => u.role === "admin" ? "" : `<button class="btn small ghost" data-act="approve" data-id="${u.id}">+${settings.sure_gun || 30} gün</button><button class="btn small ghost" data-act="forever" data-id="${u.id}">Süresiz yap</button><button class="btn small danger" data-act="cancel" data-id="${u.id}">Aboneliği kapat</button>`)).join("")}</div>`
-      + (other.length ? `<div class="sect">Süresi dolan / reddedilen</div><div class="list">${other.map(u => person(u, u => `<button class="btn small ghost" data-act="approve" data-id="${u.id}">Aç (${settings.sure_gun || 30} gün)</button>`)).join("")}</div>` : "");
+    body = `<div class="list">${active.map(u => person(u, u => u.role === "admin" ? "" : `<button class="btn small ghost" data-act="approve" data-id="${u.id}">+${settings.sure_gun || 30} Gün</button><button class="btn small ghost" data-act="forever" data-id="${u.id}">Süresiz Yap</button><button class="btn small danger" data-act="cancel" data-id="${u.id}">Aboneliği Kapat</button>`)).join("")}</div>`
+      + (other.length ? `<div class="sect">Süresi Dolan / Reddedilen</div><div class="list">${other.map(u => person(u, u => `<button class="btn small ghost" data-act="approve" data-id="${u.id}">Aç (${settings.sure_gun || 30} Gün)</button>`)).join("")}</div>` : "");
   }else{
     body = `<form id="setForm" class="panel">
       <label class="field"><span>IBAN</span><input name="iban" value="${esc(settings.iban || "")}" placeholder="TR00 0000 0000 0000 0000 0000 00"></label>
-      <label class="field"><span>Alıcı adı</span><input name="alici" value="${esc(settings.alici || "")}"></label>
+      <label class="field"><span>Alıcı Adı</span><input name="alici" value="${esc(settings.alici || "")}"></label>
       <div class="row"><label class="field" style="flex:1"><span>Fiyat (TL)</span><input name="fiyat" inputmode="numeric" value="${esc(settings.fiyat || "99")}"></label>
-      <label class="field" style="flex:1"><span>Süre (gün)</span><input name="sure_gun" inputmode="numeric" value="${esc(settings.sure_gun || "30")}"></label></div>
+      <label class="field" style="flex:1"><span>Süre (Gün)</span><input name="sure_gun" inputmode="numeric" value="${esc(settings.sure_gun || "30")}"></label></div>
       <button class="btn" type="submit">Kaydet</button></form>
       <p class="small muted" style="margin:12px 4px">Bu bilgiler abonelik talebi yapan kişilere ödeme ekranında gösterilir.</p>`;
   }
@@ -914,7 +914,7 @@ function statusPill(u){
   if(u.status === "pending") return `<span class="pill warn">Bekliyor</span>`;
   if(u.status === "rejected") return `<span class="pill bad">Reddedildi</span>`;
   if(u.status === "cancelled") return `<span class="pill bad">Kapalı</span>`;
-  if(u.expires_at && new Date(u.expires_at) <= new Date()) return `<span class="pill bad">Süresi doldu</span>`;
+  if(u.expires_at && new Date(u.expires_at) <= new Date()) return `<span class="pill bad">Süresi Doldu</span>`;
   return `<span class="pill ok">Aktif</span>`;
 }
 
