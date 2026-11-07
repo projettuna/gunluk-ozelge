@@ -286,7 +286,7 @@ def build_mail(ozelgeler, kararlar, today, ozelge_intro=None, karar_intro=None, 
         parts_subject.append(f"{len(items)} {short}")
         intro = intro or f"GİB'de yeni yayımlanan {len(items)} kayıt:"
         html_parts.append(f"<h3>{html.escape(title)}</h3><p>{html.escape(intro)}</p><ul style='padding-left:18px'>{teblig_html(items)}</ul>")
-        txt_parts.append(f"{title.upper()}\n{intro}\n\n{teblig_txt(items)}")
+        txt_parts.append(f"{title}\n{intro}\n\n{teblig_txt(items)}")
     if tebligler:
         parts_subject.append(f"{len(tebligler)} yeni tebliğ")
         intro = teblig_intro or f"GİB'de yeni yayımlanan {len(tebligler)} tebliğ:"
