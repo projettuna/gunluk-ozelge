@@ -1,31 +1,23 @@
-"""Geçici teşhis: GİB mevzuat API uç noktalarını listeler."""
-import json, re
-from urllib.parse import urljoin
+"""Geçici teşhis: yargı kararı arama API'leri."""
+import json
 from urllib.request import Request, urlopen
-UA = "Mozilla/5.0 ozelge-bildirim/1.0"
-def get(url, body=None):
-    h = {"User-Agent": UA, "Accept": "application/json, text/html"}
-    data = None
-    if body is not None:
-        h["Content-Type"] = "application/json"; data = json.dumps(body).encode()
+UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130 Safari/537.36"
+def post(url, body):
+    h = {"User-Agent": UA, "Accept": "application/json", "Content-Type": "application/json; charset=UTF-8", "X-Requested-With": "XMLHttpRequest"}
     try:
-        with urlopen(Request(url, data=data, headers=h, method="POST" if data else "GET"), timeout=60) as r:
+        with urlopen(Request(url, data=json.dumps(body).encode(), headers=h, method="POST"), timeout=60) as r:
             return r.read().decode("utf-8", "replace")
     except Exception as e:
-        return f"ERR {e}"
-pages = ["https://www.gib.gov.tr/mevzuat/ozelgeler", "https://www.gib.gov.tr/mevzuat/yargi-kararlari",
-         "https://www.gib.gov.tr/mevzuat/tur/yargi-kararlari", "https://www.gib.gov.tr/mevzuat/danistay-kararlari"]
-scripts = set()
-for p in pages:
-    t = get(p)
-    print("PAGE", p, t[:60] if t.startswith("ERR") else len(t))
-    if not t.startswith("ERR"):
-        scripts.update(re.findall(r'<script[^>]+src="([^"]+)"', t))
-        print("  links:", sorted(set(re.findall(r'href="(/mevzuat/[^"]+)"', t)))[:60])
-eps, words = set(), set()
-for s in scripts:
-    js = get(urljoin("https://www.gib.gov.tr/", s))
-    eps.update(re.findall(r'gibportal/[A-Za-z0-9_/\-]+', js))
-    words.update(re.findall(r'[^"\'`\s]{0,60}(?:karar|KARAR|yargi|YARGI|danistay|DANISTAY)[^"\'`\s]{0,60}', js))
-print("ENDPOINTS:"); [print("  ", e) for e in sorted(eps)]
-print("KARAR REFS:"); [print("  ", w[:150]) for w in sorted(words)[:120]]
+        rd = getattr(e, "read", None)
+        return f"ERR {e} {rd().decode('utf-8','replace')[:300] if rd else ''}"
+q = '"vergi usul kanunu" 359'
+tries = [
+  ("https://karararama.yargitay.gov.tr/aramalist", {"data": {"arananKelime": q, "pageSize": 5, "pageNumber": 1}}),
+  ("https://karararama.yargitay.gov.tr/aramalist", {"data": {"arananKelime": "359", "pageSize": 5, "pageNumber": 1, "siralama": "3", "siralamaDirection": "desc"}}),
+  ("https://karararama.danistay.gov.tr/aramalist", {"data": {"andKelimeler": ["vergi usul kanunu", "359"], "pageSize": 5, "pageNumber": 1}}),
+  ("https://karararama.danistay.gov.tr/aramalist", {"data": {"arananKelime": q, "pageSize": 5, "pageNumber": 1}}),
+  ("https://emsal.uyap.gov.tr/aramalist", {"data": {"arananKelime": q, "pageSize": 5, "pageNumber": 1}}),
+]
+for url, body in tries:
+    print("==", url, json.dumps(body, ensure_ascii=False))
+    print(post(url, body)[:1500])
