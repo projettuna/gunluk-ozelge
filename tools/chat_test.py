@@ -1,12 +1,12 @@
-"""Sohbetin uçtan uca testi: geçici bir kullanıcı açar, mesaj yazar/okur, sonra her şeyi siler.
-Depo herkese açık olduğu için yalnızca durum kodları yazdırılır."""
-import json, os, secrets, sys
+"""Sohbetin uçtan uca testi: geçici kullanıcılar açar; oda, özel mesaj ve şifreli grup akışını dener, sonra her şeyi siler.
+Depo herkese açık olduğu için yalnızca durum kodları ve sayılar yazdırılır."""
+import json, os, secrets
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
 URL = os.environ["SUPABASE_URL"].rstrip("/")
 KEY = os.environ["SUPABASE_SERVICE_KEY"]
-PUB = os.environ.get("SUPABASE_PUBLISHABLE_KEY", "")
+PUB = os.environ["SUPABASE_PUBLISHABLE_KEY"]
 
 
 def call(method, path, body=None, token=None, apikey=None, prefer=None):
@@ -21,36 +21,55 @@ def call(method, path, body=None, token=None, apikey=None, prefer=None):
             t = r.read().decode()
             return r.status, (json.loads(t) if t else None)
     except HTTPError as e:
-        return e.code, e.read().decode()[:400]
+        return e.code, e.read().decode()[:300]
 
 
-uname = "test" + secrets.token_hex(3)
-pw = secrets.token_urlsafe(12)
-st, u = call("POST", "/auth/v1/admin/users", {"email": f"{uname}@tmpro.app", "password": pw, "email_confirm": True,
-                                              "user_metadata": {"username": uname, "full_name": "Test"}})
-print("kullanıcı oluştur:", st)
-uid = u["id"] if st < 300 else None
+def user():
+    name, pw = "test" + secrets.token_hex(3), secrets.token_urlsafe(12)
+    st, u = call("POST", "/auth/v1/admin/users", {"email": f"{name}@tmpro.app", "password": pw, "email_confirm": True,
+                                                  "user_metadata": {"username": name, "full_name": "Test"}})
+    call("PATCH", f"/rest/v1/profiles?id=eq.{u['id']}", {"status": "active"})
+    st2, tok = call("POST", "/auth/v1/token?grant_type=password", {"email": f"{name}@tmpro.app", "password": pw}, apikey=PUB)
+    print("kullanıcı:", st, "giriş:", st2)
+    return u["id"], tok["access_token"]
+
+
+def as_(tok, method, path, body=None):
+    return call(method, path, body, token=tok, apikey=PUB, prefer="return=representation")
+
+
+def count(tok, room):
+    st, r = as_(tok, "GET", f"/rest/v1/messages?select=id&room=eq.{room}")
+    return len(r) if isinstance(r, list) else f"hata {st}"
+
+
+ids = []
 try:
-    print("profil aktif:", call("PATCH", f"/rest/v1/profiles?id=eq.{uid}", {"status": "active"})[0])
-    st, tok = call("POST", "/auth/v1/token?grant_type=password", {"email": f"{uname}@tmpro.app", "password": pw}, apikey=PUB)
-    print("giriş:", st)
-    jwt = tok["access_token"]
-    for room in ("genel", f"dm:{uid}:00000000-0000-0000-0000-000000000000"):
-        st, r = call("POST", "/rest/v1/messages?select=id,room", {"body": "test", "room": room}, token=jwt, apikey=PUB,
-                     prefer="return=representation")
-        print("yaz", "dm" if room.startswith("dm") else room, st, "" if st < 300 else r)
-        st, r = call("GET", f"/rest/v1/messages?select=id&room=eq.{room}", token=jwt, apikey=PUB)
-        print("oku", "dm" if room.startswith("dm") else room, st, len(r) if isinstance(r, list) else r)
-    st, r = call("POST", "/rest/v1/rpc/list_groups", {}, token=jwt, apikey=PUB)
-    print("list_groups:", st, "" if st < 300 else r)
-    st, r = call("POST", "/rest/v1/rpc/list_members", {}, token=jwt, apikey=PUB)
-    print("list_members:", st, "" if st < 300 else r)
-    st, gid = call("POST", "/rest/v1/rpc/create_group", {"gname": "Test grubu", "gpass": "x1"}, token=jwt, apikey=PUB)
-    print("create_group:", st, "" if st < 300 else gid)
-    if st < 300:
-        print("grup mesajı:", call("POST", "/rest/v1/messages", {"body": "t", "room": f"g:{gid}"}, token=jwt, apikey=PUB)[0])
-        print("delete_group:", call("POST", "/rest/v1/rpc/delete_group", {"gid": gid}, token=jwt, apikey=PUB)[0])
+    a, ta = user(); ids.append(a)
+    b, tb = user(); ids.append(b)
+    c, tc = user(); ids.append(c)
+    # Özel mesaj
+    dm = "dm:" + ":".join(sorted([a, b]))
+    print("dm yaz A:", as_(ta, "POST", "/rest/v1/messages", {"body": "x", "room": dm})[0])
+    print("dm oku A/B/C:", count(ta, dm), count(tb, dm), count(tc, dm), "(beklenen 1 1 0)")
+    # Şifreli grup
+    st, gid = as_(ta, "POST", "/rest/v1/rpc/create_group", {"gname": "Test", "gpass": "gizli1"})
+    print("grup kur:", st)
+    g = f"g:{gid}"
+    print("grup yaz A:", as_(ta, "POST", "/rest/v1/messages", {"body": "x", "room": g})[0])
+    print("üye olmayan B okur:", count(tb, g), "(beklenen 0)")
+    print("üye olmayan B yazar:", as_(tb, "POST", "/rest/v1/messages", {"body": "x", "room": g})[0], "(beklenen 403/401)")
+    print("B yanlış şifre:", as_(tb, "POST", "/rest/v1/rpc/join_group", {"gid": gid, "gpass": "yanlis"})[1], "(beklenen false)")
+    print("B doğru şifre:", as_(tb, "POST", "/rest/v1/rpc/join_group", {"gid": gid, "gpass": "gizli1"})[1], "(beklenen true)")
+    print("grup yaz B:", as_(tb, "POST", "/rest/v1/messages", {"body": "y", "room": g})[0])
+    print("grup oku A/B/C:", count(ta, g), count(tb, g), count(tc, g), "(beklenen 2 2 0)")
+    st, lst = as_(tb, "POST", "/rest/v1/rpc/list_groups", {})
+    me = [x for x in lst if x["id"] == gid] if isinstance(lst, list) else []
+    print("B listede üye mi:", me and me[0]["is_member"], "üye sayısı:", me and me[0]["members"])
+    print("B ayrıl:", as_(tb, "POST", "/rest/v1/rpc/leave_group", {"gid": gid})[0], "sonra B okur:", count(tb, g))
+    print("grup sil (A):", as_(ta, "POST", "/rest/v1/rpc/delete_group", {"gid": gid})[0])
 finally:
-    if uid:
+    for uid in ids:
         call("DELETE", f"/rest/v1/messages?user_id=eq.{uid}")
-        print("temizlik:", call("DELETE", f"/auth/v1/admin/users/{uid}")[0])
+        call("DELETE", f"/auth/v1/admin/users/{uid}")
+    print("temizlik tamam:", len(ids))
