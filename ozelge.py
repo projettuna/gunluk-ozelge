@@ -147,29 +147,17 @@ def diagnose():
     except Exception as e:  # noqa: BLE001
         print("sayfa alınamadı:", e)
         return
-    print("sayfa uzunluğu", len(page), "NEXT_DATA:", "__NEXT_DATA__" in page)
-    scripts = re.findall(r'<script[^>]+src="([^"]+)"', page)
-    print("scriptler:", scripts[:40])
-    print("sayfa başı:", page[:1200].replace("\n", " "))
-    refs = set()
-    for src in scripts:
+    api = "https://gib.gov.tr/api/gibportal/mevzuat/ozelge/list"
+    for q in ("?page=0&size=2", "?page=0&size=3&sortFieldName=ozelgeTarih&sortType=DESC",
+              "?page=0&size=3&sortFieldName=id&sortType=DESC", "?page=0&size=3&sortFieldName=ts&sortType=DESC"):
         try:
-            js, _ = fetch(urljoin(BASE + "/", src))
-        except Exception:  # noqa: BLE001
-            continue
-        refs.update(re.findall(r'[^"\'`\s]{0,100}ozelge[^"\'`\s]{0,100}', js, re.I))
-    print("JS içindeki özelge referansları:")
-    for r in sorted(refs)[:100]:
-        print("  ", r[:220])
-    for url in ("https://gib.gov.tr/api/gibportal/mevzuat/ozelge/list?page=0&size=3",
-                "https://www.gib.gov.tr/api/gibportal/mevzuat/ozelge/list?page=0&size=3"):
-        for body in ({}, {"deleted": False}):
-            try:
-                txt, _ = fetch(url, body)
-                print("POST", url, body, "->", txt[:800].replace("\n", " "))
-            except Exception as e:  # noqa: BLE001
-                rd = getattr(e, "read", None)
-                print("POST", url, body, "->", e, rd().decode("utf-8", "replace")[:300] if rd else "")
+            txt, _ = fetch(api + q, {})
+            d = json.loads(txt)["resultContainer"]
+            print("POST", q, "toplam:", d.get("totalElements"))
+            for rec in d["content"]:
+                print(json.dumps(rec, ensure_ascii=False)[:1500])
+        except Exception as e:  # noqa: BLE001
+            print("POST", q, "->", e)
     print("=== TEŞHİS SONU ===")
 
 
