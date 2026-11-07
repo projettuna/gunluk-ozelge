@@ -254,6 +254,7 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
 .rb{min-width:20px;height:20px;border-radius:10px;background:var(--accent);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center;padding:0 6px;flex:none}
 .room .row{gap:8px}
 .thread{display:flex;flex-direction:column;gap:2px}
+.head .sub .linkbtn{vertical-align:baseline}
 </style>
 </head>
 <body>
@@ -596,17 +597,22 @@ const ROOMS = [
   { id: "mevzuat", name: "Mevzuat Bilgi", c: "--t-danistay", ic: IC["Kanun"] },
   { id: "ymm", name: "YMM Çalışma Grubu", c: "--t-cb", ic: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c.8-3.2 3.2-5 6-5s5.2 1.8 6 5"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.2c2.6-.4 4.8 1.2 5.5 4.3"/>' }
 ];
-let msgs = [], chatStarted = false, room = null, members = null;
+let msgs = [], chatStarted = false, room = null, members = null, groups = [];
+const LOCK = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+const GROUP_IC = '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c.8-3.2 3.2-5 6-5s5.2 1.8 6 5"/><path d="M17 11v6M14 14h6"/>';
+const gcolor = id => ["--t-teblig","--t-sirkuler","--t-aym","--t-rg","--t-kanun","--t-ozelge"][parseInt(id.replace(/\D/g, "").slice(0, 6) || "0") % 6];
+async function loadGroups(){ const { data } = await sb.rpc("list_groups"); groups = data || []; }
 const seenMap = () => store.get("chatSeenRooms", {});
 const dmRoom = uid => "dm:" + [me.id, uid].sort().join(":");
 const dmOther = r => r.slice(3).split(":").find(x => x !== me.id);
-const roomName = r => r.startsWith("dm:") ? (memberName(dmOther(r)) || "Özel mesaj") : (ROOMS.find(x => x.id === r)?.name || r);
+const roomName = r => r.startsWith("dm:") ? (memberName(dmOther(r)) || "Özel mesaj") : r.startsWith("g:") ? (groups.find(g => g.id === r.slice(2))?.name || "Grup") : (ROOMS.find(x => x.id === r)?.name || r);
 function memberName(uid){ const m = members?.find(x => x.id === uid); if(m) return m.full_name || m.username; const msg = msgs.find(x => x.user_id === uid); return msg?.username || null; }
 const initialsOf = n => String(n || "?").split(/\s+/).map(w => w[0]).slice(0, 2).join("").toLocaleUpperCase("tr");
 async function startChat(){
   if(chatStarted) return; chatStarted = true;
   const { data } = await sb.from("messages").select("id,room,user_id,username,body,created_at").order("id", { ascending: false }).limit(1000);
   msgs = (data || []).reverse();
+  await loadGroups();
   if(store.get("chatSeenRooms", null) === null){ const m = {}; msgs.forEach(x => m[x.room] = x.id); store.set("chatSeenRooms", m); }
   updateChatBadge();
   sb.channel("sohbet").on("postgres_changes", { event: "*", schema: "public", table: "messages" }, p => {
@@ -638,6 +644,9 @@ function renderChat(){
     .sort((a, b) => Math.max(...msgs.filter(m => m.room === b).map(m => m.id)) - Math.max(...msgs.filter(m => m.room === a).map(m => m.id)));
   $("msgs").innerHTML = `<div class="sect" style="margin-top:8px">Odalar</div>
     <div class="list">${ROOMS.map(r => roomRow(r.id, r.name, roomIcon(r.c, r.ic))).join("")}</div>
+    <div class="sect row" style="margin-right:4px"><span>Gruplarım</span><span class="spacer"></span><button class="linkbtn" id="browseGroups" style="font-size:15px;text-transform:none;padding:0">Tüm gruplar</button></div>
+    <div class="list">${groups.filter(g => g.is_member).map(g => roomRow("g:" + g.id, g.name, roomIcon(gcolor(g.id), GROUP_IC))).join("")}
+      <button class="li room" id="newGroup"><div class="rav" style="--c:var(--fill);color:var(--accent)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div><div class="grow"><b class="rn" style="color:var(--accent)">Grup oluştur</b><small>İsterseniz şifre koyabilirsiniz</small></div></button></div>
     <div class="sect row" style="margin-right:4px"><span>Özel mesajlar</span><span class="spacer"></span><button class="linkbtn" id="newDm" style="font-size:15px;text-transform:none;padding:0">Yeni mesaj</button></div>
     ${dms.length ? `<div class="list">${dms.map(r => roomRow(r, roomName(r), `<div class="rav ava2">${esc(initialsOf(roomName(r)))}</div>`)).join("")}</div>`
       : `<div class="hint" style="text-align:center">Bir üyeye özel mesaj atmak için <b>Yeni mesaj</b>'a dokunun.</div>`}`;
@@ -646,7 +655,15 @@ function renderChat(){
 function renderRoom(){
   const name = roomName(room);
   $("heading").textContent = name; $("navTitle").textContent = name;
-  $("sub").textContent = room.startsWith("dm:") ? "Özel mesaj" : `${new Set(msgs.filter(m => m.room === room).map(m => m.user_id)).size} kişi yazdı`;
+  const grp = room.startsWith("g:") ? groups.find(g => g.id === room.slice(2)) : null;
+  $("sub").innerHTML = room.startsWith("dm:") ? "Özel mesaj" : grp ? `${grp.members} üye${grp.locked ? " · " + LOCK + " Şifreli" : ""} · <button class="linkbtn" id="grpAct" style="font-size:15px;padding:0">${grp.is_owner || me.role === "admin" ? "Grubu sil" : "Gruptan ayrıl"}</button>` : `${new Set(msgs.filter(m => m.room === room).map(m => m.user_id)).size} kişi yazdı`;
+  const ga = $("grpAct"); if(ga) ga.onclick = async () => {
+    const del = grp.is_owner || me.role === "admin";
+    if(!confirm(del ? "Grup ve tüm mesajları silinsin mi?" : "Gruptan ayrılmak istiyor musunuz?")) return;
+    const { error } = await sb.rpc(del ? "delete_group" : "leave_group", { gid: grp.id });
+    if(error){ toast("İşlem başarısız"); return; }
+    msgs = msgs.filter(m => m.room !== room); await loadGroups(); room = null; toast(del ? "Grup silindi" : "Gruptan ayrıldınız"); render();
+  };
   const list = msgs.filter(m => m.room === room);
   if(list.length){ const m = seenMap(); m[room] = list[list.length - 1].id; store.set("chatSeenRooms", m); }
   updateChatBadge();
@@ -662,6 +679,45 @@ function renderRoom(){
   $("msgs").innerHTML = `<div class="thread">${html || `<div class="empty">Henüz mesaj yok. İlk mesajı siz yazın.</div>`}</div>`;
   requestAnimationFrame(() => scrollTo({ top: document.body.scrollHeight }));
 }
+function openNewGroup(){
+  room = "__pick"; $("back").hidden = false; $("composer").hidden = true;
+  $("heading").textContent = "Yeni grup"; $("navTitle").textContent = "Yeni grup"; $("sub").textContent = "";
+  $("msgs").innerHTML = `<form id="grpForm"><div class="sect" style="margin-top:8px">Grup bilgileri</div>
+    <div class="group"><label class="field"><input name="name" placeholder="Grup adı" maxlength="60" required></label>
+    <label class="field"><input name="pass" type="password" placeholder="Şifre (isteğe bağlı)" autocomplete="new-password"></label></div>
+    <div class="foot">Şifre koyarsanız gruba yalnızca şifreyi bilenler katılabilir. Boş bırakırsanız tüm üyeler katılabilir.</div>
+    <button class="btn" style="margin-top:20px">Grubu oluştur</button></form>`;
+  $("grpForm").onsubmit = async e => {
+    e.preventDefault(); const f = new FormData(e.target), btn = e.target.querySelector("button"); btn.disabled = true;
+    const { data, error } = await sb.rpc("create_group", { gname: f.get("name").trim(), gpass: f.get("pass") || null });
+    btn.disabled = false; if(error){ toast("Grup oluşturulamadı"); return; }
+    await loadGroups(); room = "g:" + data; toast("Grup oluşturuldu"); render();
+  };
+}
+async function openBrowse(){
+  await loadGroups();
+  room = "__pick"; $("back").hidden = false; $("composer").hidden = true;
+  $("heading").textContent = "Tüm gruplar"; $("navTitle").textContent = "Tüm gruplar"; $("sub").textContent = `${groups.length} grup`;
+  $("msgs").innerHTML = groups.length ? `<div class="list" style="margin-top:8px">${groups.map(g => `<button class="li room" data-join="${g.id}">${roomIcon(gcolor(g.id), GROUP_IC)}
+      <div class="grow"><b class="rn">${esc(g.name)}</b><small>${g.locked ? LOCK + " Şifreli · " : ""}${g.members} üye · ${esc(g.owner_name || "")}</small></div>
+      ${g.is_member ? `<span class="pill ok">Üyesiniz</span>` : `<span class="pill">${g.locked ? "Şifreyle katıl" : "Katıl"}</span>`}</button>`).join("")}</div>`
+    : `<div class="empty">Henüz grup yok. İlk grubu siz kurun.</div>`;
+}
+function openJoin(g){
+  room = "__pick";
+  $("heading").textContent = g.name; $("navTitle").textContent = g.name; $("sub").innerHTML = `${g.members} üye${g.locked ? " · " + LOCK + " Şifreli" : ""}`;
+  $("msgs").innerHTML = `<form id="joinForm" style="margin-top:8px">${g.locked ? `<div class="group"><label class="field"><input name="pass" type="password" placeholder="Grup şifresi" required autocomplete="off"></label></div>
+    <div class="foot">Bu grup şifreli. Şifreyi grubu kuran kişiden (${esc(g.owner_name || "")}) öğrenebilirsiniz.</div>` : `<div class="hint">Bu gruba katılınca mesajları görebilir ve yazabilirsiniz.</div>`}
+    <div class="err" id="joinErr"></div><button class="btn">Gruba katıl</button></form>`;
+  $("joinForm").onsubmit = async e => {
+    e.preventDefault(); const pass = new FormData(e.target).get("pass");
+    const { data, error } = await sb.rpc("join_group", { gid: g.id, gpass: pass || null });
+    if(error || !data){ $("joinErr").textContent = g.locked ? "Şifre yanlış." : "Katılınamadı."; return; }
+    const r = "g:" + g.id; const { data: old } = await sb.from("messages").select("id,room,user_id,username,body,created_at").eq("room", r).order("id").limit(500);
+    (old || []).forEach(m => { if(!msgs.some(x => x.id === m.id)) msgs.push(m); }); msgs.sort((a, b) => a.id - b.id);
+    await loadGroups(); room = r; toast("Gruba katıldınız"); render();
+  };
+}
 async function openMembers(){
   if(!members){ const { data } = await sb.rpc("list_members"); members = data || []; }
   $("msgs").innerHTML = `<div class="sect" style="margin-top:8px">Kime yazmak istiyorsunuz?</div><div class="list">${members.length ? members.map(m =>
@@ -671,6 +727,10 @@ async function openMembers(){
 }
 $("msgs").addEventListener("click", async e => {
   if(e.target.closest("#newDm")) return openMembers();
+  if(e.target.closest("#newGroup")) return openNewGroup();
+  if(e.target.closest("#browseGroups")) return openBrowse();
+  const j = e.target.closest("[data-join]");
+  if(j){ const g = groups.find(x => x.id === j.dataset.join); if(!g) return; if(g.is_member){ room = "g:" + g.id; render(); return; } return openJoin(g); }
   const r = e.target.closest(".room");
   if(r){ room = r.dataset.room; if(room.startsWith("dm:") && !members){ sb.rpc("list_members").then(({ data }) => { members = data || []; if(tab === "chat" && room) renderRoom(); }); } renderChat(); setTimeout(() => msgIn.focus(), 50); return; }
   const m = e.target.closest(".msg"); if(!m || !e.target.closest(".bub")) return;
