@@ -101,7 +101,12 @@ def _teblig(id_, title, kanun, rg_tarih, rg_sayi, url):
     meta = " · ".join(x for x in (
         (kanun or "").replace("(*)", "").strip(),
         f"Resmî Gazete {rg_tarih}" + (f", sayı {rg_sayi}" if rg_sayi else "") if rg_tarih else "") if x)
-    return {"id": int(id_), "title": strip_tags(title), "meta": meta, "url": url or f"https://gib.gov.tr/mevzuat/teblig/{id_}"}
+    try:
+        rg = datetime.strptime(rg_tarih, "%d.%m.%Y").replace(tzinfo=TR)
+    except ValueError:
+        rg = None
+    return {"id": int(id_), "title": strip_tags(title), "meta": meta, "rg": rg,
+            "url": url or f"https://gib.gov.tr/mevzuat/teblig/{id_}"}
 
 
 def get_tebligler_last_added():
@@ -375,6 +380,8 @@ def main():
         tebligler.sort(key=lambda t: t["id"], reverse=True)
         if tebligler:
             teblig_max = tebligler[0]["id"]
+        # Arşive sonradan eklenen eski tebliğleri (Resmî Gazete tarihi 90 günden eski) gönderme
+        tebligler = [t for t in tebligler if t["rg"] is None or (now - t["rg"]).days <= 90]
         if last_t is None:
             new_t = tebligler[:3]
             teblig_intro = "Tebliğ takibi başladı. Bundan sonra yeni tebliğler geldikçe gönderilecek. En son yayımlanan tebliğler:"
