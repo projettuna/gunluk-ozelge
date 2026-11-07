@@ -147,6 +147,38 @@ def teblig_txt(items):
     return "\n\n".join(f"- {t['title']}\n  {t['meta']}\n  {t['url']}" for t in items)
 
 
+# ---------------------------------------------------------------- diğer GİB mevzuatı (id'ye göre sıralı listeler)
+
+# (state anahtarı, API yolu, mail başlığı, tarih alanı, numara alanı, link yoksa kalıp)
+GIB_LISTS = [
+    ("kanun", "kanun/filterList", "Kanunlar ve kanun değişiklikleri", "resmiGazeteTarih", "kanunNo", "https://gib.gov.tr/mevzuat/kanun/{id}"),
+    ("sirkuler", "sirkuler/list", "Sirküler", "sirkulerTarih", "sirkulerNo", "https://gib.gov.tr/mevzuat/sirkuler/{id}"),
+    ("cbk", "cbk/list", "Cumhurbaşkanı kararları", "resmiGazeteTarih", "no", "https://gib.gov.tr/mevzuat/cbk/{id}"),
+    ("icgenelge", "icGenelge/list", "İç genelgeler", "tarih", "sayi", "https://gib.gov.tr/mevzuat/icgenelge/{id}"),
+]
+GIB_API = "https://gib.gov.tr/api/gibportal/mevzuat/{path}?page=0&size=20&sortFieldName=id&sortType=DESC"
+
+
+def get_gib_list(path, date_key, no_key, link_tpl):
+    d = json.loads(http(GIB_API.format(path=path), {}))["resultContainer"]
+    out = []
+    for r in d["content"]:
+        if r.get("deleted"):
+            continue
+        tarih = (r.get(date_key) or "")[:10]
+        if re.match(r"\d{4}-\d{2}-\d{2}", tarih):
+            tarih = ".".join(reversed(tarih.split("-")))
+        no = (r.get(no_key) or "").strip()
+        meta = " · ".join(x for x in (
+            (r.get("kanunTitle") or "").replace("(*)", "").strip(),
+            ("Resmî Gazete " if "resmiGazete" in date_key else "") + tarih + (f", sayı {r['resmiGazeteSayi']}" if r.get("resmiGazeteSayi") and "resmiGazete" in date_key else ""),
+            (f"No: {no}" if no and no_key != "kanunNo" else f"Kanun No: {no}" if no else "")) if x and x.strip())
+        out.append({"id": int(r["id"]), "title": strip_tags(r.get("title")), "meta": meta,
+                    "url": r.get("siteLink") or link_tpl.format(id=r["id"])})
+    out.sort(key=lambda x: x["id"], reverse=True)
+    return out
+
+
 # ---------------------------------------------------------------- Danıştay kararları
 
 def get_kararlar(size=30):
@@ -245,8 +277,16 @@ def karar_attachments(kararlar):
     return files
 
 
-def build_mail(ozelgeler, kararlar, today, ozelge_intro=None, karar_intro=None, tebligler=(), teblig_intro=None):
+def build_mail(ozelgeler, kararlar, today, ozelge_intro=None, karar_intro=None, tebligler=(), teblig_intro=None, extra=()):
+    """extra: [(başlık, kısa ad, öğeler, giriş metni veya None)]"""
     parts_subject, html_parts, txt_parts = [], [], []
+    for title, short, items, intro in extra:
+        if not items:
+            continue
+        parts_subject.append(f"{len(items)} {short}")
+        intro = intro or f"GİB'de yeni yayımlanan {len(items)} kayıt:"
+        html_parts.append(f"<h3>{html.escape(title)}</h3><p>{html.escape(intro)}</p><ul style='padding-left:18px'>{teblig_html(items)}</ul>")
+        txt_parts.append(f"{title.upper()}\n{intro}\n\n{teblig_txt(items)}")
     if tebligler:
         parts_subject.append(f"{len(tebligler)} yeni tebliğ")
         intro = teblig_intro or f"GİB'de yeni yayımlanan {len(tebligler)} tebliğ:"
@@ -271,7 +311,7 @@ def build_mail(ozelgeler, kararlar, today, ozelge_intro=None, karar_intro=None, 
     subject = ", ".join(parts_subject)
     subject = subject[:1].upper() + subject[1:] + f" ({today})"
     body = ('<div style="font-family:Arial,sans-serif;max-width:680px">' + "".join(html_parts)
-            + '<p style="color:#999;font-size:12px">Kaynak: gib.gov.tr özelge ve tebliğler, karararama.danistay.gov.tr</p></div>')
+            + '<p style="color:#999;font-size:12px">Kaynak: gib.gov.tr mevzuat, karararama.danistay.gov.tr</p></div>')
     return subject, "\n\n".join(txt_parts), body, karar_attachments(kararlar)
 
 
@@ -391,15 +431,35 @@ def main():
     except Exception as e:  # noqa: BLE001
         print(f"Tebliğler alınamadı (sonraki saatte tekrar denenecek): {e}")
 
+    # Kanun, sirküler, Cumhurbaşkanı kararı, iç genelge
+    SHORT = {"kanun": "kanun", "sirkuler": "sirküler", "cbk": "CB kararı", "icgenelge": "iç genelge"}
+    extra, extra_max = [], {}
+    for key, path, title, date_key, no_key, link_tpl in GIB_LISTS:
+        try:
+            items = get_gib_list(path, date_key, no_key, link_tpl)
+        except Exception as e:  # noqa: BLE001
+            print(f"{title} alınamadı: {e}")
+            continue
+        if not items:
+            continue
+        extra_max[key] = items[0]["id"]
+        last = state.get(f"last_{key}_id")
+        if last is None:
+            new, intro = items[:2], "Takip başladı. En son yayımlananlar:"
+        else:
+            new, intro = [i for i in items if i["id"] > last], None
+        print(f"{title}: yeni {len(new)}")
+        extra.append((title, SHORT[key], new, intro))
+
     # "Bugün özelge yok" bildirimi
     no_oz_intro = None
     if (not new_oz and now.hour >= NO_OZELGE_HOUR
             and state.get("last_ozelge_mail") != today and state.get("no_ozelge_notice") != today):
         no_oz_intro = f"Bugün ({today}) GİB'de yeni yayımlanan özelge yok."
 
-    if new_oz or new_k or no_oz_intro or new_t:
+    if new_oz or new_k or no_oz_intro or new_t or any(e[2] for e in extra):
         oz_intro = ("Kurulum tamamlandı. GİB'deki son özelgeler:" if first_ozelge else None) if new_oz else no_oz_intro
-        send(*build_mail(new_oz, new_k, today, oz_intro, karar_intro, new_t, teblig_intro))
+        send(*build_mail(new_oz, new_k, today, oz_intro, karar_intro, new_t, teblig_intro, extra))
         if new_oz:
             state["last_ozelge_mail"] = today
         if no_oz_intro:
@@ -407,6 +467,8 @@ def main():
 
     if ozelgeler:
         state["last_id"] = max(last_id, max(it["id"] for it in ozelgeler))
+    for key, mx in extra_max.items():
+        state[f"last_{key}_id"] = max(state.get(f"last_{key}_id") or 0, mx)
     if teblig_max is not None:
         state["last_teblig_id"] = max(state.get("last_teblig_id") or 0, teblig_max)
     if karar_ids is not None:
