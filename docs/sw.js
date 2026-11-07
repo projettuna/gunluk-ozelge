@@ -21,7 +21,7 @@ self.addEventListener("notificationclick", event => {
   const url = new URL(event.notification.data.url || "./", self.registration.scope).href;
   event.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-    for (const c of all) { if (c.url.startsWith(self.registration.scope)) { await c.focus(); c.postMessage({ type: "refresh" }); return; } }
+    for (const c of all) { if (c.url.startsWith(self.registration.scope)) { await c.focus(); c.postMessage({ type: "open", url }); return; } }
     await self.clients.openWindow(url);
   })());
 });

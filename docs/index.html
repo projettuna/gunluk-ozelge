@@ -418,7 +418,9 @@ async function boot(){
   await loadItems(); render();
   if(p.role === "admin") refreshAdminBadge();
   ensurePushIfGranted();
-  startChat();
+  await startChat();
+  const qr = new URLSearchParams(location.search).get("room");
+  if(qr){ history.replaceState(null, "", location.pathname); tab = "chat"; room = qr; render(); }
 }
 function renderPending(){
   const expired = me.status === "active" || me.status === "cancelled";
@@ -547,7 +549,10 @@ let deb; $("q").addEventListener("input", () => { clearTimeout(deb); deb = setTi
 $("refresh").addEventListener("click", async () => { await loadItems(true); render(); if(me?.role === "admin") refreshAdminBadge(); });
 $("markAll").addEventListener("click", () => { items.forEach(i => read.add(i.id)); store.set("read", [...read]); toast("Tümü okundu"); render(); });
 document.addEventListener("visibilitychange", async () => { if(document.visibilityState === "visible" && me && !$("appView").hidden){ await loadItems(); render(); } });
-navigator.serviceWorker?.addEventListener("message", async e => { if(e.data?.type === "refresh"){ await loadItems(); render(); } });
+navigator.serviceWorker?.addEventListener("message", async e => {
+  if(e.data?.type === "refresh"){ await loadItems(); render(); }
+  if(e.data?.type === "open"){ const r = new URL(e.data.url).searchParams.get("room"); if(r && me){ await fetchNewMsgs(); tab = "chat"; room = r; render(); } else { await loadItems(); render(); } }
+});
 
 
 /* ---------------- hava durumu ---------------- */
@@ -621,6 +626,20 @@ async function startChat(){
     if(tab === "chat") renderChat(); else updateChatBadge();
   }).subscribe();
 }
+async function fetchNewMsgs(){
+  if(!chatStarted) return;
+  const max = msgs.length ? msgs[msgs.length - 1].id : 0;
+  const { data } = await sb.from("messages").select("id,room,user_id,username,body,created_at").gt("id", max).order("id").limit(500);
+  if(data && data.length){
+    data.forEach(m => { if(!msgs.some(x => x.id === m.id)) msgs.push(m); });
+    if(data.some(m => m.room.startsWith("g:") && !groups.some(g => "g:" + g.id === m.room))) await loadGroups();
+    if(tab === "chat" && room !== "__pick") renderChat(); else updateChatBadge();
+  }
+}
+setInterval(() => { if(me && document.visibilityState === "visible") fetchNewMsgs(); }, 8000);
+document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && me) fetchNewMsgs(); });
+const isMuted = r => (me?.muted_rooms || []).includes(r);
+const BELL_OFF = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px;color:var(--faint)"><path d="M13.7 21a2 2 0 0 1-3.4 0M18.6 13A17.9 17.9 0 0 1 18 8M6.3 6.3A6 6 0 0 0 6 8c0 7-3 9-3 9h14M18 8a6 6 0 0 0-9.3-5M2 2l20 20"/></svg>';
 const unreadIn = r => { const s = seenMap()[r] || 0; return msgs.filter(m => m.room === r && m.id > s && m.user_id !== me?.id).length; };
 function updateChatBadge(){
   const rooms = new Set(msgs.map(m => m.room)); let n = 0;
@@ -632,8 +651,8 @@ function roomRow(r, name, avatar){
   const last = [...msgs].reverse().find(m => m.room === r), un = unreadIn(r);
   const when = last ? (dayLabel(last.created_at) === "Bugün" ? new Date(last.created_at).toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"}) : dayLabel(last.created_at)) : "";
   const prev = last ? (last.user_id === me.id ? "Siz: " : (r.startsWith("dm:") ? "" : (last.username || "üye") + ": ")) + last.body : "Henüz mesaj yok";
-  return `<button class="li room" data-room="${esc(r)}">${avatar}<div class="grow"><div class="row"><b class="rn">${esc(name)}</b><span class="spacer"></span><span class="rt">${esc(when)}</span></div>
-    <div class="row"><small class="rp">${esc(prev)}</small><span class="spacer"></span>${un ? `<span class="rb">${un}</span>` : ""}</div></div></button>`;
+  return `<button class="li room" data-room="${esc(r)}">${avatar}<div class="grow"><div class="row"><b class="rn">${esc(name)}</b>${isMuted(r) ? BELL_OFF : ""}<span class="spacer"></span><span class="rt">${esc(when)}</span></div>
+    <div class="row"><small class="rp">${esc(prev)}</small><span class="spacer"></span>${un ? `<span class="rb" ${isMuted(r) ? 'style="background:var(--faint)"' : ""}>${un}</span>` : ""}</div></div></button>`;
 }
 function renderChat(){
   $("composer").hidden = !room || room === "__pick"; $("back").hidden = !room;
@@ -657,6 +676,13 @@ function renderRoom(){
   $("heading").textContent = name; $("navTitle").textContent = name;
   const grp = room.startsWith("g:") ? groups.find(g => g.id === room.slice(2)) : null;
   $("sub").innerHTML = room.startsWith("dm:") ? "Özel mesaj" : grp ? `${grp.members} üye${grp.locked ? " · " + LOCK + " Şifreli" : ""} · <button class="linkbtn" id="grpAct" style="font-size:15px;padding:0">${grp.is_owner || me.role === "admin" ? "Grubu sil" : "Gruptan ayrıl"}</button>` : `${new Set(msgs.filter(m => m.room === room).map(m => m.user_id)).size} kişi yazdı`;
+  $("sub").insertAdjacentHTML("beforeend", ` · <button class="linkbtn" id="muteBtn" style="font-size:15px;padding:0">${isMuted(room) ? "Sesi aç" : "Sessize al"}</button>`);
+  $("muteBtn").onclick = async () => {
+    const m = !isMuted(room); const { error } = await sb.rpc("set_room_mute", { r: room, muted: m });
+    if(error){ toast("Kaydedilemedi"); return; }
+    me.muted_rooms = m ? [...(me.muted_rooms || []), room] : (me.muted_rooms || []).filter(x => x !== room);
+    toast(m ? "Bu sohbetten bildirim gelmeyecek" : "Bildirimler açıldı"); renderRoom();
+  };
   const ga = $("grpAct"); if(ga) ga.onclick = async () => {
     const del = grp.is_owner || me.role === "admin";
     if(!confirm(del ? "Grup ve tüm mesajları silinsin mi?" : "Gruptan ayrılmak istiyor musunuz?")) return;
@@ -741,7 +767,7 @@ $("msgs").addEventListener("click", async e => {
 });
 const msgIn = $("msgIn");
 msgIn.addEventListener("input", () => { $("sendBtn").disabled = !msgIn.value.trim(); msgIn.style.height = "auto"; msgIn.style.height = Math.min(msgIn.scrollHeight, 120) + "px"; });
-msgIn.addEventListener("keydown", e => { if(e.key === "Enter" && !e.shiftKey && !/iPhone|iPad|Android/.test(navigator.userAgent)){ e.preventDefault(); $("composer").requestSubmit(); } });
+msgIn.addEventListener("keydown", e => { if(e.key === "Enter" && !e.shiftKey && !e.isComposing){ e.preventDefault(); $("composer").requestSubmit(); } });
 $("composer").addEventListener("submit", async e => {
   e.preventDefault(); const body = msgIn.value.trim(); if(!body || !room || room === "__pick") return;
   msgIn.value = ""; msgIn.style.height = "auto"; $("sendBtn").disabled = true;
@@ -798,7 +824,10 @@ async function renderAccount(){
       <div class="li"><div class="tdot" style="--c:var(--danger)">${icon("Tebliğ", 17).replace('stroke-width="1.9"', 'stroke-width="2.2"')}</div><div class="grow"><b>Anlık bildirim</b></div>
         <label class="switch"><input type="checkbox" id="pushToggle" ${on ? "checked" : ""} ${!pushSupported ? "disabled" : ""}><span></span></label></div>
     </div>
-    <div class="foot">22:00 ile 08:00 arası bildirim gelmez; gece çıkanlar sabah tek bildirimde toplanır.</div>
+    <div class="foot">Mevzuat bildirimleri 22:00 ile 08:00 arası gelmez; gece çıkanlar sabah tek bildirimde toplanır.</div>
+    <div class="list" style="margin-top:16px"><div class="li"><div class="tdot" style="--c:var(--t-ozelge)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></svg></div><div class="grow"><b>Sohbet bildirimleri</b></div>
+      <label class="switch"><input type="checkbox" id="chatNotify" ${me.chat_notify !== false ? "checked" : ""}><span></span></label></div></div>
+    <div class="foot">Tek tek sohbetleri, sohbetin içindeki <b>Sessize al</b> ile kapatabilirsiniz.</div>
     <div class="sect">Bildirim gelecek türler</div>
     <div class="list" id="typeList">${ORDER.map(t => `<div class="li"><div class="tdot" style="--c:var(${TYPES[t]})">${icon(t, 17)}</div><div class="grow"><b>${esc(t)}</b></div><label class="switch"><input type="checkbox" data-type="${esc(t)}" ${types.includes(t) ? "checked" : ""}><span></span></label></div>`).join("")}</div>
     <div class="sect">Görünüm</div>
@@ -807,6 +836,7 @@ async function renderAccount(){
     <div class="sect"></div>
     <div class="list"><button class="li" id="logout" style="width:100%;border:0;background:none;justify-content:center;color:var(--danger);font-size:17px;cursor:pointer">Çıkış yap</button></div>
     <p class="small muted" style="text-align:center;margin-top:24px">TMPRO · GİB, Resmî Gazete, Danıştay, Anayasa Mahkemesi</p>`;
+  $("chatNotify").onchange = async e => { const on = e.target.checked; const { error } = await sb.rpc("set_chat_notify", { enabled: on }); if(error){ e.target.checked = !on; toast("Kaydedilemedi"); return; } me.chat_notify = on; toast(on ? "Sohbet bildirimleri açık" : "Sohbet bildirimleri kapalı"); };
   $("themeSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; setTheme(b.dataset.th); renderAccount(); };
   $("logout").onclick = async () => { await sb.auth.signOut(); me = null; show("authView"); };
   $("pushToggle").onchange = async e => {

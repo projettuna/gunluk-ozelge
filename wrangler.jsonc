@@ -1,8 +1,9 @@
-// Cloudflare yayını: yalnızca docs/ klasöründeki uygulama dosyaları yayınlanır
+// Cloudflare yayını: docs/ klasöründeki uygulama + worker/index.js (bildirim aktarıcısı)
 {
   "name": "tmpro",
+  "main": "worker/index.js",
   "compatibility_date": "2025-10-01",
   "workers_dev": true,
   "preview_urls": false,
-  "assets": { "directory": "./docs" }
+  "assets": { "directory": "./docs", "binding": "ASSETS", "run_worker_first": ["/api/*"] }
 }
