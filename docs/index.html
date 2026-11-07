@@ -425,7 +425,8 @@ async function boot(){
   ensurePushIfGranted();
   await startChat();
   const qr = new URLSearchParams(location.search).get("room");
-  if(qr){ history.replaceState(null, "", location.pathname); tab = "chat"; room = qr; render(); }
+  if(qr){ history.replaceState(null, "", location.pathname); tab = "chat"; room = qr; }
+  if(tab === "chat") render();
 }
 function renderPending(){
   const expired = me.status === "active" || me.status === "cancelled";
@@ -620,7 +621,8 @@ function memberName(uid){ const m = members?.find(x => x.id === uid); if(m) retu
 const initialsOf = n => String(n || "?").split(/\s+/).map(w => w[0]).slice(0, 2).join("").toLocaleUpperCase("tr");
 async function startChat(){
   if(chatStarted) return; chatStarted = true;
-  const { data } = await sb.from("messages").select("*").order("id", { ascending: false }).limit(1000);
+  const { data, error } = await sb.from("messages").select("*").order("id", { ascending: false }).limit(1000);
+  if(error){ chatStarted = false; toast("Mesajlar yüklenemedi: " + error.message, 6000); return; }
   msgs = (data || []).reverse();
   await loadGroups();
   if(store.get("chatSeenRooms", null) === null){ const m = {}; msgs.forEach(x => m[x.room] = x.id); store.set("chatSeenRooms", m); }
@@ -632,7 +634,7 @@ async function startChat(){
   }).subscribe();
 }
 async function fetchNewMsgs(){
-  if(!chatStarted) return;
+  if(!chatStarted){ if(me){ await startChat(); if(tab === "chat") render(); } return; }
   const max = msgs.length ? msgs[msgs.length - 1].id : 0;
   const { data } = await sb.from("messages").select("*").gt("id", max).order("id").limit(500);
   if(data && data.length){
