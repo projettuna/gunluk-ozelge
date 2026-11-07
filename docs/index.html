@@ -15,6 +15,9 @@
 <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)" id="tcL">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" id="tcD">
 <script>try{const t=localStorage.getItem("tmpro:theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch{}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" rel="stylesheet">
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.79.0/dist/umd/supabase.js"></script>
 <style>
@@ -45,7 +48,7 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--text)}
-body{font:17px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;letter-spacing:-.2px;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+body{font:16px/1.45 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-optical-sizing:auto;font-feature-settings:"cv11","ss03";letter-spacing:-.011em;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
 button,input,select,textarea{font:inherit;color:inherit;letter-spacing:inherit}
 a{color:inherit}
 svg{display:block}
@@ -86,7 +89,7 @@ svg{display:block}
 .auth .wrap{max-width:400px;width:100%}
 .mark{display:flex;flex-direction:column;align-items:center;margin-bottom:32px;text-align:center}
 .mark img{width:84px;height:84px;border-radius:19px;box-shadow:0 12px 32px rgba(0,0,0,.14)}
-.mark h1{margin:18px 0 4px;font-size:30px;font-weight:700;letter-spacing:.5px}
+.mark h1{margin:18px 0 4px;font-size:30px;font-weight:700;letter-spacing:.06em}
 .mark p{margin:0;color:var(--muted);font-size:17px}
 .seg{display:flex;background:var(--fill);border-radius:10px;padding:2px;margin-bottom:20px}
 .seg button{flex:1;border:0;background:none;height:32px;border-radius:8px;font-weight:500;font-size:14px;cursor:pointer;color:var(--text);transition:background .2s}
@@ -106,16 +109,20 @@ svg{display:block}
 .appbar{position:sticky;top:0;z-index:10;padding-top:env(safe-area-inset-top);background:transparent;transition:background .25s}
 .appbar.solid{background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 .5px 0 var(--line)}
 .bar{height:48px;display:flex;align-items:center;padding:0 16px;position:relative}
-.bar img{width:28px;height:28px;border-radius:7px}
+.brand{display:flex;align-items:center;gap:10px;transition:opacity .2s}
+.brand img{width:38px;height:38px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.brand b{font-size:19px;font-weight:700;letter-spacing:.06em}
+.appbar.solid .brand b{opacity:0}
+.bar{height:56px!important}
 .navtitle{position:absolute;left:50%;transform:translateX(-50%);font-size:17px;font-weight:600;opacity:0;transition:opacity .2s;white-space:nowrap}
 .appbar.solid .navtitle{opacity:1}
 .navbtn{width:34px;height:34px;border-radius:50%;border:0;background:var(--fill);display:grid;place-items:center;cursor:pointer;color:var(--accent);margin-left:auto}
 .navbtn.spin svg{animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 main{padding:0 16px calc(96px + env(safe-area-inset-bottom))}
-.eyebrow{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.2px;margin:4px 4px 0}
+.eyebrow{font-size:12.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:6px 4px 0}
 .head{display:flex;align-items:flex-end;justify-content:space-between;margin:2px 4px 12px}
-.head h2{font-size:34px;font-weight:700;margin:0;letter-spacing:.3px;line-height:1.15}
+.head h2{font-size:32px;font-weight:700;margin:0;letter-spacing:-.022em;line-height:1.15}
 .head .sub{font-size:15px;color:var(--muted);margin-top:2px}
 .linkbtn{border:0;background:none;color:var(--accent);font-size:17px;cursor:pointer;padding:6px 0}
 .back{display:inline-flex;align-items:center;gap:2px;border:0;background:none;color:var(--accent);font-size:17px;padding:2px 0 6px;margin-left:-6px;cursor:pointer}
@@ -137,7 +144,7 @@ main{padding:0 16px calc(96px + env(safe-area-inset-bottom))}
   text-align:left;cursor:pointer;position:relative;box-shadow:var(--shadow);transition:transform .2s cubic-bezier(.2,.8,.2,1)}
 .tile:active{transform:scale(.95)}
 .tile .ic{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;color:#fff;background:var(--c)}
-.tile b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px;font-weight:600;line-height:1.2;letter-spacing:-.3px}
+.tile b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px;font-weight:600;line-height:1.2;letter-spacing:-.011em}
 .tile small{display:block;font-size:13px;color:var(--muted);margin-top:2px}
 .tile .nb{position:absolute;top:12px;right:12px;min-width:22px;height:22px;border-radius:11px;background:var(--danger);color:#fff;font-size:13px;font-weight:600;display:grid;place-items:center;padding:0 7px}
 .tile.all{grid-column:1/-1;aspect-ratio:auto;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;padding:12px 14px}
@@ -147,16 +154,16 @@ main{padding:0 16px calc(96px + env(safe-area-inset-bottom))}
 .tile.all:not(:has(.nb))::after{margin-left:auto}
 
 /* kayıt kartları */
-.day{font-size:20px;font-weight:700;margin:26px 4px 10px;letter-spacing:.2px}
+.day{font-size:20px;font-weight:700;margin:26px 4px 10px;letter-spacing:-.017em}
 .card{background:var(--surface);border-radius:18px;padding:16px 16px 10px;margin-bottom:12px;position:relative;box-shadow:var(--shadow)}
 .ctop{display:flex;align-items:center;gap:6px;margin-bottom:6px}
 .card.unread .ctop::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
 .type{font-size:13px;font-weight:600;color:var(--c)}
 .dot{width:3px;height:3px;border-radius:50%;background:var(--faint)}
 .when{font-size:13px;color:var(--muted)}
-.title{display:block;font-weight:600;font-size:17px;line-height:1.32;text-decoration:none;letter-spacing:-.35px}
+.title{display:block;font-weight:600;font-size:16.5px;line-height:1.35;text-decoration:none;letter-spacing:-.014em}
 .meta{font-size:13px;color:var(--muted);margin-top:4px}
-.ozet{font-size:15px;color:var(--muted);margin-top:8px;line-height:1.45}
+.ozet{font-size:14.5px;color:var(--muted);margin-top:8px;line-height:1.45}
 .ozet.clip{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .cfoot{display:flex;align-items:center;gap:2px;margin-top:8px;border-top:.5px solid var(--line);padding-top:6px}
 .more{border:0;background:none;color:var(--accent);font-size:15px;padding:4px 0;cursor:pointer}
@@ -206,6 +213,37 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
 #setForm{background:none;padding:0}
 #setForm .field span{display:block;font-size:13px;color:var(--muted);padding:10px 16px 0}
 #setForm .field input{height:40px}
+
+/* hava durumu */
+.wx{border-radius:20px;padding:14px 16px;margin:14px 0 0;color:#fff;position:relative;overflow:hidden;cursor:pointer;
+  background:linear-gradient(165deg,#3a8ee6 0%,#2563c9 55%,#1e4fa8 100%);box-shadow:0 8px 24px rgba(37,99,201,.25)}
+.wx.night{background:linear-gradient(165deg,#1d2b53 0%,#141d3b 60%,#0b1026 100%);box-shadow:0 8px 24px rgba(11,16,38,.3)}
+.wx.cloud{background:linear-gradient(165deg,#7c93ad 0%,#5d748f 60%,#4a5f78 100%);box-shadow:0 8px 24px rgba(74,95,120,.25)}
+.wx .wtop{display:flex;justify-content:space-between;align-items:flex-start}
+.wx .city{font-size:17px;font-weight:600;display:flex;align-items:center;gap:5px}
+.wx .temp{font-size:44px;font-weight:300;line-height:1;margin-top:4px;letter-spacing:-1px}
+.wx .wico{font-size:38px;line-height:1}
+.wx .cond{font-size:15px;font-weight:500;margin-top:8px}
+.wx .hl{font-size:15px;opacity:.85}
+.wx .days{display:flex;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:.5px solid rgba(255,255,255,.3);font-size:13px;text-align:center}
+.wx .days div{display:flex;flex-direction:column;gap:3px;align-items:center;flex:1}
+.wx .days span{font-size:17px}
+.wx .locbtn{border:0;background:rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:5px 11px;font-size:13px;font-weight:600;cursor:pointer}
+
+/* sohbet */
+#msgs{display:flex;flex-direction:column;gap:2px;padding-bottom:70px}
+.msg{max-width:78%;align-self:flex-start;display:flex;flex-direction:column;margin-top:2px}
+.msg.me{align-self:flex-end;align-items:flex-end}
+.msg .who{font-size:12px;color:var(--muted);margin:10px 12px 3px}
+.bub{background:var(--surface);padding:8px 13px;border-radius:19px;font-size:17px;line-height:1.32;white-space:pre-wrap;word-wrap:break-word;position:relative}
+.msg.me .bub{background:var(--accent);color:#fff}
+.msg .tm{font-size:11px;color:var(--faint);margin:2px 12px 0}
+.chatday{align-self:center;font-size:12px;font-weight:600;color:var(--muted);margin:16px 0 6px}
+.composer{position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom));z-index:9;background:var(--bar);
+  backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 -.5px 0 var(--line);padding:7px 12px}
+.composer textarea{flex:1;resize:none;border:.5px solid var(--line);background:var(--surface);border-radius:18px;padding:7px 14px;font-size:17px;line-height:1.3;max-height:120px;outline:none}
+.send{width:32px;height:32px;border-radius:50%;border:0;background:var(--accent);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none;align-self:flex-end;margin-bottom:2px}
+.send[disabled]{opacity:.35}
 </style>
 </head>
 <body>
@@ -252,7 +290,7 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
 <!-- UYGULAMA -->
 <div id="appView" hidden>
 <header class="appbar" id="appbar"><div class="wrap bar">
-  <img src="icon-192.png" alt=""><span class="navtitle" id="navTitle">Akış</span>
+  <div class="brand"><img src="icon-192.png" alt=""><b>TMPRO</b></div><span class="navtitle" id="navTitle">Akış</span>
   <button class="navbtn" id="refresh" aria-label="Yenile"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>
 </div></header>
 <main><div class="wrap">
@@ -264,19 +302,23 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
       <input id="q" type="search" placeholder="Ara" autocomplete="off" enterkeyhint="search"></div>
     <div class="chips" id="chips"></div>
   </div>
+  <div id="wx" class="wx" hidden></div>
   <div id="grid" class="grid" hidden></div>
   <div id="list"></div>
   <div id="account" hidden></div>
+  <div id="chat" hidden><div id="msgs"></div></div>
   <div id="admin" hidden></div>
 </div></main>
 <nav class="tabbar"><div class="tabs" id="tabs">
-  <button class="tab" data-tab="feed"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Akış</button>
-  <button class="tab" data-tab="unread"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Yeni<span class="badge" id="badge" hidden></span></button>
+  <button class="tab" data-tab="feed"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Akış<span class="badge" id="badge" hidden></span></button>
+  <button class="tab" data-tab="chat"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></svg>Sohbet<span class="badge" id="chatBadge" hidden></span></button>
   <button class="tab" data-tab="star"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/></svg>Kaydedilen</button>
   <button class="tab" data-tab="account"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/></svg>Hesap</button>
   <button class="tab" data-tab="admin" hidden id="adminTab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg>Yönetim<span class="badge" id="adminBadge" hidden></span></button>
 </div></nav>
 </div>
+<form class="composer" id="composer" hidden><div class="wrap row"><textarea id="msgIn" rows="1" placeholder="Mesaj" maxlength="2000" enterkeyhint="send"></textarea>
+  <button class="send" id="sendBtn" aria-label="Gönder" disabled><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div></form>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -360,11 +402,12 @@ async function boot(){
   firstVisit = store.get("read", null) === null;
   filter = store.get("filter", "Tümü"); tab = store.get("tab", "feed");
   $("adminTab").hidden = p.role !== "admin";
-  if(tab === "admin" && p.role !== "admin") tab = "feed";
+  if((tab === "admin" && p.role !== "admin") || tab === "unread") tab = "feed";
   show("appView");
   await loadItems(); render();
   if(p.role === "admin") refreshAdminBadge();
   ensurePushIfGranted();
+  startChat();
 }
 function renderPending(){
   const expired = me.status === "active" || me.status === "cancelled";
@@ -418,13 +461,16 @@ function render(){
   $("eyebrow").hidden = !home;
 }
 function _render(){
-  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.tab === (tab === "unread" ? "feed" : tab)));
   const unreadCount = items.filter(i => !read.has(i.id)).length;
   $("badge").hidden = !unreadCount; $("badge").textContent = unreadCount > 99 ? "99+" : unreadCount;
   const isFeed = ["feed", "unread", "star"].includes(tab);
   $("grid").hidden = true; $("back").hidden = true;
   $("feedTools").hidden = !isFeed; $("list").hidden = !isFeed; $("account").hidden = tab !== "account"; $("admin").hidden = tab !== "admin";
-  $("heading").textContent = {feed:"Akış", unread:"Yeni", star:"Kaydedilenler", account:"Hesap", admin:"Yönetim"}[tab];
+  $("chat").hidden = tab !== "chat"; $("composer").hidden = tab !== "chat"; $("wx").hidden = true;
+  $("heading").textContent = {feed:"Akış", unread:"Okunmamış", star:"Kaydedilenler", account:"Hesap", admin:"Yönetim", chat:"Sohbet"}[tab];
+  if(tab === "unread") $("back").hidden = false;
+  if(tab === "chat") return renderChat();
   $("markAll").hidden = tab !== "unread" || !unreadCount;
   if(tab === "account") return renderAccount();
   if(tab === "admin") return renderAdmin();
@@ -438,12 +484,15 @@ function _render(){
   const home = tab === "feed" && filter === "Tümü" && !q;
   $("grid").hidden = !home; $("chips").hidden = tab === "feed"; $("back").hidden = !(tab === "feed" && filter !== "Tümü");
   if(tab === "feed" && filter !== "Tümü") $("heading").textContent = filter === "__all" ? "Tüm kayıtlar" : filter;
+  $("wx").hidden = !home; if(home) renderWeather();
   if(home){
     const all = {}, un = {}; items.forEach(i => { all[i.tur] = (all[i.tur] || 0) + 1; if(!read.has(i.id)) un[i.tur] = (un[i.tur] || 0) + 1; });
     const tile = (t, cls) => `<button class="tile ${cls || ""}" data-t="${esc(t)}" style="--c:var(${TYPES[t] || "--gold"})">
       ${(t === "Tümü" ? unreadCount : un[t]) ? `<span class="nb">${t === "Tümü" ? unreadCount : un[t]}</span>` : ""}
       <span class="ic">${icon(t)}</span><span><b>${esc(t === "Tümü" ? "Tüm kayıtlar" : SHORT(t))}</b><small>${t === "Tümü" ? items.length : (all[t] || 0)} kayıt</small></span></button>`;
-    $("grid").innerHTML = ORDER.map(t => tile(t)).join("") + tile("Tümü", "all").replace(/(<span class="nb">.*?<\/span>)([\s\S]*)(<\/button>)$/, "$2$1$3");
+    const wide = (t, ic, label, n, badge) => `<button class="tile all" data-t="${t}"><span class="ic">${ic}</span><span><b>${label}</b><small>${n} kayıt</small></span>${badge ? `<span class="nb">${badge}</span>` : ""}</button>`;
+    const bell = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
+    $("grid").innerHTML = ORDER.map(t => tile(t)).join("") + (unreadCount ? wide("__unread", bell, "Okunmamış", unreadCount, unreadCount) : "") + wide("Tümü", icon("Tümü"), "Tüm kayıtlar", items.length, 0);
   }
   const list = base.filter(i => filter === "Tümü" || filter === "__all" || i.tur === filter).slice(0, home ? 30 : undefined);
   $("sub").textContent = home ? "" : `${list.length} kayıt`;
@@ -471,10 +520,10 @@ function _render(){
   if(list.length > 300) html += `<div class="empty">İlk 300 kayıt gösteriliyor. Aramayı daraltın.</div>`;
   $("list").innerHTML = html;
 }
-$("grid").addEventListener("click", e => { const b = e.target.closest(".tile"); if(!b) return; filter = b.dataset.t; if(filter === "Tümü"){ filter = "__all"; } store.set("filter", filter); render(); scrollTo({top:0}); });
-$("back").addEventListener("click", () => { filter = "Tümü"; store.set("filter", filter); render(); scrollTo({top:0}); });
+$("grid").addEventListener("click", e => { const b = e.target.closest(".tile"); if(!b) return; if(b.dataset.t === "__unread"){ tab = "unread"; store.set("tab", tab); render(); scrollTo({top:0}); return; } filter = b.dataset.t; if(filter === "Tümü"){ filter = "__all"; } store.set("filter", filter); render(); scrollTo({top:0}); });
+$("back").addEventListener("click", () => { tab = "feed"; filter = "Tümü"; store.set("filter", filter); render(); scrollTo({top:0}); });
 $("chips").addEventListener("click", e => { const b = e.target.closest(".chip"); if(!b) return; filter = b.dataset.t; store.set("filter", filter); render(); scrollTo({top:0, behavior:"smooth"}); });
-$("tabs").addEventListener("click", e => { const b = e.target.closest(".tab"); if(!b) return; tab = b.dataset.tab; store.set("tab", tab); if(filter === "__all" || tab === "feed") filter = "Tümü"; render(); scrollTo({top:0}); });
+$("tabs").addEventListener("click", e => { const b = e.target.closest(".tab"); if(!b) return; if(b.dataset.tab === tab && tab === "feed" && filter === "Tümü"){ scrollTo({top:0, behavior:"smooth"}); return; } tab = b.dataset.tab; store.set("tab", tab); if(filter === "__all" || tab === "feed") filter = "Tümü"; render(); scrollTo({top:0}); });
 $("list").addEventListener("click", e => {
   const c = e.target.closest(".card"); if(!c) return; const id = +c.dataset.id;
   if(e.target.closest(".st")){ const on = !stars.has(id); on ? stars.add(id) : stars.delete(id); store.set("stars", [...stars]); toast(on ? "Kaydedildi" : "Kayıttan çıkarıldı"); render(); return; }
@@ -487,6 +536,102 @@ $("refresh").addEventListener("click", async () => { await loadItems(true); rend
 $("markAll").addEventListener("click", () => { items.forEach(i => read.add(i.id)); store.set("read", [...read]); toast("Tümü okundu"); render(); });
 document.addEventListener("visibilitychange", async () => { if(document.visibilityState === "visible" && me && !$("appView").hidden){ await loadItems(); render(); } });
 navigator.serviceWorker?.addEventListener("message", async e => { if(e.data?.type === "refresh"){ await loadItems(); render(); } });
+
+
+/* ---------------- hava durumu ---------------- */
+const WMO = c => c === 0 ? ["Açık", "☀️", "🌙"] : c <= 2 ? ["Az bulutlu", "🌤️", "☁️"] : c === 3 ? ["Kapalı", "☁️", "☁️"] : c <= 48 ? ["Sisli", "🌫️", "🌫️"]
+  : c <= 57 ? ["Çisenti", "🌦️", "🌧️"] : c <= 67 ? ["Yağmurlu", "🌧️", "🌧️"] : c <= 77 ? ["Karlı", "🌨️", "🌨️"] : c <= 82 ? ["Sağanak", "🌧️", "🌧️"]
+  : c <= 86 ? ["Kar sağanağı", "🌨️", "🌨️"] : ["Gök gürültülü", "⛈️", "⛈️"];
+let wxData = null, wxLoading = false;
+function wxLoc(){ try{ return JSON.parse(localStorage.getItem("tmpro:wxloc")) }catch{ return null } }
+async function loadWeather(force){
+  if(wxLoading || (wxData && !force && Date.now() - wxData.at < 20 * 60e3)) return;
+  wxLoading = true;
+  try{
+    const loc = wxLoc() || { lat: 39.93, lon: 32.86, city: "Ankara", def: true };
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${loc.lat}&longitude=${loc.lon}&current=temperature_2m,weather_code,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=5`);
+    const j = await r.json();
+    wxData = { at: Date.now(), loc, cur: j.current, daily: j.daily };
+  }catch{} finally{ wxLoading = false; }
+  if(!$("wx").hidden) renderWeather();
+}
+function renderWeather(){
+  if(!wxData){ $("wx").innerHTML = `<div class="city">Hava durumu yükleniyor…</div>`; loadWeather(); return; }
+  loadWeather();
+  const { cur, daily, loc } = wxData, [cond, dIco, nIco] = WMO(cur.weather_code), day = cur.is_day === 1;
+  $("wx").className = "wx" + (!day ? " night" : cur.weather_code >= 3 ? " cloud" : "");
+  const days = daily.time.slice(1, 5).map((d, k) => `<div>${new Date(d).toLocaleDateString("tr-TR", {weekday:"short"})}<span>${WMO(daily.weather_code[k + 1])[1]}</span>${Math.round(daily.temperature_2m_max[k + 1])}°</div>`).join("");
+  $("wx").innerHTML = `<div class="wtop"><div><div class="city">${esc(loc.city)}${loc.def ? "" : ' <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M21 3 3 10.5l7.5 3L14 21z"/></svg>'}</div>
+      <div class="temp">${Math.round(cur.temperature_2m)}°</div></div><div style="text-align:right"><div class="wico">${day ? dIco : nIco}</div></div></div>
+    <div class="row" style="justify-content:space-between;margin-top:6px"><div><div class="cond" style="margin:0">${cond}</div><div class="hl">En yüksek ${Math.round(daily.temperature_2m_max[0])}° · En düşük ${Math.round(daily.temperature_2m_min[0])}°</div></div>
+      ${loc.def ? `<button class="locbtn" id="locBtn">Konumum</button>` : ""}</div>
+    <div class="days">${days}</div>`;
+  const lb = $("locBtn"); if(lb) lb.onclick = e => { e.stopPropagation(); askLocation(); };
+}
+function askLocation(){
+  if(!navigator.geolocation){ toast("Konum desteklenmiyor"); return; }
+  navigator.geolocation.getCurrentPosition(async pos => {
+    const lat = +pos.coords.latitude.toFixed(3), lon = +pos.coords.longitude.toFixed(3); let city = "Konumum";
+    try{ const g = await (await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=tr`)).json(); city = g.city || g.locality || g.principalSubdivision || city; }catch{}
+    try{ localStorage.setItem("tmpro:wxloc", JSON.stringify({ lat, lon, city })) }catch{}
+    wxData = null; renderWeather();
+  }, () => toast("Konum izni verilmedi"), { timeout: 10000, maximumAge: 3600e3 });
+}
+$("wx").addEventListener("click", () => loadWeather(true));
+
+/* ---------------- sohbet ---------------- */
+let msgs = [], chatStarted = false;
+const chatSeen = () => +(store.get("chatSeen", 0));
+async function startChat(){
+  if(chatStarted) return; chatStarted = true;
+  const { data } = await sb.from("messages").select("id,user_id,username,body,created_at").order("id", { ascending: false }).limit(200);
+  msgs = (data || []).reverse();
+  if(!store.get("chatSeen", null)) store.set("chatSeen", msgs.length ? msgs[msgs.length - 1].id : 0);
+  updateChatBadge();
+  sb.channel("sohbet").on("postgres_changes", { event: "*", schema: "public", table: "messages" }, p => {
+    if(p.eventType === "INSERT" && !msgs.some(m => m.id === p.new.id)) msgs.push(p.new);
+    if(p.eventType === "DELETE") msgs = msgs.filter(m => m.id !== p.old.id);
+    if(tab === "chat") renderChat(); else updateChatBadge();
+  }).subscribe();
+}
+function updateChatBadge(){
+  const n = tab === "chat" ? 0 : msgs.filter(m => m.id > chatSeen() && m.user_id !== me?.id).length;
+  $("chatBadge").hidden = !n; $("chatBadge").textContent = n > 99 ? "99+" : n;
+}
+function renderChat(){
+  $("sub").textContent = "Üyeler arası sohbet";
+  if(msgs.length) store.set("chatSeen", msgs[msgs.length - 1].id);
+  updateChatBadge();
+  let html = "", lastDay = "", lastUser = null;
+  for(const m of msgs){
+    const d = new Date(m.created_at), dl = dayLabel(m.created_at);
+    if(dl !== lastDay){ html += `<div class="chatday">${esc(dl)}</div>`; lastDay = dl; lastUser = null; }
+    const mine = m.user_id === me.id;
+    html += `<div class="msg ${mine ? "me" : ""}" data-id="${m.id}">${!mine && lastUser !== m.user_id ? `<div class="who">${esc(m.username || "üye")}</div>` : ""}
+      <div class="bub">${esc(m.body)}</div><div class="tm">${d.toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"})}</div></div>`;
+    lastUser = m.user_id;
+  }
+  $("msgs").innerHTML = html || `<div class="empty">Henüz mesaj yok. İlk mesajı siz yazın.</div>`;
+  requestAnimationFrame(() => scrollTo({ top: document.body.scrollHeight }));
+}
+const msgIn = $("msgIn");
+msgIn.addEventListener("input", () => { $("sendBtn").disabled = !msgIn.value.trim(); msgIn.style.height = "auto"; msgIn.style.height = Math.min(msgIn.scrollHeight, 120) + "px"; });
+msgIn.addEventListener("keydown", e => { if(e.key === "Enter" && !e.shiftKey && !/iPhone|iPad|Android/.test(navigator.userAgent)){ e.preventDefault(); $("composer").requestSubmit(); } });
+$("composer").addEventListener("submit", async e => {
+  e.preventDefault(); const body = msgIn.value.trim(); if(!body) return;
+  msgIn.value = ""; msgIn.style.height = "auto"; $("sendBtn").disabled = true;
+  const { data, error } = await sb.from("messages").insert({ body }).select().single();
+  if(error){ msgIn.value = body; toast("Gönderilemedi"); return; }
+  if(!msgs.some(m => m.id === data.id)) msgs.push(data);
+  renderChat();
+});
+$("msgs").addEventListener("click", async e => {
+  const m = e.target.closest(".msg"); if(!m || !e.target.closest(".bub")) return;
+  const msg = msgs.find(x => x.id === +m.dataset.id); if(!msg || (msg.user_id !== me.id && me.role !== "admin")) return;
+  if(!confirm("Bu mesaj silinsin mi?")) return;
+  const { error } = await sb.from("messages").delete().eq("id", msg.id);
+  if(!error){ msgs = msgs.filter(x => x.id !== msg.id); renderChat(); }
+});
 
 /* ---------------- bildirimler ---------------- */
 const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
