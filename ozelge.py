@@ -42,7 +42,14 @@ UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130 Safari/537.3
 RESEND = "--resend" in sys.argv
 SEED = "--seed" in sys.argv
 RESEND_KARAR = "--resend-karar" in sys.argv
-DRY = "--dry-run" in sys.argv or not os.environ.get("SMTP_PASS")
+DRY = "--dry-run" in sys.argv
+MIGRATE = "--migrate" in sys.argv
+SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").rstrip("/")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY") or ""
+# Uygulama (Supabase) kuruluysa e-posta kapalı; MAIL_ENABLED=1 ile tekrar açılabilir
+MAIL_ENABLED = bool(os.environ.get("SMTP_PASS")) and (os.environ.get("MAIL_ENABLED") == "1" or not SUPABASE_URL)
+APP_URL = "https://projettuna.github.io/gunluk-ozelge/"
+QUIET = (22, 8)  # 22:00-08:00 arası bildirim yok
 # 359. maddeye gerçekten değinen metni yakalar (ör. "359. madde", "359 uncu maddesi", "VUK'nun 359").
 MADDE_359 = re.compile(
     r"359\s*(?:\.|'?\s*(?:uncu|ncu|ıncı|inci))?\s*madde|madde(?:si|sinin|sinde)?\s*359|(?:VUK|Usul Kanunu)\S*\s+359",
@@ -379,7 +386,7 @@ def build_mail(ozelgeler, kararlar, today, ozelge_intro=None, karar_intro=None, 
 
 
 def send(subject, text, body, attachments=()):
-    if DRY:
+    if DRY or not MAIL_ENABLED:
         print("(e-posta gönderilmedi, deneme modu)\n" + subject + "\n\n" + text)
         print("Ekler:", [(n, len(c)) for n, c in attachments])
         return
@@ -415,6 +422,95 @@ def send(subject, text, body, attachments=()):
     print(f"E-posta gönderildi: {subject}")
 
 
+# ---------------------------------------------------------------- Supabase ve anlık bildirim
+
+def db(method, path, body=None, prefer=None):
+    headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}", "Content-Type": "application/json"}
+    if prefer:
+        headers["Prefer"] = prefer
+    data = json.dumps(body).encode() if body is not None else None
+    req = Request(f"{SUPABASE_URL}/rest/v1/{path}", data=data, headers=headers, method=method)
+    with urlopen(req, timeout=60) as r:
+        txt = r.read().decode()
+        return json.loads(txt) if txt else None
+
+
+def db_insert_items(rows):
+    """Kayıtları items tablosuna ekler; zaten olanları atlar."""
+    added = 0
+    for i in range(0, len(rows), 500):
+        chunk = [{k: r.get(k) for k in ("tur", "title", "meta", "url", "ozet", "eklendi")} for r in rows[i:i + 500]]
+        res = db("POST", "items?on_conflict=tur,url,title", chunk,
+                 prefer="resolution=ignore-duplicates,return=representation")
+        added += len(res or [])
+    print(f"Veritabanı: {added} yeni kayıt")
+
+
+def migrate_feed():
+    """Eski docs/feed.json arşivini veritabanına taşır."""
+    with open(ARCHIVE_FILE, encoding="utf-8") as f:
+        items = json.load(f)["items"]
+    rows = [dict(r, eklendi=r.get("eklendi") or None) for r in reversed(items)]
+    db_insert_items(rows)
+
+
+def notify_users():
+    """Aktif kullanıcılara son bildirimden beri eklenen kayıtlar için tek bir anlık bildirim yollar."""
+    now = datetime.now(TR)
+    if now.hour >= QUIET[0] or now.hour < QUIET[1]:
+        print("Sessiz saatler, bildirim yok")
+        return
+    try:
+        from pywebpush import webpush, WebPushException
+    except ImportError:
+        print("pywebpush yok, bildirim atlanıyor")
+        return
+    key = db("GET", "private_settings?key=eq.vapid_private&select=value")
+    if not key:
+        print("VAPID anahtarı yok, bildirim atlanıyor")
+        return
+    vapid = key[0]["value"]
+    subs = db("GET", "push_subs?select=id,user_id,endpoint,p256dh,auth")
+    if not subs:
+        return
+    users = {u["id"]: u for u in db("GET", "profiles?select=id,role,status,expires_at,notify_types,last_notified_at")}
+    by_user = {}
+    for s in subs:
+        by_user.setdefault(s["user_id"], []).append(s)
+    utc_now = datetime.now(timezone.utc)
+    for uid, usubs in by_user.items():
+        u = users.get(uid)
+        if not u:
+            continue
+        exp = u.get("expires_at")
+        active = u["role"] == "admin" or (u["status"] == "active" and (not exp or datetime.fromisoformat(exp) > utc_now))
+        if not active or not u.get("notify_types"):
+            continue
+        since = u["last_notified_at"]
+        types = ",".join('"' + t.replace('"', '') + '"' for t in u["notify_types"])
+        new = db("GET", f"items?select=tur,title&created_at=gt.{quote(since)}&eklendi=not.is.null"
+                        f"&tur=in.({quote(types)})&order=id.desc&limit=200")
+        if not new:
+            continue
+        counts = {}
+        for it in new:
+            counts[it["tur"]] = counts.get(it["tur"], 0) + 1
+        title = f"{len(new)} yeni kayıt" if len(new) > 1 else new[0]["tur"]
+        body = (", ".join(f"{n} {t}" for t, n in counts.items()) + " · " + new[0]["title"]) if len(new) > 1 else new[0]["title"]
+        payload = json.dumps({"title": title, "body": body[:180], "url": APP_URL, "tag": "tmpro-yeni"})
+        for s in usubs:
+            try:
+                webpush({"endpoint": s["endpoint"], "keys": {"p256dh": s["p256dh"], "auth": s["auth"]}}, payload,
+                        vapid_private_key=vapid, vapid_claims={"sub": "mailto:bildirim@tmpro.app"}, ttl=86400)
+            except WebPushException as e:
+                code = getattr(e.response, "status_code", None)
+                print(f"Bildirim hatası ({code})")
+                if code in (404, 410):
+                    db("DELETE", f"push_subs?id=eq.{s['id']}")
+        db("PATCH", f"profiles?id=eq.{uid}", {"last_notified_at": utc_now.isoformat()})
+        print(f"Bildirim: {uid[:8]} -> {len(new)} kayıt")
+
+
 # ---------------------------------------------------------------- ana akış
 
 def load_state():
@@ -447,6 +543,11 @@ def archive_entries(new_oz=(), new_k=(), new_t=(), extra=(), seed=False):
         for i in items:
             rows.append({"tur": labels.get(title, title), "title": i["title"], "meta": i["meta"], "url": i["url"], "ozet": i.get("ozet", "")})
     if not rows or DRY:
+        return
+    if SUPABASE_URL:
+        for r in rows:
+            r["eklendi"] = None if seed else now
+        db_insert_items(rows)
         return
     try:
         with open(ARCHIVE_FILE, encoding="utf-8") as f:
@@ -499,6 +600,9 @@ def main():
 
     if SEED:
         seed_archive()
+        return
+    if MIGRATE:
+        migrate_feed()
         return
 
     # Özelgeler
@@ -603,7 +707,8 @@ def main():
 
     if new_oz or new_k or no_oz_intro or new_t or any(e[2] for e in extra):
         oz_intro = ("Kurulum tamamlandı. GİB'deki son özelgeler:" if first_ozelge else None) if new_oz else no_oz_intro
-        send(*build_mail(new_oz, new_k, today, oz_intro, karar_intro, new_t, teblig_intro, extra))
+        if MAIL_ENABLED:
+            send(*build_mail(new_oz, new_k, today, oz_intro, karar_intro, new_t, teblig_intro, extra))
         archive_entries(new_oz, new_k, new_t, extra)
         if new_oz:
             state["last_ozelge_mail"] = today
@@ -621,6 +726,11 @@ def main():
     if karar_ids is not None:
         state["karar_seen"] = sorted(set(state.get("karar_seen", [])) | set(karar_ids))[-2000:]
     save_state(state)
+    if SUPABASE_URL and not DRY:
+        try:
+            notify_users()
+        except Exception as e:  # noqa: BLE001
+            print(f"Bildirim gönderilemedi: {e}")
 
 
 if __name__ == "__main__":

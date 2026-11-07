@@ -21,6 +21,10 @@ on:
         description: "Son 5 VUK 359 kararını yeniden gönder"
         type: boolean
         default: false
+      migrate:
+        description: "Eski arşivi (feed.json) veritabanına taşı"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -38,6 +42,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - run: pip install -q pywebpush==2.0.3
       - name: Özelgeleri ve kararları kontrol et
         env:
           MAIL_TO: ${{ secrets.MAIL_TO }}
@@ -47,7 +52,10 @@ jobs:
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
           KEYWORDS: ${{ vars.KEYWORDS }}
-        run: python ozelge.py ${{ inputs.seed && '--seed' || '' }} ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.resend && '--resend' || '' }} ${{ inputs.resend_karar && '--resend-karar' || '' }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          MAIL_ENABLED: ${{ vars.MAIL_ENABLED }}
+        run: python ozelge.py ${{ inputs.seed && '--seed' || '' }} ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.resend && '--resend' || '' }} ${{ inputs.resend_karar && '--resend-karar' || '' }} ${{ inputs.migrate && '--migrate' || '' }}
       - name: Durumu kaydet
         run: |
           [ -f seen.json ] || [ -f docs/feed.json ] || exit 0
