@@ -231,7 +231,7 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
 .wx .locbtn{border:0;background:rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:5px 11px;font-size:13px;font-weight:600;cursor:pointer}
 
 /* sohbet */
-#msgs{display:flex;flex-direction:column;gap:2px;padding-bottom:70px}
+#msgs{padding-bottom:70px}
 .msg{max-width:78%;align-self:flex-start;display:flex;flex-direction:column;margin-top:2px}
 .msg.me{align-self:flex-end;align-items:flex-end}
 .msg .who{font-size:12px;color:var(--muted);margin:10px 12px 3px}
@@ -244,6 +244,16 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
 .composer textarea{flex:1;resize:none;border:.5px solid var(--line);background:var(--surface);border-radius:18px;padding:7px 14px;font-size:17px;line-height:1.3;max-height:120px;outline:none}
 .send{width:32px;height:32px;border-radius:50%;border:0;background:var(--accent);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none;align-self:flex-end;margin-bottom:2px}
 .send[disabled]{opacity:.35}
+.room{width:100%;border:0;background:none;text-align:left;cursor:pointer;color:inherit;align-items:center}
+.room:active{background:var(--fill-2)}
+.rav{width:46px;height:46px;border-radius:50%;background:var(--c);color:#fff;display:grid;place-items:center;flex:none}
+.rav.ava2{background:linear-gradient(160deg,#a1a1a6,#6e6e73);font-size:17px;font-weight:600}
+.rn{font-weight:600!important;font-size:16px!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rt{font-size:13px;color:var(--muted);flex:none}
+.rp{display:-webkit-box!important;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;font-size:14.5px!important;margin-top:2px!important}
+.rb{min-width:20px;height:20px;border-radius:10px;background:var(--accent);color:#fff;font-size:12px;font-weight:600;display:grid;place-items:center;padding:0 6px;flex:none}
+.room .row{gap:8px}
+.thread{display:flex;flex-direction:column;gap:2px}
 </style>
 </head>
 <body>
@@ -467,10 +477,11 @@ function _render(){
   const isFeed = ["feed", "unread", "star"].includes(tab);
   $("grid").hidden = true; $("back").hidden = true;
   $("feedTools").hidden = !isFeed; $("list").hidden = !isFeed; $("account").hidden = tab !== "account"; $("admin").hidden = tab !== "admin";
-  $("chat").hidden = tab !== "chat"; $("composer").hidden = tab !== "chat"; $("wx").hidden = true;
+  $("chat").hidden = tab !== "chat"; $("composer").hidden = true; $("wx").hidden = true;
   $("heading").textContent = {feed:"Akış", unread:"Okunmamış", star:"Kaydedilenler", account:"Hesap", admin:"Yönetim", chat:"Sohbet"}[tab];
   if(tab === "unread") $("back").hidden = false;
-  if(tab === "chat") return renderChat();
+  if(tab === "chat"){ $("back").firstChild && ($("back").lastChild.textContent = "Sohbet"); return renderChat(); }
+  $("back").lastChild.textContent = "Akış";
   $("markAll").hidden = tab !== "unread" || !unreadCount;
   if(tab === "account") return renderAccount();
   if(tab === "admin") return renderAdmin();
@@ -521,9 +532,9 @@ function _render(){
   $("list").innerHTML = html;
 }
 $("grid").addEventListener("click", e => { const b = e.target.closest(".tile"); if(!b) return; if(b.dataset.t === "__unread"){ tab = "unread"; store.set("tab", tab); render(); scrollTo({top:0}); return; } filter = b.dataset.t; if(filter === "Tümü"){ filter = "__all"; } store.set("filter", filter); render(); scrollTo({top:0}); });
-$("back").addEventListener("click", () => { tab = "feed"; filter = "Tümü"; store.set("filter", filter); render(); scrollTo({top:0}); });
+$("back").addEventListener("click", () => { if(tab === "chat"){ room = null; render(); scrollTo({top:0}); return; } tab = "feed"; filter = "Tümü"; store.set("filter", filter); render(); scrollTo({top:0}); });
 $("chips").addEventListener("click", e => { const b = e.target.closest(".chip"); if(!b) return; filter = b.dataset.t; store.set("filter", filter); render(); scrollTo({top:0, behavior:"smooth"}); });
-$("tabs").addEventListener("click", e => { const b = e.target.closest(".tab"); if(!b) return; if(b.dataset.tab === tab && tab === "feed" && filter === "Tümü"){ scrollTo({top:0, behavior:"smooth"}); return; } tab = b.dataset.tab; store.set("tab", tab); if(filter === "__all" || tab === "feed") filter = "Tümü"; render(); scrollTo({top:0}); });
+$("tabs").addEventListener("click", e => { const b = e.target.closest(".tab"); if(!b) return; if(b.dataset.tab === tab && tab === "feed" && filter === "Tümü"){ scrollTo({top:0, behavior:"smooth"}); return; } tab = b.dataset.tab; store.set("tab", tab); room = null; if(filter === "__all" || tab === "feed") filter = "Tümü"; render(); scrollTo({top:0}); });
 $("list").addEventListener("click", e => {
   const c = e.target.closest(".card"); if(!c) return; const id = +c.dataset.id;
   if(e.target.closest(".st")){ const on = !stars.has(id); on ? stars.add(id) : stars.delete(id); store.set("stars", [...stars]); toast(on ? "Kaydedildi" : "Kayıttan çıkarıldı"); render(); return; }
@@ -580,13 +591,23 @@ function askLocation(){
 $("wx").addEventListener("click", () => loadWeather(true));
 
 /* ---------------- sohbet ---------------- */
-let msgs = [], chatStarted = false;
-const chatSeen = () => +(store.get("chatSeen", 0));
+const ROOMS = [
+  { id: "genel", name: "Genel Sohbet", c: "--t-ozelge", ic: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/>' },
+  { id: "mevzuat", name: "Mevzuat Bilgi", c: "--t-danistay", ic: IC["Kanun"] },
+  { id: "ymm", name: "YMM Çalışma Grubu", c: "--t-cb", ic: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c.8-3.2 3.2-5 6-5s5.2 1.8 6 5"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.2c2.6-.4 4.8 1.2 5.5 4.3"/>' }
+];
+let msgs = [], chatStarted = false, room = null, members = null;
+const seenMap = () => store.get("chatSeenRooms", {});
+const dmRoom = uid => "dm:" + [me.id, uid].sort().join(":");
+const dmOther = r => r.slice(3).split(":").find(x => x !== me.id);
+const roomName = r => r.startsWith("dm:") ? (memberName(dmOther(r)) || "Özel mesaj") : (ROOMS.find(x => x.id === r)?.name || r);
+function memberName(uid){ const m = members?.find(x => x.id === uid); if(m) return m.full_name || m.username; const msg = msgs.find(x => x.user_id === uid); return msg?.username || null; }
+const initialsOf = n => String(n || "?").split(/\s+/).map(w => w[0]).slice(0, 2).join("").toLocaleUpperCase("tr");
 async function startChat(){
   if(chatStarted) return; chatStarted = true;
-  const { data } = await sb.from("messages").select("id,user_id,username,body,created_at").order("id", { ascending: false }).limit(200);
+  const { data } = await sb.from("messages").select("id,room,user_id,username,body,created_at").order("id", { ascending: false }).limit(1000);
   msgs = (data || []).reverse();
-  if(!store.get("chatSeen", null)) store.set("chatSeen", msgs.length ? msgs[msgs.length - 1].id : 0);
+  if(store.get("chatSeenRooms", null) === null){ const m = {}; msgs.forEach(x => m[x.room] = x.id); store.set("chatSeenRooms", m); }
   updateChatBadge();
   sb.channel("sohbet").on("postgres_changes", { event: "*", schema: "public", table: "messages" }, p => {
     if(p.eventType === "INSERT" && !msgs.some(m => m.id === p.new.id)) msgs.push(p.new);
@@ -594,43 +615,80 @@ async function startChat(){
     if(tab === "chat") renderChat(); else updateChatBadge();
   }).subscribe();
 }
+const unreadIn = r => { const s = seenMap()[r] || 0; return msgs.filter(m => m.room === r && m.id > s && m.user_id !== me?.id).length; };
 function updateChatBadge(){
-  const n = tab === "chat" ? 0 : msgs.filter(m => m.id > chatSeen() && m.user_id !== me?.id).length;
+  const rooms = new Set(msgs.map(m => m.room)); let n = 0;
+  rooms.forEach(r => { if(!(tab === "chat" && room === r)) n += unreadIn(r); });
   $("chatBadge").hidden = !n; $("chatBadge").textContent = n > 99 ? "99+" : n;
 }
+const roomIcon = (c, ic) => `<div class="rav" style="--c:var(${c})"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ic}</svg></div>`;
+function roomRow(r, name, avatar){
+  const last = [...msgs].reverse().find(m => m.room === r), un = unreadIn(r);
+  const when = last ? (dayLabel(last.created_at) === "Bugün" ? new Date(last.created_at).toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"}) : dayLabel(last.created_at)) : "";
+  const prev = last ? (last.user_id === me.id ? "Siz: " : (r.startsWith("dm:") ? "" : (last.username || "üye") + ": ")) + last.body : "Henüz mesaj yok";
+  return `<button class="li room" data-room="${esc(r)}">${avatar}<div class="grow"><div class="row"><b class="rn">${esc(name)}</b><span class="spacer"></span><span class="rt">${esc(when)}</span></div>
+    <div class="row"><small class="rp">${esc(prev)}</small><span class="spacer"></span>${un ? `<span class="rb">${un}</span>` : ""}</div></div></button>`;
+}
 function renderChat(){
-  $("sub").textContent = "Üyeler arası sohbet";
-  if(msgs.length) store.set("chatSeen", msgs[msgs.length - 1].id);
+  $("composer").hidden = !room || room === "__pick"; $("back").hidden = !room;
+  if(room === "__pick") return;
+  if(room){ return renderRoom(); }
+  $("heading").textContent = "Sohbet"; $("navTitle").textContent = "Sohbet"; $("sub").textContent = "";
+  const dms = [...new Set(msgs.filter(m => m.room.startsWith("dm:")).map(m => m.room))]
+    .sort((a, b) => Math.max(...msgs.filter(m => m.room === b).map(m => m.id)) - Math.max(...msgs.filter(m => m.room === a).map(m => m.id)));
+  $("msgs").innerHTML = `<div class="sect" style="margin-top:8px">Odalar</div>
+    <div class="list">${ROOMS.map(r => roomRow(r.id, r.name, roomIcon(r.c, r.ic))).join("")}</div>
+    <div class="sect row" style="margin-right:4px"><span>Özel mesajlar</span><span class="spacer"></span><button class="linkbtn" id="newDm" style="font-size:15px;text-transform:none;padding:0">Yeni mesaj</button></div>
+    ${dms.length ? `<div class="list">${dms.map(r => roomRow(r, roomName(r), `<div class="rav ava2">${esc(initialsOf(roomName(r)))}</div>`)).join("")}</div>`
+      : `<div class="hint" style="text-align:center">Bir üyeye özel mesaj atmak için <b>Yeni mesaj</b>'a dokunun.</div>`}`;
+  updateChatBadge();
+}
+function renderRoom(){
+  const name = roomName(room);
+  $("heading").textContent = name; $("navTitle").textContent = name;
+  $("sub").textContent = room.startsWith("dm:") ? "Özel mesaj" : `${new Set(msgs.filter(m => m.room === room).map(m => m.user_id)).size} kişi yazdı`;
+  const list = msgs.filter(m => m.room === room);
+  if(list.length){ const m = seenMap(); m[room] = list[list.length - 1].id; store.set("chatSeenRooms", m); }
   updateChatBadge();
   let html = "", lastDay = "", lastUser = null;
-  for(const m of msgs){
+  for(const m of list){
     const d = new Date(m.created_at), dl = dayLabel(m.created_at);
     if(dl !== lastDay){ html += `<div class="chatday">${esc(dl)}</div>`; lastDay = dl; lastUser = null; }
     const mine = m.user_id === me.id;
-    html += `<div class="msg ${mine ? "me" : ""}" data-id="${m.id}">${!mine && lastUser !== m.user_id ? `<div class="who">${esc(m.username || "üye")}</div>` : ""}
+    html += `<div class="msg ${mine ? "me" : ""}" data-id="${m.id}">${!mine && !room.startsWith("dm:") && lastUser !== m.user_id ? `<div class="who">${esc(m.username || "üye")}</div>` : ""}
       <div class="bub">${esc(m.body)}</div><div class="tm">${d.toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"})}</div></div>`;
     lastUser = m.user_id;
   }
-  $("msgs").innerHTML = html || `<div class="empty">Henüz mesaj yok. İlk mesajı siz yazın.</div>`;
+  $("msgs").innerHTML = `<div class="thread">${html || `<div class="empty">Henüz mesaj yok. İlk mesajı siz yazın.</div>`}</div>`;
   requestAnimationFrame(() => scrollTo({ top: document.body.scrollHeight }));
 }
+async function openMembers(){
+  if(!members){ const { data } = await sb.rpc("list_members"); members = data || []; }
+  $("msgs").innerHTML = `<div class="sect" style="margin-top:8px">Kime yazmak istiyorsunuz?</div><div class="list">${members.length ? members.map(m =>
+    `<button class="li room" data-room="${esc(dmRoom(m.id))}"><div class="rav ava2">${esc(initialsOf(m.full_name || m.username))}</div><div class="grow"><b class="rn">${esc(m.full_name || m.username)}</b><small>@${esc(m.username)}</small></div></button>`).join("")
+    : `<div class="li"><small>Henüz başka aktif üye yok.</small></div>`}</div>`;
+  $("heading").textContent = "Yeni mesaj"; $("back").hidden = false; room = "__pick";
+}
+$("msgs").addEventListener("click", async e => {
+  if(e.target.closest("#newDm")) return openMembers();
+  const r = e.target.closest(".room");
+  if(r){ room = r.dataset.room; if(room.startsWith("dm:") && !members){ sb.rpc("list_members").then(({ data }) => { members = data || []; if(tab === "chat" && room) renderRoom(); }); } renderChat(); setTimeout(() => msgIn.focus(), 50); return; }
+  const m = e.target.closest(".msg"); if(!m || !e.target.closest(".bub")) return;
+  const msg = msgs.find(x => x.id === +m.dataset.id); if(!msg || (msg.user_id !== me.id && !(me.role === "admin" && !msg.room.startsWith("dm:")))) return;
+  if(!confirm("Bu mesaj silinsin mi?")) return;
+  const { error } = await sb.from("messages").delete().eq("id", msg.id);
+  if(!error){ msgs = msgs.filter(x => x.id !== msg.id); renderChat(); }
+});
 const msgIn = $("msgIn");
 msgIn.addEventListener("input", () => { $("sendBtn").disabled = !msgIn.value.trim(); msgIn.style.height = "auto"; msgIn.style.height = Math.min(msgIn.scrollHeight, 120) + "px"; });
 msgIn.addEventListener("keydown", e => { if(e.key === "Enter" && !e.shiftKey && !/iPhone|iPad|Android/.test(navigator.userAgent)){ e.preventDefault(); $("composer").requestSubmit(); } });
 $("composer").addEventListener("submit", async e => {
-  e.preventDefault(); const body = msgIn.value.trim(); if(!body) return;
+  e.preventDefault(); const body = msgIn.value.trim(); if(!body || !room || room === "__pick") return;
   msgIn.value = ""; msgIn.style.height = "auto"; $("sendBtn").disabled = true;
-  const { data, error } = await sb.from("messages").insert({ body }).select().single();
+  const { data, error } = await sb.from("messages").insert({ body, room }).select().single();
   if(error){ msgIn.value = body; toast("Gönderilemedi"); return; }
   if(!msgs.some(m => m.id === data.id)) msgs.push(data);
   renderChat();
-});
-$("msgs").addEventListener("click", async e => {
-  const m = e.target.closest(".msg"); if(!m || !e.target.closest(".bub")) return;
-  const msg = msgs.find(x => x.id === +m.dataset.id); if(!msg || (msg.user_id !== me.id && me.role !== "admin")) return;
-  if(!confirm("Bu mesaj silinsin mi?")) return;
-  const { error } = await sb.from("messages").delete().eq("id", msg.id);
-  if(!error){ msgs = msgs.filter(x => x.id !== msg.id); renderChat(); }
 });
 
 /* ---------------- bildirimler ---------------- */
