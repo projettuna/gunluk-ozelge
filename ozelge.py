@@ -49,7 +49,7 @@ SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY") or ""
 SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").rstrip("/") if SUPABASE_KEY else ""
 # Uygulama (Supabase) kuruluysa e-posta kapalı; MAIL_ENABLED=1 ile tekrar açılabilir
 MAIL_ENABLED = bool(os.environ.get("SMTP_PASS")) and (os.environ.get("MAIL_ENABLED") == "1" or not SUPABASE_URL)
-APP_URL = "https://projettuna.github.io/gunluk-ozelge/"
+APP_URL = "https://tmpro.tmproapp.workers.dev/"
 QUIET = (22, 8)  # 22:00-08:00 arası bildirim yok
 # 359. maddeye gerçekten değinen metni yakalar (ör. "359. madde", "359 uncu maddesi", "VUK'nun 359").
 MADDE_359 = re.compile(
@@ -381,7 +381,7 @@ def build_mail(ozelgeler, kararlar, today, ozelge_intro=None, karar_intro=None, 
     subject = ", ".join(parts_subject)
     subject = subject[:1].upper() + subject[1:] + f" ({today})"
     body = ('<div style="font-family:Arial,sans-serif;max-width:680px">' + "".join(html_parts)
-            + '<p style="margin-top:24px"><a href="https://projettuna.github.io/gunluk-ozelge/" style="background:#14284a;color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:bold">TMPRO uygulamasında aç</a></p>'
+            + '<p style="margin-top:24px"><a href="https://tmpro.tmproapp.workers.dev/" style="background:#14284a;color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:bold">TMPRO uygulamasında aç</a></p>'
             + '<p style="color:#999;font-size:12px">Kaynak: gib.gov.tr mevzuat, karararama.danistay.gov.tr</p></div>')
     return subject, "\n\n".join(txt_parts), body, karar_attachments(kararlar)
 
