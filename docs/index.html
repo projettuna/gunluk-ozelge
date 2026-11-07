@@ -416,7 +416,7 @@ async function boot(){
   if(!isActive(p)){ await loadSettings(); renderPending(); show("pendingView"); return; }
   read = new Set(store.get("read", [])); stars = new Set(store.get("stars", []));
   firstVisit = store.get("read", null) === null;
-  filter = store.get("filter", "Tümü"); tab = store.get("tab", "feed");
+  filter = "Tümü"; tab = "feed"; room = null;  // her açılışta ana sayfa
   $("adminTab").hidden = p.role !== "admin";
   if((tab === "admin" && p.role !== "admin") || tab === "unread") tab = "feed";
   show("appView");
