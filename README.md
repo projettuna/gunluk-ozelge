@@ -1,6 +1,6 @@
 # Günlük özelge bildirimi
 
-Her sabah 08:00'de (Türkiye) GİB'de yeni yayımlanan özelgeleri kontrol eder ve e-postayla gönderir.
+Her saat GİB'de yeni yayımlanan özelgeleri ve VUK 359. maddeye değinen yeni Danıştay kararlarını kontrol eder; yeni bir şey varsa hemen e-postayla gönderir. Gün içinde özelge çıkmazsa 18:00'den sonra "bugün yeni özelge yok" maili atar.
 
 ## Kurulum
 Depoda **Settings → Secrets and variables → Actions → New repository secret** ile şunları ekleyin:
@@ -15,5 +15,5 @@ Depoda **Settings → Secrets and variables → Actions → New repository secre
 
 Konu filtresi için (isteğe bağlı) **Variables** sekmesine `KEYWORDS` ekleyin, örn. `KDV,gelir vergisi`.
 
-Elle çalıştırmak için: **Actions → Günlük özelge bildirimi → Run workflow**.
-İlk çalışmada kurulum e-postası ve son 10 özelge gelir; sonrasında sadece yeniler.
+Elle çalıştırmak için: **Actions → Özelge bildirimi → Run workflow**.
+Durum `seen.json` dosyasında tutulur.
