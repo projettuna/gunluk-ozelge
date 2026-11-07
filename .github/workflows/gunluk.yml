@@ -9,6 +9,10 @@ on:
         description: "Deneme: e-posta gönderme, kaydetme"
         type: boolean
         default: false
+      probe:
+        description: "Sadece teşhis"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -35,7 +39,7 @@ jobs:
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
           KEYWORDS: ${{ vars.KEYWORDS }}
-        run: python ozelge.py ${{ inputs.dry_run && '--dry-run' || '' }}
+        run: python ${{ inputs.probe && 'probe.py' || 'ozelge.py' }} ${{ inputs.dry_run && '--dry-run' || '' }}
       - name: Durumu kaydet
         run: |
           [ -f seen.json ] || exit 0
