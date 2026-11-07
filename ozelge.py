@@ -48,8 +48,13 @@ ID_KEYS = ("id", "sayi", "ozelgeSayisi", "no", "slug", "uuid")
 URL_KEYS = ("url", "link", "path", "slug")
 
 
-def fetch(url):
-    req = Request(url, headers={"User-Agent": UA, "Accept": "application/json, text/html;q=0.9"})
+def fetch(url, body=None):
+    headers = {"User-Agent": UA, "Accept": "application/json, text/html;q=0.9"}
+    data = None
+    if body is not None:
+        headers["Content-Type"] = "application/json"
+        data = json.dumps(body).encode()
+    req = Request(url, data=data, headers=headers, method="POST" if body is not None else "GET")
     with urlopen(req, timeout=60) as r:
         raw = r.read()
         ctype = r.headers.get("Content-Type", "")
@@ -134,7 +139,43 @@ def items_from_html(text, source_url):
     return items
 
 
+def diagnose():
+    """Sitenin yapısını günlüğe yazar (sadece --debug)."""
+    print("=== TEŞHİS ===")
+    try:
+        page, _ = fetch("https://www.gib.gov.tr/mevzuat/ozelgeler")
+    except Exception as e:  # noqa: BLE001
+        print("sayfa alınamadı:", e)
+        return
+    print("sayfa uzunluğu", len(page), "NEXT_DATA:", "__NEXT_DATA__" in page)
+    scripts = re.findall(r'<script[^>]+src="([^"]+)"', page)
+    print("scriptler:", scripts[:40])
+    print("sayfa başı:", page[:1200].replace("\n", " "))
+    refs = set()
+    for src in scripts:
+        try:
+            js, _ = fetch(urljoin(BASE + "/", src))
+        except Exception:  # noqa: BLE001
+            continue
+        refs.update(re.findall(r'[^"\'`\s]{0,100}ozelge[^"\'`\s]{0,100}', js, re.I))
+    print("JS içindeki özelge referansları:")
+    for r in sorted(refs)[:100]:
+        print("  ", r[:220])
+    for url in ("https://gib.gov.tr/api/gibportal/mevzuat/ozelge/list?page=0&size=3",
+                "https://www.gib.gov.tr/api/gibportal/mevzuat/ozelge/list?page=0&size=3"):
+        for body in ({}, {"deleted": False}):
+            try:
+                txt, _ = fetch(url, body)
+                print("POST", url, body, "->", txt[:800].replace("\n", " "))
+            except Exception as e:  # noqa: BLE001
+                rd = getattr(e, "read", None)
+                print("POST", url, body, "->", e, rd().decode("utf-8", "replace")[:300] if rd else "")
+    print("=== TEŞHİS SONU ===")
+
+
 def get_items():
+    if DEBUG:
+        diagnose()
     errors = []
     for url in SOURCES:
         try:
