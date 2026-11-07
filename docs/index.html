@@ -287,7 +287,7 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;
 const norm = s => String(s ?? "").toLocaleLowerCase("tr");
 const fmtDate = d => d ? new Date(d).toLocaleDateString("tr-TR", {day:"numeric", month:"long", year:"numeric"}) : "";
 const toEmail = u => `${u.trim().toLowerCase()}@${CFG.userDomain}`;
-function toast(m){ const t = $("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 2000); }
+function toast(m, ms = 2000){ const t = $("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), ms); }
 function show(view){ for(const v of ["authView","pendingView","appView"]) $(v).hidden = v !== view; }
 
 let me = null, items = [], settings = {};
@@ -469,11 +469,13 @@ const pushSupported = "serviceWorker" in navigator && "PushManager" in window &&
 function b64ToUint8(b64){ const p = "=".repeat((4 - b64.length % 4) % 4); const s = atob((b64 + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from([...s].map(c => c.charCodeAt(0))); }
 async function swReg(){ return navigator.serviceWorker.register("sw.js"); }
 async function subscribePush(){
-  const reg = await swReg();
+  await swReg();
+  const reg = await navigator.serviceWorker.ready;
   let sub = await reg.pushManager.getSubscription();
   if(!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToUint8(CFG.vapidPublicKey) });
   const j = sub.toJSON();
-  await sb.from("push_subs").upsert({ user_id: me.id, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }, { onConflict: "endpoint" });
+  const { error } = await sb.from("push_subs").upsert({ user_id: me.id, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }, { onConflict: "endpoint" });
+  if(error) throw new Error("Kayıt: " + error.message);
 }
 async function ensurePushIfGranted(){ try{ if(pushSupported){ await swReg(); if(Notification.permission === "granted") await subscribePush(); } }catch{} }
 async function pushEnabled(){ if(!pushSupported || Notification.permission !== "granted") return false; const reg = await navigator.serviceWorker.getRegistration(); return !!(reg && await reg.pushManager.getSubscription()); }
@@ -528,7 +530,7 @@ async function renderAccount(){
         if(s){ await sb.from("push_subs").delete().eq("endpoint", s.endpoint); await s.unsubscribe(); }
         toast("Bildirimler kapatıldı");
       }
-    }catch(err){ e.target.checked = false; toast("Bildirim açılamadı"); }
+    }catch(err){ e.target.checked = false; toast("Bildirim açılamadı: " + (err?.message || err), 6000); }
   };
   $("typeList").onchange = async () => {
     const sel = [...document.querySelectorAll("#typeList input:checked")].map(x => x.dataset.type);
