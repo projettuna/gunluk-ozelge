@@ -87,6 +87,61 @@ def get_ozelgeler(size=50):
     return items
 
 
+# ---------------------------------------------------------------- tebliğler
+
+LAST_ADDED = "https://gib.gov.tr/api/gibportal/search/mevzuatLastAdded"
+TEBLIG_LIST = "https://gib.gov.tr/api/gibportal/mevzuat/teblig/list?page={page}&size=1000"
+TEBLIG_FULL_HOUR = 6  # tam tarama saati (TR)
+
+
+def _teblig(id_, title, kanun, rg_tarih, rg_sayi, url):
+    rg_tarih = (rg_tarih or "")[:10]
+    if re.match(r"\d{4}-\d{2}-\d{2}", rg_tarih):
+        rg_tarih = ".".join(reversed(rg_tarih.split("-")))
+    meta = " · ".join(x for x in (
+        (kanun or "").replace("(*)", "").strip(),
+        f"Resmî Gazete {rg_tarih}" + (f", sayı {rg_sayi}" if rg_sayi else "") if rg_tarih else "") if x)
+    return {"id": int(id_), "title": strip_tags(title), "meta": meta, "url": url or f"https://gib.gov.tr/mevzuat/teblig/{id_}"}
+
+
+def get_tebligler_last_added():
+    """GİB'in "son eklenen mevzuat" listesindeki tebliğler (son 5 kayıt içinden)."""
+    data = json.loads(http(LAST_ADDED))
+    out = []
+    for r in data["resultContainer"]["results"]:
+        m = re.search(r"/teblig/(\d+)", r.get("url") or "")
+        if r.get("entityType") == "TEBLIG" and m:
+            out.append(_teblig(m.group(1), r.get("text"), r.get("kanunTitle"), r.get("resmiGazeteTarih"),
+                               r.get("resmiGazeteSayi"), r.get("url")))
+    return out
+
+
+def get_tebligler_full():
+    """Tüm tebliğ listesini tarar (günde bir kez; toplu yayımlarda kaçan olmasın diye)."""
+    out, page = [], 0
+    while page < 10:
+        d = json.loads(http(TEBLIG_LIST.format(page=page), {}, timeout=180))["resultContainer"]
+        for r in d["content"]:
+            if not r.get("deleted"):
+                out.append(_teblig(r["id"], r.get("title"), r.get("kanunTitle"), r.get("resmiGazeteTarih"),
+                                   r.get("resmiGazeteSayi"), r.get("siteLink")))
+        page += 1
+        if page >= (d.get("totalPages") or 1):
+            break
+    return out
+
+
+def teblig_html(items):
+    return "".join(
+        '<li style="margin-bottom:16px">'
+        f'<a href="{html.escape(t["url"])}" style="font-weight:bold">{html.escape(t["title"])}</a><br>'
+        f'<span style="color:#666;font-size:13px">{html.escape(t["meta"])}</span></li>' for t in items)
+
+
+def teblig_txt(items):
+    return "\n\n".join(f"- {t['title']}\n  {t['meta']}\n  {t['url']}" for t in items)
+
+
 # ---------------------------------------------------------------- Danıştay kararları
 
 def get_kararlar(size=30):
@@ -185,8 +240,13 @@ def karar_attachments(kararlar):
     return files
 
 
-def build_mail(ozelgeler, kararlar, today, ozelge_intro=None, karar_intro=None):
+def build_mail(ozelgeler, kararlar, today, ozelge_intro=None, karar_intro=None, tebligler=(), teblig_intro=None):
     parts_subject, html_parts, txt_parts = [], [], []
+    if tebligler:
+        parts_subject.append(f"{len(tebligler)} yeni tebliğ")
+        intro = teblig_intro or f"GİB'de yeni yayımlanan {len(tebligler)} tebliğ:"
+        html_parts.append(f"<h3>Tebliğler</h3><p>{html.escape(intro)}</p><ul style='padding-left:18px'>{teblig_html(tebligler)}</ul>")
+        txt_parts.append(f"TEBLİĞLER\n{intro}\n\n{teblig_txt(tebligler)}")
     if ozelgeler:
         parts_subject.append(f"{len(ozelgeler)} yeni özelge")
         intro = ozelge_intro or f"GİB'de yeni yayımlanan {len(ozelgeler)} özelge:"
@@ -206,7 +266,7 @@ def build_mail(ozelgeler, kararlar, today, ozelge_intro=None, karar_intro=None):
     subject = ", ".join(parts_subject)
     subject = subject[:1].upper() + subject[1:] + f" ({today})"
     body = ('<div style="font-family:Arial,sans-serif;max-width:680px">' + "".join(html_parts)
-            + '<p style="color:#999;font-size:12px">Kaynak: gib.gov.tr özelgeler, karararama.danistay.gov.tr</p></div>')
+            + '<p style="color:#999;font-size:12px">Kaynak: gib.gov.tr özelge ve tebliğler, karararama.danistay.gov.tr</p></div>')
     return subject, "\n\n".join(txt_parts), body, karar_attachments(kararlar)
 
 
@@ -304,15 +364,35 @@ def main():
     except Exception as e:  # noqa: BLE001
         print(f"Danıştay kararları alınamadı (sonraki saatte tekrar denenecek): {e}")
 
+    # Tebliğler: her saat "son eklenenler", günde bir kez tam tarama
+    new_t, teblig_max, teblig_intro = [], None, None
+    try:
+        last_t = state.get("last_teblig_id")
+        full = last_t is None or (now.hour >= TEBLIG_FULL_HOUR and state.get("teblig_full_scan") != today)
+        tebligler = get_tebligler_full() if full else get_tebligler_last_added()
+        if full:
+            state["teblig_full_scan"] = today
+        tebligler.sort(key=lambda t: t["id"], reverse=True)
+        if tebligler:
+            teblig_max = tebligler[0]["id"]
+        if last_t is None:
+            new_t = tebligler[:3]
+            teblig_intro = "Tebliğ takibi başladı. Bundan sonra yeni tebliğler geldikçe gönderilecek. En son yayımlanan tebliğler:"
+        else:
+            new_t = [t for t in tebligler if t["id"] > last_t]
+        print(f"Tebliğ: {'tam tarama' if full else 'son eklenenler'}, listelenen {len(tebligler)}, yeni {len(new_t)}")
+    except Exception as e:  # noqa: BLE001
+        print(f"Tebliğler alınamadı (sonraki saatte tekrar denenecek): {e}")
+
     # "Bugün özelge yok" bildirimi
     no_oz_intro = None
     if (not new_oz and now.hour >= NO_OZELGE_HOUR
             and state.get("last_ozelge_mail") != today and state.get("no_ozelge_notice") != today):
         no_oz_intro = f"Bugün ({today}) GİB'de yeni yayımlanan özelge yok."
 
-    if new_oz or new_k or no_oz_intro:
+    if new_oz or new_k or no_oz_intro or new_t:
         oz_intro = ("Kurulum tamamlandı. GİB'deki son özelgeler:" if first_ozelge else None) if new_oz else no_oz_intro
-        send(*build_mail(new_oz, new_k, today, oz_intro, karar_intro))
+        send(*build_mail(new_oz, new_k, today, oz_intro, karar_intro, new_t, teblig_intro))
         if new_oz:
             state["last_ozelge_mail"] = today
         if no_oz_intro:
@@ -320,6 +400,8 @@ def main():
 
     if ozelgeler:
         state["last_id"] = max(last_id, max(it["id"] for it in ozelgeler))
+    if teblig_max is not None:
+        state["last_teblig_id"] = max(state.get("last_teblig_id") or 0, teblig_max)
     if karar_ids is not None:
         state["karar_seen"] = sorted(set(state.get("karar_seen", [])) | set(karar_ids))[-2000:]
     save_state(state)
