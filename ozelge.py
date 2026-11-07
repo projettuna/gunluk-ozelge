@@ -39,6 +39,7 @@ TR = timezone(timedelta(hours=3))
 NO_OZELGE_HOUR = 18
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130 Safari/537.36"
 RESEND = "--resend" in sys.argv
+SEED = "--seed" in sys.argv
 RESEND_KARAR = "--resend-karar" in sys.argv
 DRY = "--dry-run" in sys.argv or not os.environ.get("SMTP_PASS")
 # 359. maddeye gerçekten değinen metni yakalar (ör. "359. madde", "359 uncu maddesi", "VUK'nun 359").
@@ -176,6 +177,64 @@ def get_gib_list(path, date_key, no_key, link_tpl):
         out.append({"id": int(r["id"]), "title": strip_tags(r.get("title")), "meta": meta,
                     "url": r.get("siteLink") or link_tpl.format(id=r["id"])})
     out.sort(key=lambda x: x["id"], reverse=True)
+    return out
+
+
+# ---------------------------------------------------------------- Anayasa Mahkemesi
+
+AYM = "https://kararlarbilgibankasi.anayasa.gov.tr"
+AYM_QUERIES = ['"Vergi Usul Kanunu" 359', '"vergi kaçakçılığı"', '"sahte fatura"']
+
+
+def get_aym(size=20):
+    out, seen = [], set()
+    for q in AYM_QUERIES:
+        body = {"query": q, "page": 1, "size": size, "sort": "yayinTarihi", "order": "desc"}
+        data = json.loads(http(AYM + "/api/core/public/search", body))
+        for r in data.get("data") or []:
+            if not r.get("highlightCount") or r["id"] in seen:
+                continue  # aranan ifade metinde geçmiyorsa atla
+            seen.add(r["id"])
+            bb = r.get("kararTipi") == "BireyselBasvuru"
+            no = r.get("basvuruNo") if bb else f"E.{r.get('esasNo')}, K.{r.get('kararNo')}"
+            if bb and r.get("basvuruNo"):
+                url = f"{AYM}/BB/{r['basvuruNo']}"
+            elif r.get("esasNo"):
+                url = f"https://normkararlarbilgibankasi.anayasa.gov.tr/ND/{r['esasNo']}"
+            else:
+                url = AYM
+            tarih = (r.get("kararTarihi") or "")[:10]
+            tarih = ".".join(reversed(tarih.split("-"))) if tarih else ""
+            meta = " · ".join(x for x in (
+                "Bireysel başvuru" if bb else "Norm denetimi", r.get("basvuruAdi") if bb else "",
+                f"No: {no}", f"Karar tarihi {tarih}" if tarih else "", r.get("kararTuruBasvuruSonucuLabel") or r.get("kararTuruDosyaSonucuLabel") or "") if x)
+            konu = strip_tags(r.get("kararKonusu"))
+            out.append({"id": r["id"], "title": (konu[:160] + "…") if len(konu) > 160 else konu or "Anayasa Mahkemesi kararı",
+                        "meta": meta, "url": url, "yayin": r.get("yayinTarihi") or ""})
+    out.sort(key=lambda x: x["yayin"], reverse=True)
+    return out
+
+
+# ---------------------------------------------------------------- Resmî Gazete
+
+RG = "https://www.resmigazete.gov.tr/"
+RG_KEYWORDS = re.compile(
+    r"vergi|harç|gümrük|gelir idaresi|hazine ve maliye|katma değer|özel tüketim|damga|tahsil usul|kaçakçılı|"
+    r"mali müşavir|muhasebe|tevkifat|matrah|amme alacak|varlık barışı|ekonomiye kazandırıl|yeniden değerleme", re.I)
+
+
+def get_resmi_gazete():
+    page = http(RG)
+    out, seen = [], set()
+    for href, inner in re.findall(r'<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>', page, re.S):
+        title = re.sub(r"^[–\-\s]+", "", strip_tags(inner))
+        if "eskiler" not in href or len(title) < 10 or href in seen:
+            continue
+        seen.add(href)
+        if RG_KEYWORDS.search(title):
+            d = re.search(r"/(\d{4})(\d{2})(\d{2})", href)
+            out.append({"id": href, "title": title, "url": href,
+                        "meta": f"Resmî Gazete {d.group(3)}.{d.group(2)}.{d.group(1)}" if d else "Resmî Gazete"})
     return out
 
 
@@ -362,6 +421,61 @@ def load_state():
         return {}
 
 
+ARCHIVE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "feed.json")
+
+
+def archive_entries(new_oz=(), new_k=(), new_t=(), extra=()):
+    """Web uygulaması için kayıtları docs/feed.json arşivine ekler."""
+    now = datetime.now(TR).isoformat(timespec="minutes")
+    rows = []
+    for it in new_oz:
+        rows.append({"tur": "Özelge", "title": it["title"], "meta": it["meta"], "url": it["url"], "ozet": it.get("ozet", "")})
+    for t in new_t:
+        rows.append({"tur": "Tebliğ", "title": t["title"], "meta": t["meta"], "url": t["url"], "ozet": ""})
+    for k in new_k:
+        rows.append({"tur": "Danıştay (VUK 359)", "title": f"Danıştay {k['daire']} E. {k['esas']}, K. {k['karar']}",
+                     "meta": k["tarih"], "url": k.get("url", DANISTAY), "ozet": k.get("ozet", "")})
+    labels = {"Kanunlar ve kanun değişiklikleri": "Kanun", "Sirküler": "Sirküler", "Cumhurbaşkanı kararları": "CB Kararı",
+              "İç genelgeler": "İç Genelge", "Anayasa Mahkemesi kararları": "Anayasa Mahkemesi",
+              "Resmî Gazete (vergiyle ilgili)": "Resmî Gazete"}
+    for title, _short, items, _intro in extra:
+        for i in items:
+            rows.append({"tur": labels.get(title, title), "title": i["title"], "meta": i["meta"], "url": i["url"], "ozet": i.get("ozet", "")})
+    if not rows or DRY:
+        return
+    try:
+        with open(ARCHIVE_FILE, encoding="utf-8") as f:
+            feed = json.load(f)
+    except (FileNotFoundError, ValueError):
+        feed = {"items": []}
+    known = {(r["tur"], r["url"], r["title"]) for r in feed["items"]}
+    for r in rows:
+        if (r["tur"], r["url"], r["title"]) not in known:
+            r["eklendi"] = now
+            feed["items"].insert(0, r)
+    feed["items"] = feed["items"][:3000]
+    feed["guncellendi"] = now
+    os.makedirs(os.path.dirname(ARCHIVE_FILE), exist_ok=True)
+    with open(ARCHIVE_FILE, "w", encoding="utf-8") as f:
+        json.dump(feed, f, ensure_ascii=False, indent=0)
+
+
+def seed_archive():
+    """Arşivi her kaynaktan son kayıtlarla doldurur (e-posta göndermez)."""
+    oz = get_ozelgeler(50)
+    tebs = sorted(get_tebligler_full(), key=lambda t: t["id"], reverse=True)[:40]
+    kar = enrich_kararlar(get_kararlar()[:10])
+    extra = []
+    for key, path, title, date_key, no_key, link_tpl in GIB_LISTS:
+        extra.append((title, "", get_gib_list(path, date_key, no_key, link_tpl), None))
+    extra.append(("Anayasa Mahkemesi kararları", "", get_aym(), None))
+    extra.append(("Resmî Gazete (vergiyle ilgili)", "", get_resmi_gazete(), None))
+    # eskiden yeniye ekle ki en yeni en üstte kalsın
+    archive_entries(list(reversed(oz)), list(reversed(kar)), list(reversed(tebs)),
+                    [(t, s_, list(reversed(i)), n) for t, s_, i, n in extra])
+    print("Arşiv dolduruldu")
+
+
 def save_state(state):
     if DRY:
         return
@@ -375,6 +489,10 @@ def main():
     now = datetime.now(TR)
     today = now.strftime("%d.%m.%Y")
     state = load_state()
+
+    if SEED:
+        seed_archive()
+        return
 
     # Özelgeler
     ozelgeler = get_ozelgeler()
@@ -451,6 +569,25 @@ def main():
         print(f"{title}: yeni {len(new)}")
         extra.append((title, SHORT[key], new, intro))
 
+    # Anayasa Mahkemesi ve Resmî Gazete (id kümesiyle takip)
+    seen_sets = {}
+    for key, title, short, fn in (("aym", "Anayasa Mahkemesi kararları", "AYM kararı", get_aym),
+                                  ("rg", "Resmî Gazete (vergiyle ilgili)", "Resmî Gazete kaydı", get_resmi_gazete)):
+        try:
+            items = fn()
+        except Exception as e:  # noqa: BLE001
+            print(f"{title} alınamadı: {e}")
+            continue
+        state_key = f"{key}_seen"
+        if state_key not in state:
+            new, intro = items[:3], "Takip başladı. En son yayımlananlar:"
+        else:
+            old = set(state[state_key])
+            new, intro = [i for i in items if i["id"] not in old], None
+        seen_sets[state_key] = [i["id"] for i in items]
+        print(f"{title}: listelenen {len(items)}, yeni {len(new)}")
+        extra.append((title, short, new, intro))
+
     # "Bugün özelge yok" bildirimi
     no_oz_intro = None
     if (not new_oz and now.hour >= NO_OZELGE_HOUR
@@ -460,6 +597,7 @@ def main():
     if new_oz or new_k or no_oz_intro or new_t or any(e[2] for e in extra):
         oz_intro = ("Kurulum tamamlandı. GİB'deki son özelgeler:" if first_ozelge else None) if new_oz else no_oz_intro
         send(*build_mail(new_oz, new_k, today, oz_intro, karar_intro, new_t, teblig_intro, extra))
+        archive_entries(new_oz, new_k, new_t, extra)
         if new_oz:
             state["last_ozelge_mail"] = today
         if no_oz_intro:
@@ -467,6 +605,8 @@ def main():
 
     if ozelgeler:
         state["last_id"] = max(last_id, max(it["id"] for it in ozelgeler))
+    for state_key, ids in seen_sets.items():
+        state[state_key] = (state.get(state_key, []) + [i for i in ids if i not in state.get(state_key, [])])[-1000:]
     for key, mx in extra_max.items():
         state[f"last_{key}_id"] = max(state.get(f"last_{key}_id") or 0, mx)
     if teblig_max is not None:
