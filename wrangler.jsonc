@@ -1,0 +1,6 @@
+// Cloudflare yayını: yalnızca docs/ klasöründeki uygulama dosyaları yayınlanır
+{
+  "name": "tmpro",
+  "compatibility_date": "2025-10-01",
+  "assets": { "directory": "./docs" }
+}
