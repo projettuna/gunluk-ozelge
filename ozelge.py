@@ -44,8 +44,9 @@ SEED = "--seed" in sys.argv
 RESEND_KARAR = "--resend-karar" in sys.argv
 DRY = "--dry-run" in sys.argv
 MIGRATE = "--migrate" in sys.argv
-SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").rstrip("/")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY") or ""
+# Gizli anahtar yoksa Supabase devre dışı (eski e-posta düzeni sürer)
+SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").rstrip("/") if SUPABASE_KEY else ""
 # Uygulama (Supabase) kuruluysa e-posta kapalı; MAIL_ENABLED=1 ile tekrar açılabilir
 MAIL_ENABLED = bool(os.environ.get("SMTP_PASS")) and (os.environ.get("MAIL_ENABLED") == "1" or not SUPABASE_URL)
 APP_URL = "https://projettuna.github.io/gunluk-ozelge/"
@@ -425,7 +426,9 @@ def send(subject, text, body, attachments=()):
 # ---------------------------------------------------------------- Supabase ve anlık bildirim
 
 def db(method, path, body=None, prefer=None):
-    headers = {"apikey": SUPABASE_KEY, "Authorization": f"Bearer {SUPABASE_KEY}", "Content-Type": "application/json"}
+    headers = {"apikey": SUPABASE_KEY, "Content-Type": "application/json"}
+    if SUPABASE_KEY.startswith("eyJ"):  # eski tip (JWT) anahtar
+        headers["Authorization"] = f"Bearer {SUPABASE_KEY}"
     if prefer:
         headers["Prefer"] = prefer
     data = json.dumps(body).encode() if body is not None else None
