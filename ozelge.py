@@ -373,6 +373,7 @@ def build_mail(ozelgeler, kararlar, today, ozelge_intro=None, karar_intro=None, 
     subject = ", ".join(parts_subject)
     subject = subject[:1].upper() + subject[1:] + f" ({today})"
     body = ('<div style="font-family:Arial,sans-serif;max-width:680px">' + "".join(html_parts)
+            + '<p style="margin-top:24px"><a href="https://projettuna.github.io/gunluk-ozelge/" style="background:#14284a;color:#fff;padding:10px 16px;border-radius:10px;text-decoration:none;font-weight:bold">TMPRO uygulamasında aç</a></p>'
             + '<p style="color:#999;font-size:12px">Kaynak: gib.gov.tr mevzuat, karararama.danistay.gov.tr</p></div>')
     return subject, "\n\n".join(txt_parts), body, karar_attachments(kararlar)
 
@@ -387,7 +388,7 @@ def send(subject, text, body, attachments=()):
     sender = os.environ.get("MAIL_FROM") or user
     msg = MIMEMultipart("mixed")
     msg["Subject"] = subject
-    msg["From"] = formataddr(("Özelge Bildirimi", sender))
+    msg["From"] = formataddr(("TMPRO", sender))
     msg["To"] = ", ".join(to)
     msg["Date"] = formatdate(localtime=False)
     msg["Message-ID"] = make_msgid(domain=sender.split("@")[-1])

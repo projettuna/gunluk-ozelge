@@ -3,171 +3,262 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Vergi Mevzuat Takibi</title>
-<meta name="description" content="GİB özelge, tebliğ, sirküler, kanun, Resmî Gazete, Danıştay ve Anayasa Mahkemesi takibi">
+<title>TMPRO</title>
+<meta name="description" content="TMPRO: özelge, tebliğ, sirküler, kanun, Resmî Gazete, Danıştay ve Anayasa Mahkemesi takibi">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Mevzuat">
-<meta name="theme-color" content="#1f3a5f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TMPRO">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f5f6f8;--card:#fff;--text:#1b1f24;--muted:#626b76;--line:#e3e6ea;--accent:#1f3a5f;--accent-soft:#e7eef7;
-  --star:#d99a00;--unread:#2463eb;
-  --c-ozelge:#2463eb;--c-teblig:#7c3aed;--c-sirkuler:#0d9488;--c-kanun:#b91c1c;--c-cb:#c2410c;--c-ic:#4b5563;
-  --c-rg:#a16207;--c-danistay:#15803d;--c-aym:#9d174d;
+  --bg:#f6f7f9; --surface:#ffffff; --surface-2:#eef1f5; --text:#0f172a; --muted:#64748b; --faint:#94a3b8;
+  --line:#e6e9ee; --brand:#14284a; --brand-ink:#ffffff; --gold:#d4a017; --unread:#2563eb;
+  --shadow:0 1px 2px rgba(15,23,42,.04),0 2px 8px rgba(15,23,42,.04);
+  --t-ozelge:#2563eb; --t-teblig:#7c3aed; --t-sirkuler:#0f9488; --t-kanun:#dc2626; --t-cb:#ea580c;
+  --t-ic:#475569; --t-rg:#b45309; --t-danistay:#16a34a; --t-aym:#be185d;
 }
 @media (prefers-color-scheme: dark){:root{
-  --bg:#111418;--card:#1a1f25;--text:#e8eaed;--muted:#9aa3ad;--line:#2a3038;--accent:#8fb4e3;--accent-soft:#1e2a38;
-  --star:#f5c043;--unread:#6ea0ff;
-  --c-ozelge:#6ea0ff;--c-teblig:#b18cff;--c-sirkuler:#3ccfbe;--c-kanun:#f17a7a;--c-cb:#fb9a5b;--c-ic:#aab2bd;
-  --c-rg:#e3b341;--c-danistay:#4cc779;--c-aym:#f07bb0;
+  --bg:#0d1117; --surface:#161b22; --surface-2:#1f2630; --text:#e6edf3; --muted:#8b98a8; --faint:#6b7684;
+  --line:#242c36; --brand:#e9c46a; --brand-ink:#0d1117; --gold:#e9c46a; --unread:#6ea8ff;
+  --shadow:none;
+  --t-ozelge:#6ea8ff; --t-teblig:#b392ff; --t-sirkuler:#3fd0bf; --t-kanun:#ff7b7b; --t-cb:#ffa064;
+  --t-ic:#a3b0bf; --t-rg:#f0b955; --t-danistay:#4fd17f; --t-aym:#f47fb6;
 }}
-*{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-text-size-adjust:100%}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text)}
+body{font:15px/1.5 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit}
 a{color:inherit}
-header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:calc(10px + env(safe-area-inset-top)) 16px 10px}
-.wrap{max-width:860px;margin:0 auto}
-.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
-h1{font-size:19px;margin:0;color:var(--accent);letter-spacing:-.2px}
-.upd{font-size:12px;color:var(--muted);white-space:nowrap}
-.search{margin-top:10px;display:flex;gap:8px}
-.search input{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font-size:15px}
-.search button{padding:0 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--text);font-size:14px;cursor:pointer}
-.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none}
+svg{display:block}
+.wrap{max-width:760px;margin:0 auto}
+
+/* üst bar */
+.appbar{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
+  padding:calc(env(safe-area-inset-top) + 12px) 16px 0}
+.brandrow{display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;border-radius:9px;flex:none;box-shadow:0 2px 6px rgba(20,40,74,.25)}
+.wordmark{display:flex;flex-direction:column;line-height:1.1}
+.wordmark b{font-weight:800;font-size:19px;letter-spacing:.6px}
+.wordmark b span{color:var(--gold)}
+.wordmark small{font-size:11.5px;color:var(--muted);font-weight:500;margin-top:2px}
+.spacer{flex:1}
+.iconbtn{width:38px;height:38px;border-radius:12px;border:0;background:var(--surface);box-shadow:var(--shadow);
+  display:grid;place-items:center;cursor:pointer;color:var(--muted)}
+.iconbtn:active{transform:scale(.95)}
+.iconbtn.spin svg{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.searchbox{margin-top:12px;position:relative}
+.searchbox svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--faint)}
+.searchbox input{width:100%;border:0;background:var(--surface-2);color:var(--text);border-radius:12px;
+  padding:11px 12px 11px 38px;font:inherit;font-size:15px;outline:none}
+.searchbox input:focus{background:var(--surface);box-shadow:0 0 0 2px color-mix(in srgb,var(--brand) 35%,transparent)}
+.searchbox input::placeholder{color:var(--faint)}
+
+.chips{display:flex;gap:6px;overflow-x:auto;padding:12px 0;margin:0 -16px;padding-left:16px;padding-right:16px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:6px 11px;font-size:13px;cursor:pointer;white-space:nowrap}
-.chip b{font-weight:600;color:var(--muted);margin-left:4px}
-.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
-.chip.on b{color:#ffffffcc}
-@media (prefers-color-scheme: dark){.chip.on{color:#111418}.chip.on b{color:#111418aa}}
-main{padding:8px 16px calc(40px + env(safe-area-inset-bottom))}
-.day{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:18px 2px 8px}
-.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;position:relative}
-.item.unread{border-left:3px solid var(--unread)}
-.row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
-.tag{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--accent-soft);color:var(--tc,var(--accent))}
-.time{font-size:12px;color:var(--muted)}
-.actions{margin-left:auto;display:flex;gap:2px}
-.icon{border:0;background:none;color:var(--muted);font-size:18px;line-height:1;padding:4px 6px;cursor:pointer;border-radius:6px}
-.icon.star.on{color:var(--star)}
-.title{font-weight:600;font-size:15px;text-decoration:none;display:block}
-.title:hover{text-decoration:underline}
-.meta{font-size:13px;color:var(--muted);margin-top:3px}
-.ozet{font-size:13.5px;margin-top:6px;color:var(--text);opacity:.88}
+.chip{flex:none;border:0;background:var(--surface);box-shadow:var(--shadow);border-radius:999px;padding:7px 12px;
+  font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px;color:var(--text)}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--c,var(--faint))}
+.chip em{font-style:normal;color:var(--faint);font-weight:500;font-size:12px}
+.chip.on{background:var(--brand);color:var(--brand-ink)}
+.chip.on em{color:inherit;opacity:.7}
+.chip.on i{background:currentColor}
+.divider{height:1px;background:var(--line);margin:0 -16px}
+
+/* liste */
+main{padding:4px 16px calc(96px + env(safe-area-inset-bottom))}
+.listhead{display:flex;align-items:center;justify-content:space-between;margin:14px 2px 2px}
+.listhead h2{font-size:22px;font-weight:700;margin:0;letter-spacing:-.3px}
+.listhead .sub{font-size:12.5px;color:var(--muted)}
+.linkbtn{border:0;background:none;color:var(--unread);font-size:13px;font-weight:600;cursor:pointer;padding:6px 0}
+.day{font-size:12px;font-weight:600;color:var(--muted);margin:20px 4px 8px;letter-spacing:.2px}
+.card{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);padding:14px 14px 12px 16px;margin-bottom:10px;
+  position:relative;border:1px solid var(--line)}
+@media (prefers-color-scheme: light){.card{border-color:transparent}}
+.card.unread::before{content:"";position:absolute;left:0;top:16px;width:4px;height:20px;border-radius:0 3px 3px 0;background:var(--unread)}
+.cardtop{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.type{font-size:11.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--c)}
+.dot{width:3px;height:3px;border-radius:50%;background:var(--faint)}
+.when{font-size:12px;color:var(--faint)}
+.acts{margin-left:auto;display:flex;gap:2px;margin-right:-6px}
+.act{border:0;background:none;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;color:var(--faint);cursor:pointer}
+.act:active{background:var(--surface-2)}
+.act.on{color:var(--gold)}
+.title{display:block;font-weight:600;font-size:15.5px;line-height:1.4;text-decoration:none;letter-spacing:-.1px}
+.meta{font-size:12.5px;color:var(--muted);margin-top:4px}
+.ozet{font-size:13.5px;color:var(--text);opacity:.82;margin-top:8px;line-height:1.5}
 .ozet.clip{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.more{font-size:12.5px;color:var(--accent);background:none;border:0;padding:4px 0 0;cursor:pointer}
-.empty{text-align:center;color:var(--muted);padding:40px 0}
-.bar{display:flex;gap:8px;align-items:center;margin-top:8px;font-size:13px;color:var(--muted)}
-.bar label{display:flex;gap:5px;align-items:center;cursor:pointer}
-.bar .sp{flex:1}
-.bar button{border:0;background:none;color:var(--accent);font-size:13px;cursor:pointer;padding:2px 0}
-mark{background:#ffe58a;color:inherit;border-radius:2px}
-@media (prefers-color-scheme: dark){mark{background:#6b5a12}}
+.more{border:0;background:none;color:var(--unread);font-size:12.5px;font-weight:600;padding:4px 0 0;cursor:pointer}
+.open{display:inline-flex;align-items:center;gap:4px;margin-top:10px;font-size:12.5px;font-weight:600;color:var(--muted);text-decoration:none}
+.empty{text-align:center;color:var(--muted);padding:56px 16px}
+.empty svg{margin:0 auto 12px;color:var(--faint)}
+mark{background:color-mix(in srgb,var(--gold) 35%,transparent);color:inherit;border-radius:3px;padding:0 1px}
+
+/* alt sekmeler */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:color-mix(in srgb,var(--surface) 92%,transparent);
+  backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
+  border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+.tabs{display:flex;max-width:520px;margin:0 auto}
+.tab{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;
+  font-size:11px;font-weight:600;color:var(--faint);cursor:pointer;position:relative}
+.tab.on{color:var(--brand)}
+@media (prefers-color-scheme: dark){.tab.on{color:var(--gold)}}
+.badge{position:absolute;top:0;left:calc(50% + 6px);min-width:18px;height:18px;border-radius:9px;background:var(--unread);color:#fff;
+  font-size:10.5px;font-weight:700;display:grid;place-items:center;padding:0 5px}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);opacity:0;
+  background:var(--text);color:var(--bg);font-size:13px;font-weight:500;padding:9px 14px;border-radius:12px;transition:.25s;pointer-events:none;z-index:20}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
-<header><div class="wrap">
-  <div class="top"><h1>Vergi Mevzuat Takibi</h1><span class="upd" id="upd">yükleniyor…</span></div>
-  <div class="search"><input id="q" type="search" placeholder="Ara: başlık, sayı, kanun, konu…" autocomplete="off"><button id="refresh" title="Yenile">↻</button></div>
-  <div class="chips" id="chips"></div>
-  <div class="bar">
-    <label><input type="checkbox" id="onlyUnread"> Okunmamışlar</label>
-    <label><input type="checkbox" id="onlyStar"> Yıldızlılar</label>
-    <span class="sp"></span>
-    <button id="markAll">Tümünü okundu say</button>
+<header class="appbar"><div class="wrap">
+  <div class="brandrow">
+    <img class="logo" src="icon.svg" alt="">
+    <div class="wordmark"><b>TM<span>PRO</span></b><small id="upd">Vergi mevzuat takibi</small></div>
+    <div class="spacer"></div>
+    <button class="iconbtn" id="refresh" aria-label="Yenile">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+    </button>
   </div>
+  <div class="searchbox">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="Ara: 359, sahte fatura, KDV, sayı…" autocomplete="off" enterkeyhint="search">
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="divider"></div>
 </div></header>
-<main><div class="wrap" id="list"></div></main>
+
+<main><div class="wrap">
+  <div class="listhead"><div><h2 id="heading">Akış</h2><div class="sub" id="sub"></div></div><button class="linkbtn" id="markAll" hidden>Tümünü okundu say</button></div>
+  <div id="list"></div>
+</div></main>
+
+<nav class="tabbar"><div class="tabs">
+  <button class="tab" data-tab="feed"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Akış</button>
+  <button class="tab" data-tab="unread"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Yeni<span class="badge" id="badge" hidden></span></button>
+  <button class="tab" data-tab="star"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/></svg>Kaydedilenler</button>
+</div></nav>
+<div class="toast" id="toast"></div>
+
 <script>
-const COLORS = {"Özelge":"--c-ozelge","Tebliğ":"--c-teblig","Sirküler":"--c-sirkuler","Kanun":"--c-kanun","CB Kararı":"--c-cb",
-  "İç Genelge":"--c-ic","Resmî Gazete":"--c-rg","Danıştay (VUK 359)":"--c-danistay","Anayasa Mahkemesi":"--c-aym"};
-const ORDER = Object.keys(COLORS);
+const TYPES = {"Özelge":"--t-ozelge","Tebliğ":"--t-teblig","Sirküler":"--t-sirkuler","Kanun":"--t-kanun","CB Kararı":"--t-cb",
+  "İç Genelge":"--t-ic","Resmî Gazete":"--t-rg","Danıştay (VUK 359)":"--t-danistay","Anayasa Mahkemesi":"--t-aym"};
+const ORDER = Object.keys(TYPES);
+const ICON_STAR = '<svg width="18" height="18" viewBox="0 0 24 24" fill="FILL" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/></svg>';
+const ICON_CHECK = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/>PATH</svg>';
+const ICON_OPEN = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>';
 const store = {
-  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d }catch{ return d } },
-  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)) }catch{} }
+  get(k, d){ try{ const v = localStorage.getItem("tmpro:" + k); return v ? JSON.parse(v) : d }catch{ return d } },
+  set(k, v){ try{ localStorage.setItem("tmpro:" + k, JSON.stringify(v)) }catch{} }
 };
-let items = [], filter = store.get("filter", "Tümü"), read = new Set(store.get("read", [])), stars = new Set(store.get("stars", []));
+let items = [], filter = store.get("filter", "Tümü"), tab = store.get("tab", "feed");
+let read = new Set(store.get("read", [])), stars = new Set(store.get("stars", []));
 let firstVisit = store.get("read", null) === null;
 const $ = id => document.getElementById(id);
 const key = it => it.tur + "|" + it.url + "|" + it.title;
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const norm = s => String(s ?? "").toLocaleLowerCase("tr");
 
+function toast(msg){ const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 1800); }
 function hl(text, q){
   const t = esc(text); if(!q) return t;
-  const words = q.split(/\s+/).filter(w => w.length > 1).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-  if(!words.length) return t;
-  return t.replace(new RegExp("(" + words.join("|") + ")", "gi"), "<mark>$1</mark>");
+  const words = q.split(/\s+/).filter(w => w.length > 1).map(w => esc(w).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  return words.length ? t.replace(new RegExp("(" + words.join("|") + ")", "gi"), "<mark>$1</mark>") : t;
 }
 function dayLabel(iso){
   if(!iso) return "Önceki kayıtlar";
-  const d = new Date(iso), now = new Date();
-  const a = new Date(d.getFullYear(), d.getMonth(), d.getDate()), b = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const diff = Math.round((b - a) / 864e5);
+  const d = new Date(iso), n = new Date();
+  const diff = Math.round((new Date(n.getFullYear(), n.getMonth(), n.getDate()) - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 864e5);
   if(diff === 0) return "Bugün"; if(diff === 1) return "Dün";
-  return d.toLocaleDateString("tr-TR", {day:"numeric", month:"long", year:"numeric", weekday:"long"});
+  return d.toLocaleDateString("tr-TR", {weekday:"long", day:"numeric", month:"long"});
 }
-function renderChips(){
-  const counts = {}; items.forEach(i => counts[i.tur] = (counts[i.tur] || 0) + 1);
+function visible(){
+  const q = norm($("q").value.trim()), words = q.split(/\s+/).filter(Boolean);
+  return items.filter(i =>
+    (tab !== "unread" || !read.has(key(i))) &&
+    (tab !== "star" || stars.has(key(i))) &&
+    words.every(w => norm(i.title + " " + i.meta + " " + i.ozet + " " + i.tur).includes(w)));
+}
+function renderChips(base){
+  const counts = {}; base.forEach(i => counts[i.tur] = (counts[i.tur] || 0) + 1);
   const types = ["Tümü", ...ORDER.filter(t => counts[t]), ...Object.keys(counts).filter(t => !ORDER.includes(t))];
-  $("chips").innerHTML = types.map(t => `<button class="chip ${t === filter ? "on" : ""}" data-t="${esc(t)}">${esc(t)}<b>${t === "Tümü" ? items.length : counts[t]}</b></button>`).join("");
+  if(!types.includes(filter)) filter = "Tümü";
+  $("chips").innerHTML = types.map(t => `<button class="chip ${t === filter ? "on" : ""}" data-t="${esc(t)}" style="--c:var(${TYPES[t] || "--faint"})">${t === "Tümü" ? "" : "<i></i>"}${esc(t.replace(" (VUK 359)", ""))}<em>${t === "Tümü" ? base.length : counts[t]}</em></button>`).join("");
 }
 function render(){
-  renderChips();
+  const unreadCount = items.filter(i => !read.has(key(i))).length;
+  $("badge").hidden = !unreadCount; $("badge").textContent = unreadCount > 99 ? "99+" : unreadCount;
+  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+  $("heading").textContent = {feed:"Akış", unread:"Yeni", star:"Kaydedilenler"}[tab];
+  $("markAll").hidden = tab !== "unread" || !unreadCount;
+  const base = visible(); renderChips(base);
+  const list = base.filter(i => filter === "Tümü" || i.tur === filter);
+  $("sub").textContent = list.length + " kayıt";
   const q = norm($("q").value.trim());
-  const words = q.split(/\s+/).filter(Boolean);
-  const list = items.filter(i =>
-    (filter === "Tümü" || i.tur === filter) &&
-    (!$("onlyUnread").checked || !read.has(key(i))) &&
-    (!$("onlyStar").checked || stars.has(key(i))) &&
-    words.every(w => norm(i.title + " " + i.meta + " " + i.ozet + " " + i.tur).includes(w)));
-  if(!list.length){ $("list").innerHTML = `<div class="empty">Kayıt bulunamadı.</div>`; return; }
+  if(!list.length){
+    const msg = tab === "unread" ? "Okunmamış kayıt yok. Hepsi güncel." : tab === "star" ? "Kaydettiğiniz kayıtlar burada görünür. Bir kaydı saklamak için yıldıza dokunun." : "Kayıt bulunamadı.";
+    $("list").innerHTML = `<div class="empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>${msg}</div>`;
+    return;
+  }
   let html = "", last = null;
-  for(const i of list.slice(0, 400)){
+  for(const i of list.slice(0, 300)){
     const dl = dayLabel(i.eklendi);
     if(dl !== last){ html += `<div class="day">${esc(dl)}</div>`; last = dl; }
-    const k = key(i), unread = !read.has(k), long = (i.ozet || "").length > 220;
-    html += `<div class="item ${unread ? "unread" : ""}" data-k="${esc(k)}">
-      <div class="row"><span class="tag" style="--tc:var(${COLORS[i.tur] || "--accent"})">${esc(i.tur)}</span>
-        <span class="time">${i.eklendi ? new Date(i.eklendi).toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"}) : ""}</span>
-        <span class="actions"><button class="icon star ${stars.has(k) ? "on" : ""}" title="Yıldızla">${stars.has(k) ? "★" : "☆"}</button>
-        <button class="icon rd" title="${unread ? "Okundu say" : "Okunmadı say"}">${unread ? "○" : "●"}</button></span></div>
+    const k = key(i), unread = !read.has(k), starred = stars.has(k), long = (i.ozet || "").length > 200;
+    const time = i.eklendi ? new Date(i.eklendi).toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"}) : "";
+    html += `<article class="card ${unread ? "unread" : ""}" data-k="${esc(k)}" style="--c:var(${TYPES[i.tur] || "--muted"})">
+      <div class="cardtop"><span class="type">${esc(i.tur)}</span>${time ? `<span class="dot"></span><span class="when">${time}</span>` : ""}
+        <span class="acts">
+          <button class="act rd" aria-label="${unread ? "Okundu say" : "Okunmadı say"}">${ICON_CHECK.replace("PATH", unread ? "" : '<path d="m8.5 12.5 2.5 2.5 4.5-5"/>')}</button>
+          <button class="act st ${starred ? "on" : ""}" aria-label="Kaydet">${ICON_STAR.replace("FILL", starred ? "currentColor" : "none")}</button>
+        </span></div>
       <a class="title" href="${esc(i.url)}" target="_blank" rel="noopener">${hl(i.title, q)}</a>
       ${i.meta ? `<div class="meta">${hl(i.meta, q)}</div>` : ""}
-      ${i.ozet ? `<div class="ozet ${long ? "clip" : ""}">${hl(i.ozet, q)}</div>${long ? `<button class="more">Devamını göster</button>` : ""}` : ""}
-    </div>`;
+      ${i.ozet ? `<div class="ozet ${long ? "clip" : ""}">${hl(i.ozet, q)}</div>${long ? `<button class="more">Devamı</button>` : ""}` : ""}
+      <div><a class="open" href="${esc(i.url)}" target="_blank" rel="noopener">Kaynağı aç ${ICON_OPEN}</a></div>
+    </article>`;
   }
-  if(list.length > 400) html += `<div class="empty">İlk 400 kayıt gösteriliyor. Aramayı daraltın.</div>`;
+  if(list.length > 300) html += `<div class="empty">İlk 300 kayıt gösteriliyor. Aramayı daraltın.</div>`;
   $("list").innerHTML = html;
 }
-async function load(){
-  $("upd").textContent = "yükleniyor…";
+async function load(manual){
+  $("refresh").classList.add("spin");
   try{
-    const r = await fetch("feed.json?t=" + Date.now(), {cache: "no-store"});
+    const r = await fetch("feed.json?t=" + Date.now(), {cache:"no-store"});
     const d = await r.json();
+    const before = items.length;
     items = d.items || [];
     if(firstVisit){ items.forEach(i => read.add(key(i))); store.set("read", [...read]); firstVisit = false; }
-    $("upd").textContent = d.guncellendi ? "Son kontrol: " + new Date(d.guncellendi).toLocaleString("tr-TR", {day:"numeric", month:"short", hour:"2-digit", minute:"2-digit"}) : "";
+    $("upd").textContent = d.guncellendi ? "Güncellendi " + new Date(d.guncellendi).toLocaleString("tr-TR", {day:"numeric", month:"short", hour:"2-digit", minute:"2-digit"}) : "Vergi mevzuat takibi";
+    if(manual) toast(items.length > before && before ? (items.length - before) + " yeni kayıt" : "Güncel");
   }catch(e){
-    $("upd").textContent = "Bağlantı hatası";
+    if(manual) toast("Bağlantı kurulamadı");
   }
+  setTimeout(() => $("refresh").classList.remove("spin"), 300);
   render();
 }
-$("chips").addEventListener("click", e => { const b = e.target.closest(".chip"); if(!b) return; filter = b.dataset.t; store.set("filter", filter); render(); });
+$("chips").addEventListener("click", e => { const b = e.target.closest(".chip"); if(!b) return; filter = b.dataset.t; store.set("filter", filter); render(); window.scrollTo({top:0, behavior:"smooth"}); });
+document.querySelector(".tabs").addEventListener("click", e => { const b = e.target.closest(".tab"); if(!b) return; tab = b.dataset.tab; store.set("tab", tab); render(); window.scrollTo({top:0}); });
 $("list").addEventListener("click", e => {
-  const it = e.target.closest(".item"); if(!it) return; const k = it.dataset.k;
-  if(e.target.closest(".star")){ stars.has(k) ? stars.delete(k) : stars.add(k); store.set("stars", [...stars]); render(); return; }
+  const c = e.target.closest(".card"); if(!c) return; const k = c.dataset.k;
+  if(e.target.closest(".st")){ const on = !stars.has(k); on ? stars.add(k) : stars.delete(k); store.set("stars", [...stars]); toast(on ? "Kaydedildi" : "Kayıttan çıkarıldı"); render(); return; }
   if(e.target.closest(".rd")){ read.has(k) ? read.delete(k) : read.add(k); store.set("read", [...read]); render(); return; }
-  if(e.target.closest(".more")){ const o = it.querySelector(".ozet"); o.classList.toggle("clip"); e.target.textContent = o.classList.contains("clip") ? "Devamını göster" : "Daralt"; return; }
-  if(e.target.closest(".title")){ read.add(k); store.set("read", [...read]); it.classList.remove("unread"); }
+  if(e.target.closest(".more")){ const o = c.querySelector(".ozet"); o.classList.toggle("clip"); e.target.textContent = o.classList.contains("clip") ? "Devamı" : "Daralt"; return; }
+  if(e.target.closest("a")){ read.add(k); store.set("read", [...read]); c.classList.remove("unread"); setTimeout(render, 400); }
 });
-let t; $("q").addEventListener("input", () => { clearTimeout(t); t = setTimeout(render, 150); });
-$("onlyUnread").addEventListener("change", render);
-$("onlyStar").addEventListener("change", render);
-$("refresh").addEventListener("click", load);
-$("markAll").addEventListener("click", () => { items.forEach(i => read.add(key(i))); store.set("read", [...read]); render(); });
+let deb; $("q").addEventListener("input", () => { clearTimeout(deb); deb = setTimeout(render, 150); });
+$("refresh").addEventListener("click", () => load(true));
+$("markAll").addEventListener("click", () => { items.forEach(i => read.add(key(i))); store.set("read", [...read]); toast("Tümü okundu"); render(); });
 document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible") load(); });
 setInterval(load, 10 * 60 * 1000);
 load();
