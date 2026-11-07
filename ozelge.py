@@ -39,6 +39,7 @@ TR = timezone(timedelta(hours=3))
 NO_OZELGE_HOUR = 18
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130 Safari/537.36"
 RESEND = "--resend" in sys.argv
+RESEND_KARAR = "--resend-karar" in sys.argv
 DRY = "--dry-run" in sys.argv or not os.environ.get("SMTP_PASS")
 # 359. maddeye gerçekten değinen metni yakalar (ör. "359. madde", "359 uncu maddesi", "VUK'nun 359").
 MADDE_359 = re.compile(
@@ -100,34 +101,42 @@ def get_kararlar(size=30):
     } for r in data["data"]["data"]]
 
 
+def karar_link(karar_id):
+    return f"{DANISTAY}/getDokuman?id={karar_id}&arananKelime={quote(','.join(DANISTAY_WORDS))}"
+
+
 def karar_snippet(karar_id):
-    """Kararın 359. maddeye değinen kısmını döndürür; değinmiyorsa None."""
-    raw = http(f"{DANISTAY}/getDokuman?id={karar_id}&arananKelime={quote(','.join(DANISTAY_WORDS))}", timeout=90)
+    """(359'a değinen kısım, kararın tam HTML'i) döndürür; değinmiyorsa (None, None)."""
+    raw = http(karar_link(karar_id), timeout=90)
     try:
         raw = json.loads(raw).get("data") or raw
     except ValueError:
         pass
-    text = strip_tags(html.unescape(raw))
+    inner = re.search(r"&lt;html.*?&lt;/html&gt;", raw, re.S | re.I)
+    doc = html.unescape(inner.group(0)) if inner else raw
+    text = strip_tags(re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", doc, flags=re.S | re.I))
     m = MADDE_359.search(text)
     if not m:
-        return None
+        return None, None
     start = max(0, text.rfind(".", 0, max(0, m.start() - 200)) + 1)
     snippet = text[start:m.end() + 250].strip()
-    return snippet[:450] + ("…" if len(snippet) > 450 else "")
+    return snippet[:450] + ("…" if len(snippet) > 450 else ""), doc
 
 
 def enrich_kararlar(kararlar):
     out = []
     for k in kararlar:
         try:
-            snip = karar_snippet(k["id"])
+            snip, doc = karar_snippet(k["id"])
         except Exception as e:  # noqa: BLE001
             print(f"Karar {k['id']} okunamadı: {e}")
-            snip = ""
+            snip, doc = "", ""
         if snip is None:
             print(f"Karar {k['id']} 359. maddeye değinmiyor, atlandı")
             continue
         k["ozet"] = snip
+        k["doc"] = doc
+        k["url"] = karar_link(k["id"])
         out.append(k)
     return out
 
@@ -146,7 +155,9 @@ def karar_html(items):
     return "".join(
         '<li style="margin-bottom:16px">'
         f'<b>Danıştay {html.escape(k["daire"])}</b> · E. {html.escape(k["esas"])}, K. {html.escape(k["karar"])} · {html.escape(k["tarih"])}<br>'
-        f'<span style="font-size:13px">{html.escape(k.get("ozet", ""))}</span></li>' for k in items)
+        f'<span style="font-size:13px">{html.escape(k.get("ozet", ""))}</span><br>'
+        f'<a href="{html.escape(k.get("url", DANISTAY))}" style="font-size:13px">Kararın tamamını aç</a>'
+        f'<span style="font-size:12px;color:#666"> (ayrıca mailin ekinde)</span></li>' for k in items)
 
 
 def ozelge_txt(items):
@@ -155,7 +166,23 @@ def ozelge_txt(items):
 
 def karar_txt(items):
     return "\n\n".join(
-        f"- Danıştay {k['daire']} · E. {k['esas']}, K. {k['karar']} · {k['tarih']}\n  {k.get('ozet', '')}" for k in items)
+        f"- Danıştay {k['daire']} · E. {k['esas']}, K. {k['karar']} · {k['tarih']}\n  {k.get('ozet', '')}\n  {k.get('url', DANISTAY)}" for k in items)
+
+
+def karar_attachments(kararlar):
+    files = []
+    for k in kararlar:
+        if not k.get("doc"):
+            continue
+        name = re.sub(r"[^A-Za-z0-9]+", "_", f"Danistay {k['daire']} E {k['esas']} K {k['karar']}".translate(
+            str.maketrans("ıİşŞğĞüÜöÖçÇ", "iIsSgGuUoOcC"))).strip("_") + ".html"
+        title = f"Danıştay {k['daire']} E. {k['esas']} K. {k['karar']} ({k['tarih']})"
+        page = (f'<!doctype html><html><head><meta charset="utf-8"><title>{html.escape(title)}</title>'
+                '<meta name="viewport" content="width=device-width, initial-scale=1"></head>'
+                f'<body style="font-family:Arial,sans-serif;max-width:800px;margin:16px auto;padding:0 12px">'
+                f'<h3>{html.escape(title)}</h3>{re.sub(r"(?is)</?(html|head|body)[^>]*>", "", k["doc"])}</body></html>')
+        files.append((name, page))
+    return files
 
 
 def build_mail(ozelgeler, kararlar, today, ozelge_intro=None, karar_intro=None):
@@ -180,24 +207,31 @@ def build_mail(ozelgeler, kararlar, today, ozelge_intro=None, karar_intro=None):
     subject = subject[:1].upper() + subject[1:] + f" ({today})"
     body = ('<div style="font-family:Arial,sans-serif;max-width:680px">' + "".join(html_parts)
             + '<p style="color:#999;font-size:12px">Kaynak: gib.gov.tr özelgeler, karararama.danistay.gov.tr</p></div>')
-    return subject, "\n\n".join(txt_parts), body
+    return subject, "\n\n".join(txt_parts), body, karar_attachments(kararlar)
 
 
-def send(subject, text, body):
+def send(subject, text, body, attachments=()):
     if DRY:
         print("(e-posta gönderilmedi, deneme modu)\n" + subject + "\n\n" + text)
+        print("Ekler:", [(n, len(c)) for n, c in attachments])
         return
     to = [a.strip() for a in os.environ["MAIL_TO"].split(",") if a.strip()]
     user = os.environ["SMTP_USER"]
     sender = os.environ.get("MAIL_FROM") or user
-    msg = MIMEMultipart("alternative")
+    msg = MIMEMultipart("mixed")
     msg["Subject"] = subject
     msg["From"] = formataddr(("Özelge Bildirimi", sender))
     msg["To"] = ", ".join(to)
     msg["Date"] = formatdate(localtime=False)
     msg["Message-ID"] = make_msgid(domain=sender.split("@")[-1])
-    msg.attach(MIMEText(text, "plain", "utf-8"))
-    msg.attach(MIMEText(body, "html", "utf-8"))
+    alt = MIMEMultipart("alternative")
+    alt.attach(MIMEText(text, "plain", "utf-8"))
+    alt.attach(MIMEText(body, "html", "utf-8"))
+    msg.attach(alt)
+    for name, content in attachments:
+        part = MIMEText(content, "html", "utf-8")
+        part.add_header("Content-Disposition", "attachment", filename=name)
+        msg.attach(part)
     host = os.environ.get("SMTP_HOST") or "smtp.gmail.com"
     port = int(os.environ.get("SMTP_PORT") or "465")
     ctx = ssl.create_default_context()
@@ -239,6 +273,9 @@ def main():
 
     # Özelgeler
     ozelgeler = get_ozelgeler()
+    if RESEND_KARAR:
+        send(*build_mail([], enrich_kararlar(get_kararlar()[:5]), today, None, "VUK 359. maddeye değinen son Danıştay kararları:"))
+        return
     if RESEND:
         send(*build_mail(ozelgeler[:10], [], today, "GİB'de yayımlanan son 10 özelge:"))
         return
@@ -275,8 +312,7 @@ def main():
 
     if new_oz or new_k or no_oz_intro:
         oz_intro = ("Kurulum tamamlandı. GİB'deki son özelgeler:" if first_ozelge else None) if new_oz else no_oz_intro
-        subject, text, body = build_mail(new_oz, new_k, today, oz_intro, karar_intro)
-        send(subject, text, body)
+        send(*build_mail(new_oz, new_k, today, oz_intro, karar_intro))
         if new_oz:
             state["last_ozelge_mail"] = today
         if no_oz_intro:
