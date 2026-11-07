@@ -1,6 +1,6 @@
 {
  "last_id": 39068,
- "updated": "2026-11-07T14:45:49+03:00",
+ "updated": "2026-11-07T14:50:04+03:00",
  "karar_seen": [
   "1222018300",
   "1222284500",
@@ -14,5 +14,9 @@
   "1231707000"
  ],
  "teblig_full_scan": "07.11.2026",
- "last_teblig_id": 11884
+ "last_teblig_id": 11884,
+ "last_kanun_id": 661,
+ "last_sirkuler_id": 1150,
+ "last_cbk_id": 436,
+ "last_icgenelge_id": 722
 }
