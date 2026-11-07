@@ -590,7 +590,6 @@ def seed_archive():
 def save_state(state):
     if DRY:
         return
-    state["updated"] = datetime.now(TR).isoformat(timespec="seconds")
     with open(STATE_FILE, "w", encoding="utf-8") as f:
         json.dump(state, f, ensure_ascii=False, indent=1)
         f.write("\n")
