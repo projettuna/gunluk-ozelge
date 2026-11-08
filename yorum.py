@@ -6,6 +6,7 @@ etiketiyle, tam metnin üstünde gösterilir. Depo herkese açık: içerik yazd�
 import json
 import os
 import time
+from datetime import datetime, timedelta, timezone
 from urllib.request import Request, urlopen
 
 API = "https://api.anthropic.com/v1/messages"
@@ -40,7 +41,9 @@ def fill(db, limit=6, budget=150):
     if not KEY:
         print("Müfettiş notu: ANTHROPIC_API_KEY tanımlı değil, atlandı")
         return
-    rows = db("GET", f"items?select=id,tur,title,meta,metin&yorum=is.null&metin=neq.&order=id.desc&limit={limit}") or []
+    # Maliyeti sınırlamak için yalnızca son 30 günde eklenen kayıtlar
+    since = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    rows = db("GET", f"items?select=id,tur,title,meta,metin&yorum=is.null&metin=neq.&eklendi=gte.{since}&order=id.desc&limit={limit}") or []
     start, ok = time.time(), 0
     for r in rows:
         if time.time() - start > budget:

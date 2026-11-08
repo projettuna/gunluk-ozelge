@@ -9,6 +9,10 @@ on:
     - cron: "*/5 21 * * *"          # her gece 00:00-01:00 TR: yalnızca Resmî Gazete, 5 dakikada bir
   workflow_dispatch:
     inputs:
+      metin_limit:
+        description: "Bu turda doldurulacak tam metin sayısı (eski kayıtlar için)"
+        required: false
+        default: ""
       dry_run:
         description: "Deneme: e-posta gönderme, kaydetme"
         type: boolean
@@ -79,6 +83,7 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          METIN_LIMIT: ${{ inputs.metin_limit }}
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
           KEYWORDS: ${{ vars.KEYWORDS }}
           SUPABASE_URL: https://hnolhapzcisavhkwyzhs.supabase.co
