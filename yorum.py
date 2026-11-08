@@ -4,6 +4,7 @@ Not, vergi müfettişi gözüyle kısa bir değerlendirmedir; uygulamada "Yapay 
 etiketiyle, tam metnin üstünde gösterilir. Depo herkese açık: içerik yazdırılmaz.
 """
 import json
+from urllib.parse import quote
 import os
 import time
 from datetime import datetime, timedelta, timezone
@@ -44,6 +45,9 @@ def fill(db, limit=6, budget=150):
     # Maliyeti sınırlamak için yalnızca son 30 günde eklenen kayıtlar
     since = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
     rows = db("GET", f"items?select=id,tur,title,meta,metin&yorum=is.null&metin=neq.&eklendi=gte.{since}&order=id.desc&limit={limit}") or []
+    if len(rows) < limit:  # Yargıtay ceza kararları (toplu yüklenenler dahil) da sırayla yorumlanır
+        rows += db("GET", "items?select=id,tur,title,meta,metin&yorum=is.null&metin=neq.&tur=eq."
+                   + quote("Yargıtay (Ceza)") + f"&order=id.desc&limit={limit - len(rows)}") or []
     start, ok = time.time(), 0
     for r in rows:
         if time.time() - start > budget:
