@@ -54,8 +54,8 @@ def html_to_text(s):
     return re.sub(r"\n\s*\n+", "\n\n", s).strip()
 
 
-def search(q, size=50):
-    body = {"data": {"aranan": q, "arananKelime": q, "pageSize": size, "pageNumber": 1}}
+def search(q, page=1, size=10):
+    body = {"data": {"aranan": q, "arananKelime": q, "pageSize": size, "pageNumber": page}}
     data = json.loads(http(BASE + "/aramalist", body, timeout=90))
     rows = ((data.get("data") or {}).get("data")) or []
     return [{"id": str(r.get("id")), "daire": r.get("daire") or r.get("daireKurul") or "Yargıtay",
@@ -96,11 +96,17 @@ def main():
         seen = set()
     found = {}
     for q in QUERIES:
-        try:
-            res = search(q)
-        except Exception as e:  # noqa: BLE001
-            print(f"Arama hatası ({q}): {e}")
-            continue
+        res = []
+        for page in range(1, (6 if SEED else 3)):
+            try:
+                part = search(q, page)
+            except Exception as e:  # noqa: BLE001
+                print(f"Arama hatası ({q}, sayfa {page}): {e}")
+                break
+            res += part
+            time.sleep(2)
+            if len(part) < 10:
+                break
         ceza = [r for r in res if "ceza" in r["daire"].lower()]
         print(f"{q}: {len(res)} sonuç, {len(ceza)} ceza dairesi")
         for r in ceza:
@@ -109,12 +115,18 @@ def main():
     new = [r for k, r in found.items() if k not in seen]
     print(f"Yeni karar adayı: {len(new)}")
     if TEST:
-        if new:
-            t = document(new[0]["id"])
-            print(f"Örnek metin uzunluğu: {len(t)} karakter, vergi ile ilgili: {bool(VERGI.search(t))}")
+        shown = False
+        for r in new[:6]:
+            t = document(r["id"])
+            ok = bool(VERGI.search(t))
+            print(f"{r['daire']} E.{r['esas']} K.{r['karar']}: {len(t)} krk, vergi: {ok}")
+            if not ok and not shown:
+                shown = True
+                print("   Örnek: " + t[:200].replace("\n", " "))
+            time.sleep(2)
         return
     rows = []
-    for r in new[:40]:
+    for r in (new if SEED else new[:40]):
         try:
             t = document(r["id"])
         except Exception as e:  # noqa: BLE001
