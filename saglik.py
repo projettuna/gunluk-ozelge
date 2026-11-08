@@ -147,6 +147,74 @@ def sources():
         bad("kaynak_" + n[:30], "kritik" if crit else "uyari", f"{n} son 4 taramada alınamadı; kaynak site değişmiş veya kapalı olabilir")
 
 
+ANON = "sb_publishable_tlfwqtscxxv2vdSHe3PstQ_XO1db8p9"  # docs/config.js'teki herkese açık anahtar
+PROBE = "nobetci"
+
+
+def probe_login():
+    """Test hesabı ('nobetci', ilk çalışmada kendiliğinden açılır) ile gerçek kullanıcı gibi giriş yapar."""
+    import secrets
+    rows, _ = db("private_settings?key=eq.probe_pw&select=value")
+    pw = rows[0]["value"] if rows else None
+    if not pw:
+        pw = secrets.token_urlsafe(24)
+        code, body, _ = http(f"{SB}/auth/v1/admin/users", {"email": f"{PROBE}@tmpro.app", "password": pw, "email_confirm": True,
+                             "user_metadata": {"username": PROBE, "full_name": "Sistem Kontrol"}}, sbh(), "POST")
+        if code >= 300:
+            raise RuntimeError(f"test hesabı açılamadı {code}")
+        uid = json.loads(body)["id"]
+        db(f"profiles?id=eq.{uid}", {"status": "active", "expires_at": None, "notify_types": []}, "PATCH", {"Prefer": "return=minimal"})
+        db("private_settings?on_conflict=key", {"key": "probe_pw", "value": pw}, "POST", {"Prefer": "resolution=merge-duplicates,return=minimal"})
+    code, body, _ = http(f"{SB}/auth/v1/token?grant_type=password", {"email": f"{PROBE}@tmpro.app", "password": pw},
+                         {"apikey": ANON, "Content-Type": "application/json"}, "POST")
+    if code != 200:
+        bad("giris", "kritik", f"Üyeler giriş yapamıyor (test hesabı HTTP {code})")
+        return None
+    return json.loads(body)
+
+
+def e2e():
+    tok = probe_login()
+    if not tok:
+        return
+    uid, h = tok["user"]["id"], {"apikey": ANON, "Authorization": f"Bearer {tok['access_token']}", "Content-Type": "application/json"}
+
+    def get(path, label, level="kritik"):
+        code, body, _ = http(f"{SB}/rest/v1/{path}", headers=h)
+        if code != 200:
+            bad("e2e_" + label, level, f"{label} çalışmıyor (HTTP {code})")
+            return None
+        return json.loads(body or "null")
+
+    def rpc(fn, args, label, level="kritik"):
+        code, body, _ = http(f"{SB}/rest/v1/rpc/{fn}", args, h, "POST")
+        if code >= 300:
+            bad("e2e_" + label, level, f"{label} çalışmıyor (HTTP {code})")
+        return code
+
+    prof = get(f"profiles?select=id,status&id=eq.{uid}", "Profil yükleme")
+    if prof is not None and not prof:
+        bad("e2e_profil", "kritik", "Giriş sonrası profil okunamıyor; üyeler uygulamaya giremez")
+    rpc("touch_ip", {}, "Giriş kontrolü (IP)")
+    items = get("items?select=id&order=id.desc&limit=5", "Akış (mevzuat listesi)")
+    if items is not None and not items:
+        bad("e2e_akis", "kritik", "Akış boş geliyor; üyeler kayıtları göremiyor")
+    get("messages?select=id&order=id.desc&limit=5", "Sohbet mesajları")
+    rpc("list_groups", {}, "Sohbet grupları")
+    rpc("list_friends", {}, "Arkadaş listesi")
+    get("room_reads?select=room&limit=1", "Sohbet okundu bilgisi", "uyari")
+    get("user_events?select=id&limit=1", "Takvim etkinlikleri")
+    get("settings?select=key&limit=1", "Ayarlar", "uyari")
+    get("news?select=id&limit=1", "Haberler", "uyari")
+    for f, label in (("tatiller.json", "Takvim tatil listesi"), ("oranlar.json", "Araçlar oranları"), ("sw.js", "Bildirim servisi (sw.js)")):
+        code, body, _ = http(APP + f)
+        if code != 200:
+            bad("dosya_" + f, "kritik" if f == "sw.js" else "uyari", f"{label} açılmıyor (HTTP {code})")
+    code, body, _ = http(APP + "tatiller.json")
+    if code == 200 and str(datetime.now(TR).year + 1) not in body and datetime.now(TR).month >= 11:
+        bad("tatil_yili", "uyari", "Takvimde gelecek yılın resmî tatilleri yok; tatiller.json güncellenmeli")
+
+
 def mails():
     since = (NOW - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
     rows, _ = db(f"mail_queue?select=id&error=not.is.null&created_at=gte.{since}")
@@ -213,7 +281,7 @@ def main():
         print("Supabase ayarı yok")
         return
     for name, fn in (("site", site), ("aktarıcı", relay), ("veritabanı", database), ("kurulum", setup),
-                     ("tarama", main_job), ("kaynaklar", sources), ("e-posta", mails), ("yapay zekâ", ai), ("telefon", phone)):
+                     ("tarama", main_job), ("kaynaklar", sources), ("üye girişi ve ekranlar", e2e), ("e-posta", mails), ("yapay zekâ", ai), ("telefon", phone)):
         check(name, fn)
     if TEST:
         bad("deneme", "kritik", "Bu bir deneme uyarısıdır, nöbetçi çalışıyor")
