@@ -299,6 +299,34 @@ body.typing main{padding-bottom:80px}
 /* tür çipleri marka rengiyle */
 .chip{background:var(--surface);border:.5px solid var(--glass-line)}
 .chip.on{background:var(--brand);color:#fff;border-color:transparent;box-shadow:0 6px 14px -6px rgba(91,75,255,.6)}
+/* ---- sohbet ekleri ---- */
+.head h2.small{font-size:24px!important;line-height:1.15;letter-spacing:-.02em}
+.msg .tm{display:flex;align-items:center;gap:4px}
+.tick{display:inline-flex;color:var(--faint)}.tick.seen{color:#34a3ff}
+.msg .bub{cursor:pointer;-webkit-user-select:none;user-select:none}
+.sheetwrap{position:fixed;inset:0;z-index:80;background:rgba(5,6,20,.35);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .2s}
+.sheetwrap.on{opacity:1}
+.sheet{width:100%;max-width:520px;margin:0 10px calc(10px + env(safe-area-inset-bottom));padding:10px;border-radius:24px;background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);border:.5px solid var(--glass-line);box-shadow:0 20px 50px -10px rgba(0,0,0,.35);transform:translateY(20px);transition:transform .2s}
+.sheetwrap.on .sheet{transform:none}
+.sheet button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;padding:14px 12px;border-radius:14px;font:inherit;font-size:16.5px;font-weight:550;color:var(--ink);cursor:pointer;text-align:left}
+.sheet button:active{background:var(--fill)}
+.sheet button svg{color:var(--accent)}
+.sheet .danger,.sheet .danger svg{color:var(--danger)}
+.sheet .cancel{justify-content:center;color:var(--muted);margin-top:4px;background:var(--fill)}
+.sprev{font-size:14px;color:var(--muted);padding:6px 12px 10px;border-bottom:.5px solid var(--line);margin-bottom:4px;white-space:pre-wrap;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.stitle{font-weight:700;font-size:16px;padding:6px 8px 10px}
+.sheet textarea{width:100%;box-sizing:border-box;border:.5px solid var(--glass-line);background:var(--surface);color:var(--ink);border-radius:16px;padding:10px 12px;font:inherit;font-size:16px;line-height:1.4;resize:none;outline:none}
+.srow{display:flex;gap:8px;margin-top:10px}.srow button{justify-content:center;margin:0}
+.sheet .primary{background:var(--brand);color:#fff}
+/* ---- haberler ---- */
+.ncard{display:block;text-decoration:none;color:inherit;margin:10px 0;padding:14px 16px;border-radius:20px;background:var(--surface);border:.5px solid var(--glass-line);box-shadow:var(--glass-shadow);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+.ncard:active{transform:scale(.99)}
+.nt{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px}
+.nsrc{font-weight:700;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
+.nk{font-weight:650;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;font-size:10.5px}
+.nt .when{margin-left:auto;color:var(--muted);font-variant-numeric:tabular-nums}
+.nh{font-size:16.5px;font-weight:600;line-height:1.35;letter-spacing:-.01em}
+.ncard.seen .nh{color:var(--muted);font-weight:550}
 /* ---- durum filtresi (Tümü / Okunmamış / Kaydedilen) ---- */
 .sfil{display:flex;gap:3px;margin:10px 0 2px;padding:3px;border-radius:14px;background:var(--surface);border:.5px solid var(--glass-line);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
 .sfil button{flex:1;border:0;background:none;height:34px;border-radius:11px;font:inherit;font-size:14px;font-weight:550;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .2s,color .2s}
@@ -549,6 +577,7 @@ body.home::before{opacity:.85}
   <button id="calCard" class="calcard" hidden></button>
   <div id="cal" hidden></div>
   <div id="inbox" hidden></div>
+  <div id="news" hidden></div>
   <div id="grid" class="grid" hidden></div>
   <div id="list"></div>
   <div id="account" hidden></div>
@@ -557,6 +586,7 @@ body.home::before{opacity:.85}
 </div></main>
 <nav class="tabbar"><div class="tabs" id="tabs">
   <button class="tab" data-tab="feed"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Akış<span class="badge" id="badge" hidden></span></button>
+  <button class="tab" data-tab="news"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h12v14H6a2 2 0 0 1-2-2z"/><path d="M16 9h3a1 1 0 0 1 1 1v7a2 2 0 0 1-4 0"/><path d="M7 9h6M7 13h6M7 16h4"/></svg>Haberler</button>
   <button class="tab" data-tab="chat"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></svg>Sohbet<span class="badge" id="chatBadge" hidden></span></button>
   <button class="tab" data-tab="star"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/></svg>Kaydedilen</button>
   <button class="tab" data-tab="account"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/></svg>Hesap</button>
@@ -622,6 +652,7 @@ $("loginForm").addEventListener("submit", async e => {
 $("signupForm").addEventListener("submit", async e => {
   e.preventDefault(); const f = new FormData(e.target); $("signupErr").textContent = "";
   const username = f.get("username").trim().toLowerCase();
+  if([username, f.get("full_name"), f.get("unvan")].some(hasArgo)){ $("signupErr").textContent = "Uygunsuz ifade kullanılamaz."; return; }
   const btn = e.target.querySelector("button"); btn.disabled = true;
   const { data: taken } = await sb.rpc("username_taken", { u: username });
   if(taken){ btn.disabled = false; $("signupErr").textContent = "Bu kullanıcı adı alınmış, başka bir tane deneyin."; return; }
@@ -733,8 +764,8 @@ function _render(){
   const isFeed = ["feed", "unread", "star"].includes(tab);
   $("grid").hidden = true; $("back").hidden = true;
   $("feedTools").hidden = !isFeed; $("list").hidden = !isFeed; $("account").hidden = tab !== "account"; $("admin").hidden = tab !== "admin";
-  $("chat").hidden = tab !== "chat"; $("composer").hidden = true; $("wx").hidden = true; $("calCard").hidden = true; $("cal").hidden = tab !== "cal"; $("inbox").hidden = tab !== "inbox";
-  $("heading").textContent = {feed:"Akış", unread:"Okunmamış", star:"Kaydedilenler", account:"Hesap", admin:"Yönetim", chat:"Sohbet", cal:"Takvim", inbox:"Bildirimler"}[tab];
+  $("chat").hidden = tab !== "chat"; $("composer").hidden = true; $("wx").hidden = true; $("calCard").hidden = true; $("cal").hidden = tab !== "cal"; $("inbox").hidden = tab !== "inbox"; $("news").hidden = tab !== "news"; $("heading").classList.remove("small");
+  $("heading").textContent = {news:"Haberler", feed:"Akış", unread:"Okunmamış", star:"Kaydedilenler", account:"Hesap", admin:"Yönetim", chat:"Sohbet", cal:"Takvim", inbox:"Bildirimler"}[tab];
   if(tab === "unread" || tab === "cal" || tab === "inbox") $("back").hidden = false;
   if(tab === "chat"){ $("back").firstChild && ($("back").lastChild.textContent = "Sohbet"); return renderChat(); }
   $("back").lastChild.textContent = "Akış";
@@ -742,6 +773,7 @@ function _render(){
   if(tab === "account") return renderAccount();
   if(tab === "cal") return renderCal();
   if(tab === "inbox") return renderInbox();
+  if(tab === "news") return renderNews();
   if(tab === "admin") return renderAdmin();
   const q = norm($("q").value.trim()), words = q.split(/\s+/).filter(Boolean);
   const pre = items.filter(i => (tab !== "unread" || !read.has(i.id)) && (tab !== "star" || stars.has(i.id))
@@ -838,6 +870,44 @@ navigator.serviceWorker?.addEventListener("message", async e => {
   if(e.data?.type === "open"){ const r = new URL(e.data.url).searchParams.get("room"); if(r && me){ await fetchNewMsgs(); tab = "chat"; room = r; render(); } else { await loadItems(); render(); } }
 });
 
+
+/* ---------------- haberler ---------------- */
+let news = null, newsAt = 0, newsFil = "Tümü";
+const NEWS_KONU = ["Tümü", "VDK", "Bakanlık", "GİB", "Kaçakçılık", "Vergi"];
+async function renderNews(force){
+  $("sub").textContent = "Vergi denetimi, Bakanlık ve GİB gündemi";
+  if(!news || force || Date.now() - newsAt > 5 * 60e3){
+    if(!news) $("news").innerHTML = `<div class="rload"><i></i><i></i><i></i></div>`;
+    const { data, error } = await sb.from("news").select("id,title,url,source,konu,published").order("published", { ascending: false }).limit(300);
+    if(error){ $("news").innerHTML = `<div class="empty">Haberler henüz hazır değil.</div>`; return; }
+    news = data || []; newsAt = Date.now();
+  }
+  if(tab !== "news") return;
+  const seen = new Set(store.get("newsSeen", []));
+  const cnt = {}; news.forEach(n => cnt[n.konu] = (cnt[n.konu] || 0) + 1);
+  const list = news.filter(n => newsFil === "Tümü" || n.konu === newsFil);
+  let html = `<div class="chips" id="newsChips" style="padding-top:2px">${NEWS_KONU.filter(k => k === "Tümü" || cnt[k]).map(k => `<button class="chip ${k === newsFil ? "on" : ""}" data-k="${k}">${k}<em>${k === "Tümü" ? news.length : cnt[k]}</em></button>`).join("")}</div>`, last = "";
+  for(const n of list.slice(0, 200)){
+    const dl = n.published ? dayLabel(n.published) : "";
+    if(dl !== last){ html += `<div class="day">${esc(dl)}</div>`; last = dl; }
+    const t = n.published ? new Date(n.published).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) : "";
+    html += `<a class="ncard ${seen.has(n.id) ? "seen" : ""}" href="${esc(n.url)}" target="_blank" rel="noopener" data-id="${n.id}">
+      <div class="nt"><span class="nsrc">${esc(n.source || "Haber")}</span><span class="nk">${esc(n.konu || "")}</span><span class="when">${esc(t)}</span></div>
+      <div class="nh">${esc(n.title)}</div></a>`;
+  }
+  $("news").innerHTML = list.length ? html : html + `<div class="empty">Son günlerde bu başlıkta haber yok.</div>`;
+}
+$("news").addEventListener("click", e => {
+  const c = e.target.closest(".chip"); if(c){ newsFil = c.dataset.k; renderNews(); return; }
+  const a = e.target.closest(".ncard"); if(a){ const s = new Set(store.get("newsSeen", [])); s.add(+a.dataset.id); store.set("newsSeen", [...s].slice(-800)); setTimeout(() => a.classList.add("seen"), 300); }
+});
+
+/* ---------------- argo denetimi (veritabanında da aynı kural var) ---------------- */
+const ARGO_W = "am|amk|amq|aq|amın|amina|oç|göt|piç|pic|sik|sikerim|ibne|puşt|pust|gavat|kaltak|kahpe|yarak|yarrak|taşak|tassak|daşşak|dassak|orospu|orosbu|pezevenk|yavşak|yavsak|şerefsiz|serefsiz|amcık|amcik|amck|siktir|sktr";
+const ARGO_P = "amcı|amcik|amına|amini|amını|orosp|orosb|sikt|sikiş|sikis|sikik|sikim|siker|sikey|yarra|dalyar|taşşa|daşşa|götve|gotve|götle|pezev|kahpe|kaltak|yavşa|ananı|anani|bacını|ibneli";
+const ARGO_RE = new RegExp(`(^|[^a-zçğıöşüâîû])(${ARGO_W})(?=[^a-zçğıöşüâîû]|$)|(${ARGO_P})`, "i");
+const LEET = { "0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a", "$": "s", "€": "e" };
+const hasArgo = t => ARGO_RE.test(String(t || "").replace(/İ/g, "i").replace(/I/g, "ı").toLowerCase().replace(/[013457@$€]/g, c => LEET[c]).replace(/([a-zçğıöşüâîû])[.*_-]+(?=[a-zçğıöşüâîû])/g, "$1"));
 
 /* ---------------- tam metin okuyucu ---------------- */
 let rItem = null;
@@ -1041,6 +1111,11 @@ const ROOMS = [
   { id: "mevzuat", name: "Mevzuat Bilgi", c: "--t-danistay", ic: IC["Kanun"] },
   { id: "ymm", name: "YMM Çalışma Grubu", c: "--t-cb", ic: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c.8-3.2 3.2-5 6-5s5.2 1.8 6 5"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.2c2.6-.4 4.8 1.2 5.5 4.3"/>' }
 ];
+let reads = {}, marked = {};
+async function loadReads(){ const { data } = await sb.from("room_reads").select("room,user_id,last_id").like("room", "dm:%"); (data || []).forEach(r => reads[r.room + "|" + r.user_id] = r.last_id); if(tab === "chat" && room?.startsWith("dm:")) renderRoom(); }
+function markRead(r, id){ if(!id || (marked[r] || 0) >= id) return; marked[r] = id; sb.rpc("mark_read", { r, mid: id }).then(() => {}, () => {}); }
+const TICK1 = '<svg width="15" height="11" viewBox="0 0 16 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m1.5 6 3.2 3.2L11 2.5"/></svg>';
+const TICK2 = '<svg width="18" height="11" viewBox="0 0 19 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m1.5 6 3.2 3.2L11 2.5"/><path d="m8.6 8.4.8.8L16 2.5"/></svg>';
 let msgs = [], chatStarted = false, room = null, members = null, groups = [];
 const LOCK = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-1px"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
 const GROUP_IC = '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c.8-3.2 3.2-5 6-5s5.2 1.8 6 5"/><path d="M17 11v6M14 14h6"/>';
@@ -1063,8 +1138,12 @@ async function startChat(){
   sb.channel("sohbet").on("postgres_changes", { event: "*", schema: "public", table: "messages" }, p => {
     if(p.eventType === "INSERT" && !msgs.some(m => m.id === p.new.id)) msgs.push(p.new);
     if(p.eventType === "DELETE") msgs = msgs.filter(m => m.id !== p.old.id);
+    if(p.eventType === "UPDATE"){ const i = msgs.findIndex(m => m.id === p.new.id); if(i >= 0) msgs[i] = { ...msgs[i], ...p.new }; }
     if(tab === "chat") renderChat(); else updateChatBadge();
+  }).on("postgres_changes", { event: "*", schema: "public", table: "room_reads" }, p => {
+    if(p.new?.room){ reads[p.new.room + "|" + p.new.user_id] = p.new.last_id; if(tab === "chat" && room === p.new.room) renderRoom(); }
   }).subscribe();
+  loadReads();
 }
 async function fetchNewMsgs(){
   if(!chatStarted){ if(me){ await startChat(); if(tab === "chat") render(); } return; }
@@ -1113,7 +1192,7 @@ function renderChat(){
 }
 function renderRoom(){
   const name = roomName(room);
-  $("heading").textContent = name; $("navTitle").textContent = name;
+  $("heading").textContent = name; $("navTitle").textContent = name; $("heading").classList.add("small");
   const grp = room.startsWith("g:") ? groups.find(g => g.id === room.slice(2)) : null;
   $("sub").innerHTML = room.startsWith("dm:") ? "Özel Mesaj" : grp ? `${grp.members} üye${grp.locked ? " · " + LOCK + " Şifreli" : ""} · <button class="linkbtn" id="grpAct" style="font-size:15px;padding:0">${grp.is_owner || me.role === "admin" ? "Grubu Sil" : "Gruptan Ayrıl"}</button>` : `${new Set(msgs.filter(m => m.room === room).map(m => m.user_id)).size} kişi yazdı`;
   $("sub").insertAdjacentHTML("beforeend", ` · <button class="linkbtn" id="muteBtn" style="font-size:15px;padding:0">${isMuted(room) ? "Sesi Aç" : "Sessize Al"}</button>`);
@@ -1132,6 +1211,8 @@ function renderRoom(){
   };
   const list = msgs.filter(m => m.room === room);
   if(list.length){ const m = seenMap(); m[room] = list[list.length - 1].id; store.set("chatSeenRooms", m); }
+  const isDm = room.startsWith("dm:"), otherRead = isDm ? (reads[room + "|" + dmOther(room)] || 0) : 0;
+  const lastOther = [...list].reverse().find(m => m.user_id !== me.id); if(lastOther && document.visibilityState === "visible") markRead(room, lastOther.id);
   updateChatBadge();
   let html = "", lastDay = "", lastUser = null;
   for(const m of list){
@@ -1139,12 +1220,56 @@ function renderRoom(){
     if(dl !== lastDay){ html += `<div class="chatday">${esc(dl)}</div>`; lastDay = dl; lastUser = null; }
     const mine = m.user_id === me.id;
     html += `<div class="msg ${mine ? "me" : ""}" data-id="${m.id}">${!mine && !room.startsWith("dm:") && lastUser !== m.user_id ? `<div class="who">${esc(m.username || "üye")}${m.unvan ? ` · <span style="color:var(--gold)">${esc(m.unvan)}</span>` : ""}</div>` : ""}
-      <div class="bub">${esc(m.body)}</div><div class="tm">${d.toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"})}</div></div>`;
+      <div class="bub">${esc(m.body)}</div><div class="tm">${m.edited_at ? "düzenlendi · " : ""}${d.toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"})}${mine && isDm ? `<span class="tick ${m.id <= otherRead ? "seen" : ""}" title="${m.id <= otherRead ? "Okundu" : "İletildi"}">${m.id <= otherRead ? TICK2 : TICK1}</span>` : ""}</div></div>`;
     lastUser = m.user_id;
   }
   $("msgs").innerHTML = `<div class="thread">${html || `<div class="empty">Henüz mesaj yok. İlk mesajı siz yazın.</div>`}</div>`;
   requestAnimationFrame(() => scrollTo({ top: document.body.scrollHeight }));
 }
+$("msgs").addEventListener("click", e => {
+  const b = e.target.closest(".msg .bub"); if(!b || !room || room === "__pick") return;
+  const m = msgs.find(x => x.id === +b.closest(".msg").dataset.id); if(!m) return;
+  const mine = m.user_id === me.id, canDel = mine || (me.role === "admin" && !room.startsWith("dm:"));
+  openSheet(m, mine, canDel);
+});
+function openSheet(m, mine, canDel){
+  closeSheet();
+  const el = document.createElement("div"); el.className = "sheetwrap"; el.id = "sheet";
+  el.innerHTML = `<div class="sheet"><div class="sprev">${esc(m.body.slice(0, 160))}</div>
+    ${mine ? `<button data-a="edit">${ICON_EDIT} Düzenle</button>` : ""}
+    <button data-a="copy">${ICON_COPY} Kopyala</button>
+    ${canDel ? `<button data-a="del" class="danger">${ICON_DEL} Sil</button>` : ""}
+    <button data-a="x" class="cancel">Vazgeç</button></div>`;
+  document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
+  el.onclick = async e => {
+    if(e.target === el) return closeSheet();
+    const a = e.target.closest("button")?.dataset.a; if(!a) return;
+    if(a === "x") return closeSheet();
+    if(a === "copy"){ try{ await navigator.clipboard.writeText(m.body); toast("Kopyalandı"); }catch{} return closeSheet(); }
+    if(a === "del"){
+      if(!confirm("Mesaj silinsin mi?")) return;
+      const { error } = await sb.from("messages").delete().eq("id", m.id);
+      if(error){ toast("Silinemedi"); return; }
+      msgs = msgs.filter(x => x.id !== m.id); closeSheet(); renderRoom(); toast("Mesaj silindi"); return;
+    }
+    if(a === "edit"){
+      el.querySelector(".sheet").innerHTML = `<div class="stitle">Mesajı Düzenle</div><textarea id="editTa" maxlength="2000" rows="4">${esc(m.body)}</textarea>
+        <div class="srow"><button data-a="x" class="cancel">Vazgeç</button><button data-a="save" class="primary">Kaydet</button></div>`;
+      const ta = $("editTa"); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+      return;
+    }
+    if(a === "save"){
+      const v = $("editTa").value.trim(); if(!v || v === m.body) return closeSheet();
+      const { error } = await sb.rpc("edit_message", { mid: m.id, newbody: v });
+      if(error){ toast("Düzenlenemedi"); return; }
+      m.body = v; m.edited_at = new Date().toISOString(); closeSheet(); renderRoom(); toast("Mesaj düzenlendi");
+    }
+  };
+}
+function closeSheet(){ const el = $("sheet"); if(!el) return; el.classList.remove("on"); setTimeout(() => el.remove(), 200); }
+const ICON_EDIT = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+const ICON_COPY = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>';
+const ICON_DEL = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>';
 function openNewGroup(){
   room = "__pick"; $("back").hidden = false; $("composer").hidden = true;
   $("heading").textContent = "Yeni Grup"; $("navTitle").textContent = "Yeni Grup"; $("sub").textContent = "";
@@ -1251,6 +1376,12 @@ function applyThemeColor(){
 applyThemeColor();
 
 /* ---------------- hesap ---------------- */
+function myTitles(){
+  const parts = String(me.unvan || "").split(" · ");
+  if(me.promosyon && parts[parts.length - 1] === me.promosyon) parts.pop();
+  if(me.birim && parts[parts.length - 1] === me.birim) parts.pop();
+  return { u: parts.join(" · ") };
+}
 async function renderAccount(){
   const on = await pushEnabled();
   const types = me.notify_types || ORDER;
@@ -1260,9 +1391,14 @@ async function renderAccount(){
   const showHint = !pushSupported || !standalone;
   $("account").innerHTML = `
     <div class="list"><div class="li" style="padding:14px 16px"><div class="ava">${esc(initials)}</div><div class="grow"><b style="font-weight:600;font-size:20px">${esc(me.full_name || me.username)}</b><small>${me.unvan ? esc(me.unvan) + " · " : ""}@${esc(me.username)}</small></div><span class="pill ${me.role === "admin" ? "ok" : "ok"}">${esc(sub)}</span></div></div>
-    <div class="sect">Ünvan</div>
-    <div class="group"><label class="field"><input id="unvanIn" list="unvanlar" maxlength="60" placeholder="Örn. Vergi Müfettişi" value="${esc(me.unvan || "")}"></label></div>
-    <div class="foot">Sohbette adınızın yanında görünür.</div>
+    <div class="sect">Ünvan ve Birim</div>
+    <div class="group" id="titleGrp">
+      <label class="field"><input id="unvanIn" list="unvanlar" maxlength="60" placeholder="Ünvan (örn. Vergi Müfettişi)" value="${esc(myTitles().u)}"></label>
+      <label class="field"><input id="birimIn" maxlength="60" placeholder="Birim / Grup (örn. İstanbul Sektörel 3)" value="${esc(me.birim || "")}"></label>
+      <label class="field"><input id="promoIn" maxlength="40" placeholder="Promosyon (örn. 2015 Promosyonu)" value="${esc(me.promosyon || "")}"></label>
+    </div>
+    <div class="foot">Sohbette adınızın yanında görünür. Uygunsuz ifadeler kabul edilmez.</div>
+    <button class="btn ghost" id="titleSave" style="margin-top:4px">Kaydet</button>
     <div class="sect">Bildirimler</div>
     ${showHint ? `<div class="hint">Anlık bildirim için TMPRO'yu ana ekrana ekleyip oradan açın: Safari'de <b>Paylaş</b>, ardından <b>Ana Ekrana Ekle</b>.</div>` : ""}
     <div class="list">
@@ -1285,7 +1421,13 @@ async function renderAccount(){
     <div class="sect"></div>
     <div class="list"><button class="li" id="logout" style="width:100%;border:0;background:none;justify-content:center;color:var(--danger);font-size:17px;cursor:pointer">Çıkış Yap</button></div>
     <p class="small muted" style="text-align:center;margin-top:24px">TMPRO · GİB, Resmî Gazete, Danıştay, Anayasa Mahkemesi</p>`;
-  $("unvanIn").onchange = async e => { const v = e.target.value.trim(); const { error } = await sb.rpc("set_my_unvan", { u: v }); if(error){ toast("Kaydedilemedi"); return; } me.unvan = v || null; toast("Ünvan kaydedildi"); renderAccount(); };
+  $("titleSave").onclick = async () => {
+    const u = $("unvanIn").value.trim(), b = $("birimIn").value.trim(), p = $("promoIn").value.trim();
+    if([u, b, p].some(hasArgo)){ toast("Uygunsuz ifade kullanılamaz", 3000); return; }
+    const { data, error } = await sb.rpc("set_my_titles", { u, b, p });
+    if(error){ toast(error.message.includes("Uygunsuz") ? "Uygunsuz ifade kullanılamaz" : "Kaydedilemedi", 3000); return; }
+    me.unvan = data || null; me.birim = b || null; me.promosyon = p || null; toast("Kaydedildi"); renderAccount();
+  };
   $("chatNotify").onchange = async e => { const on = e.target.checked; const { error } = await sb.rpc("set_chat_notify", { enabled: on }); if(error){ e.target.checked = !on; toast("Kaydedilemedi"); return; } me.chat_notify = on; toast(on ? "Sohbet Bildirimleri açık" : "Sohbet Bildirimleri kapalı"); };
   $("morningOn").onchange = async e => { const on = e.target.checked; const { error } = await sb.rpc("set_morning", { enabled: on }); if(error){ e.target.checked = !on; toast("Kaydedilemedi"); return; } me.morning_on = on; toast(on ? "Günaydın bildirimi açık" : "Günaydın bildirimi kapalı"); };
   $("locSet").onclick = () => askLocation();

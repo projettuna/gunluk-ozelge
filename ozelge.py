@@ -792,6 +792,12 @@ if __name__ == "__main__":
             metin.fill(db, limit=lim, budget=max(150, lim * 5))
         except Exception as e:  # noqa: BLE001
             print(f"Tam metin turu atlandı: {type(e).__name__} {getattr(e, 'code', '')}")
+        if datetime.now(TR).minute % 15 < 5 or "--news" in sys.argv or os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch":
+            try:
+                import haber
+                haber.run(db)
+            except Exception as e:  # noqa: BLE001
+                print(f"Haber turu atlandı: {type(e).__name__} {getattr(e, 'code', '')}")
         try:
             import yorum
             yorum.fill(db)
