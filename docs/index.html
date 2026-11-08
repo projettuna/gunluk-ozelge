@@ -81,6 +81,11 @@ svg{display:block}
 .kchk a{color:var(--accent)}
 .kwarn{margin:14px 4px 0;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--danger) 12%,transparent);color:var(--danger);font-size:13.5px;line-height:1.45}
 .note{font-size:13px;color:var(--muted);margin:12px 16px 0;line-height:1.45}
+.priceBox{display:flex;flex-direction:column;gap:2px;margin:4px 0 12px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--accent,#5b5bf7) 10%,transparent);border:1px solid color-mix(in srgb,var(--accent,#5b5bf7) 25%,transparent)}
+.priceBox b{font-size:17px}.priceBox span{font-size:13px;color:var(--muted)}
+.pendSteps{font-size:13.5px;line-height:1.45;margin:0 0 14px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--muted) 10%,transparent)}
+.pendSteps ol{margin:6px 0 0;padding-left:18px}.pendSteps li{margin:2px 0}
+#pendPush{margin-bottom:8px}
 
 /* bildirim balonu */
 .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 10px);transform:translateX(-50%) translateY(-20px) scale(.96);opacity:0;
@@ -622,8 +627,9 @@ body.home::before{opacity:.85}
     <label class="kchk"><input type="checkbox" name="k1" required><span><a href="hukuki.html#sartlar" target="_blank">Kullanım Şartları</a>, <a href="hukuki.html#satis" target="_blank">Ön Bilgilendirme</a> ve <a href="hukuki.html#aydinlatma" target="_blank">Aydınlatma Metni</a>'ni okudum, kabul ediyorum. Hizmetin ödeme onayıyla hemen başlamasını ve bu nedenle cayma hakkım olmadığını kabul ediyorum.</span></label>
     <label class="kchk"><input type="checkbox" name="k2" required><span>Kişisel verilerimin <a href="hukuki.html#riza" target="_blank">Açık Rıza Metni</a>'nde belirtilen yurt dışındaki hizmet sağlayıcılara aktarılmasına açık rıza veriyorum.</span></label>
     <div class="err" id="signupErr"></div>
+    <div class="priceBox"><b id="supPrice">149 TL / 30 gün</b><span id="supAi">Mevzuat Asistanı: ayda 30 soru dahil</span></div>
     <button class="btn" type="submit">Talep Oluştur</button>
-    <p class="note">Talebinizden sonra ödeme bilgileri gösterilir. Ödemeniz onaylanınca hesabınız açılır.</p>
+    <p class="note">Sonraki ekranda IBAN ve açıklama kodu gösterilir; ödemeyi havale/EFT ile yaparsınız. Ödemeniz onaylanınca hesabınız açılır ve telefonunuza bildirim gelir.</p>
   </form>
 </div></section>
 
@@ -640,7 +646,9 @@ body.home::before{opacity:.85}
       <div class="pr"><dt>IBAN</dt><dd id="payIban"></dd><button class="copy" data-copy="payIban">Kopyala</button></div>
       <div class="pr"><dt>Açıklama</dt><dd id="payCode"></dd><button class="copy" data-copy="payCode">Kopyala</button></div>
     </dl></div>
-    <p class="small muted" style="margin:0 0 16px">Açıklamaya yukarıdaki kodu yazmayı unutmayın; ödemeniz bu kodla eşleştirilir.</p>
+    <p class="small muted" style="margin:0 0 12px">Açıklamaya yukarıdaki kodu yazmayı unutmayın; ödemeniz bu kodla eşleştirilir.</p>
+    <div class="pendSteps"><b>Sonra ne olacak?</b><ol><li>Ödemeyi yapın.</li><li>Ödeme genellikle aynı gün kontrol edilip onaylanır.</li><li>Onaylanınca bu ekran kendiliğinden açılır; aşağıdan bildirimi açarsanız uygulama kapalıyken de telefonunuza haber gelir.</li></ol></div>
+    <button class="btn" id="pendPush">Onaylanınca Bildirim Al</button>
     <button class="btn ghost" id="pendRefresh">Durumu Yenile</button>
     <button class="btn plain" id="pendLogout" style="margin-top:4px">Çıkış Yap</button>
   </div>
@@ -789,10 +797,16 @@ async function loadSettings(){
   const { data } = await sb.from("settings").select("key,value");
   settings = Object.fromEntries((data || []).map(r => [r.key, r.value]));
 }
+async function fillSignupPrice(){
+  try{ if(!settings.fiyat) await loadSettings();
+    $("supPrice").textContent = (settings.fiyat || "149") + " TL / " + (settings.sure_gun || "30") + " gün";
+    $("supAi").textContent = "Mevzuat Asistanı: ayda " + (settings.ai_kota || "30") + " soru dahil · Havale/EFT ile ödeme";
+  }catch{}
+}
 function isActive(p){ return p.role === "admin" || (p.status === "active" && (!p.expires_at || new Date(p.expires_at) > new Date())); }
 async function boot(){
   const { data: { session } } = await sb.auth.getSession();
-  if(!session){ show("authView"); return; }
+  if(!session){ show("authView"); fillSignupPrice(); return; }
   const { data: p, error } = await sb.from("profiles").select("*").eq("id", session.user.id).single();
   if(error || !p){ await sb.auth.signOut(); show("authView"); return; }
   me = p;
@@ -825,11 +839,30 @@ function renderPending(){
   $("payName").textContent = settings.alici || "—";
   $("payIban").textContent = settings.iban || "—";
   $("payCode").textContent = me.pay_code || me.username;
+  $("pendPush").hidden = me.status === "rejected";
+  pendPushState(); pendPoll();
 }
 document.querySelectorAll(".copy").forEach(b => b.addEventListener("click", () => {
   navigator.clipboard?.writeText($(b.dataset.copy).textContent.replace(/\s/g, b.dataset.copy === "payIban" ? "" : " ")).then(() => toast("Kopyalandı"));
 }));
 $("pendRefresh").addEventListener("click", () => { boot(); toast("Kontrol edildi"); });
+$("pendPush").addEventListener("click", async () => {
+  if(!pushSupported){ toast(/iPhone|iPad/.test(navigator.userAgent) && !standalone ? "Önce Paylaş → Ana Ekrana Ekle ile uygulamayı yükleyin" : "Bu tarayıcı bildirimleri desteklemiyor", 4000); return; }
+  try{
+    if(await Notification.requestPermission() !== "granted"){ toast("Bildirim izni verilmedi"); return; }
+    await subscribePush(); pendPushState(); toast("Tamam, onaylanınca haber vereceğim");
+  }catch(e){ toast("Bildirim açılamadı: " + e.message, 4000); }
+});
+async function pendPushState(){ const on = await pushEnabled().catch(() => false); $("pendPush").textContent = on ? "✓ Bildirim Açık" : "Onaylanınca Bildirim Al"; $("pendPush").disabled = on; }
+let pendTimer = null;
+function pendPoll(){
+  clearInterval(pendTimer);
+  pendTimer = setInterval(async () => {
+    if($("pendingView").hidden){ clearInterval(pendTimer); return; }
+    const { data } = await sb.from("profiles").select("status,expires_at,role").eq("id", me.id).single();
+    if(data && isActive(data)){ clearInterval(pendTimer); toast("Hesabınız açıldı 🎉", 3000); boot(); }
+  }, 30000);
+}
 $("pendLogout").addEventListener("click", async () => { await sb.auth.signOut(); show("authView"); });
 
 /* ---------------- akış ---------------- */

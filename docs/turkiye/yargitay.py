@@ -25,12 +25,12 @@ from urllib.request import Request, urlopen
 
 BASE = "https://karararama.yargitay.gov.tr"
 QUERIES = [
-    '"vergi kaçakçılığı"',
-    '"sahte fatura"',
-    '"yanıltıcı belge"',
-    '+"vergi usul" +359',
-    '"naylon fatura"',
-    '+359 +"ibraz etme"',
+    "vergi kaçakçılığı",
+    "sahte fatura",
+    "muhteviyatı itibariyle yanıltıcı belge",
+    "213 sayılı Vergi Usul Kanunu 359",
+    "naylon fatura",
+    "defter ve belgeleri ibraz etmeme",
 ]
 VERGI = re.compile(r"vergi usul|213 sayılı|vuk|359|sahte fatura|yanıltıcı belge|vergi kaçakçılığı|naylon fatura", re.I)
 STATE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "yargitay_gorulen.json")
@@ -68,12 +68,10 @@ def html_to_text(s):
 
 
 def search(q, page=1, size=10):
-    from datetime import date, timedelta
-    bas = (date.today() - timedelta(days=(5 * 365 if SEED else 365))).strftime("%d.%m.%Y")
-    body = {"data": {"arananKelime": q, "birimYrgKurulDaire": "ALL", "esasYil": "", "esasIlkSiraNo": "", "esasSonSiraNo": "",
-                     "kararYil": "", "kararIlkSiraNo": "", "kararSonSiraNo": "", "baslangicTarihi": bas,
-                     "bitisTarihi": date.today().strftime("%d.%m.%Y"), "pageSize": size, "pageNumber": page}}
-    data = json.loads(http(BASE + "/aramadetaylist", body, timeout=90))
+    # siralama "3" + desc: karar tarihine göre yeniden eskiye (telefonda --diag ile doğrulandı)
+    body = {"data": {"aranan": q, "arananKelime": q, "siralama": "3", "siralamaDirection": "desc",
+                     "pageSize": size, "pageNumber": page}}
+    data = json.loads(http(BASE + "/aramalist", body, timeout=90))
     rows = ((data.get("data") or {}).get("data")) or []
     return [{"id": str(r.get("id")), "daire": r.get("daire") or r.get("daireKurul") or "Yargıtay",
              "esas": r.get("esasNo") or "", "karar": r.get("kararNo") or "", "tarih": r.get("kararTarihi") or ""} for r in rows]
