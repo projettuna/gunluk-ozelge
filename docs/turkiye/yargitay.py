@@ -1,62 +1,57 @@
 #!/usr/bin/env python3
 """TMPRO · Yargıtay ceza kararları toplayıcı.
 
-Yargıtay karar arama sitesi yurt dışından erişime kapalı olduğu için bu betik
-Türkiye'de duran bir bilgisayarda/sunucuda çalışır. Vergi suçlarıyla ilgili ceza
-dairesi kararlarını bulur, tam metnini alır ve TMPRO veritabanına gönderir.
-Yeni kayıtların bildirimi mevcut otomatik tarama tarafından yapılır.
+Kararlar Adalet Bakanlığı Mevzuat sitesinin (mevzuat.adalet.gov.tr) herkese açık karar
+arama servisinden, karar tarihine göre yeniden eskiye alınır. Servis yurt dışından erişime
+kapalı olduğu için bu betik Türkiye'de duran bir cihazda (telefon/sunucu) çalışır.
+Vergi suçlarıyla ilgili ceza dairesi kararlarını bulur, tam metnini alır ve TMPRO
+veritabanına gönderir. Yeni kayıtların bildirimi mevcut otomatik tarama tarafından yapılır.
 
-Ayarlar ortam değişkenlerinden okunur (bkz. KURULUM.md):
-  TMPRO_SUPABASE_URL, TMPRO_ANON_KEY, TMPRO_INGEST_TOKEN
+Ayarlar ortam değişkenlerinden okunur: TMPRO_SUPABASE_URL, TMPRO_ANON_KEY, TMPRO_INGEST_TOKEN
 Kullanım:
-  python3 yargitay.py --test   # yalnızca bağlantıyı dener, veritabanına yazmaz
-  python3 yargitay.py --seed   # ilk çalıştırma: eski kararları bildirim göndermeden yükler
-  python3 yargitay.py          # normal çalışma (cron)
+  python yargitay.py --test   # yalnızca dener, veritabanına yazmaz
+  python yargitay.py --seed   # ilk çalıştırma: son kararları bildirim göndermeden yükler
+  python yargitay.py          # normal çalışma (cron, saatte bir)
 """
+import base64
 import html
 import json
 import os
 import re
 import sys
 import time
-from urllib.parse import quote
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
-BASE = "https://karararama.yargitay.gov.tr"
+API = "https://bedesten.adalet.gov.tr/emsal-karar"
+SITE = "https://mevzuat.adalet.gov.tr/ictihat/"
 QUERIES = [
-    "vergi kaçakçılığı",
-    "sahte fatura",
-    "muhteviyatı itibariyle yanıltıcı belge",
-    "213 sayılı Vergi Usul Kanunu 359",
-    "naylon fatura",
-    "defter ve belgeleri ibraz etmeme",
+    '"vergi kaçakçılığı"',
+    '"sahte fatura"',
+    '"yanıltıcı belge"',
+    '"Vergi Usul Kanunu" 359',
+    '"naylon fatura"',
+    '"defter ve belgeleri" ibraz',
 ]
 VERGI = re.compile(r"vergi usul|213 sayılı|vuk|359|sahte fatura|yanıltıcı belge|vergi kaçakçılığı|naylon fatura", re.I)
-STATE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "yargitay_gorulen.json")
-UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+STATE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "yargitay_mevzuat_gorulen.json")
+HEADERS = {"Content-Type": "application/json; charset=utf-8", "AdaletApplicationName": "UyapMevzuat",
+           "User-Agent": "TMPRO-karar-takip/1.0"}
 PAUSE = 6
 TEST, SEED = "--test" in sys.argv, "--seed" in sys.argv
 
 
-def http(url, body=None, timeout=60):
+def post(path, body, timeout=60):
     for wait in (30, 90, 240, None):
         try:
-            return _http(url, body, timeout)
+            req = Request(f"{API}/{path}", data=json.dumps(body).encode(), method="POST", headers=HEADERS)
+            with urlopen(req, timeout=timeout) as r:
+                return json.loads(r.read().decode("utf-8", "replace"))
         except HTTPError as e:
             if e.code != 429 or wait is None:
                 raise
-            print(f"Site yavaşla dedi (429), {wait} sn bekleniyor…", flush=True)
+            print(f"Servis yavaşla dedi (429), {wait} sn bekleniyor…", flush=True)
             time.sleep(wait)
-
-
-def _http(url, body=None, timeout=60):
-    data = json.dumps(body).encode() if body is not None else None
-    req = Request(url, data=data, method="POST" if data else "GET", headers={
-        "User-Agent": UA, "Accept": "application/json, text/plain, */*", "Content-Type": "application/json; charset=UTF-8",
-        "X-Requested-With": "XMLHttpRequest", "Origin": BASE, "Referer": BASE + "/"})
-    with urlopen(req, timeout=timeout) as r:
-        return r.read().decode("utf-8", "replace")
 
 
 def html_to_text(s):
@@ -67,23 +62,21 @@ def html_to_text(s):
     return re.sub(r"\n\s*\n+", "\n\n", s).strip()
 
 
-def search(q, page=1, size=10):
-    # siralama "3" + desc: karar tarihine göre yeniden eskiye (telefonda --diag ile doğrulandı)
-    body = {"data": {"aranan": q, "arananKelime": q, "siralama": "3", "siralamaDirection": "desc",
-                     "pageSize": size, "pageNumber": page}}
-    data = json.loads(http(BASE + "/aramalist", body, timeout=90))
-    rows = ((data.get("data") or {}).get("data")) or []
-    return [{"id": str(r.get("id")), "daire": r.get("daire") or r.get("daireKurul") or "Yargıtay",
-             "esas": r.get("esasNo") or "", "karar": r.get("kararNo") or "", "tarih": r.get("kararTarihi") or ""} for r in rows]
+def search(q, page=1):
+    body = {"data": {"pageSize": 10, "pageNumber": page, "itemTypeList": ["YARGITAYKARARI"], "phrase": q,
+                     "sortFields": ["KARAR_TARIHI"], "sortDirection": "desc"},
+            "applicationName": "UyapMevzuat", "paging": True}
+    rows = ((post("searchDocuments", body).get("data") or {}).get("emsalKararList")) or []
+    return [{"id": str(r.get("documentId")), "daire": r.get("birimAdi") or "Yargıtay",
+             "esas": r.get("esasNo") or "", "karar": r.get("kararNo") or "", "tarih": r.get("kararTarihiStr") or ""}
+            for r in rows if r.get("documentId")]
 
 
-def document(kid):
-    raw = http(f"{BASE}/getDokuman?id={quote(kid)}", timeout=90)
-    try:
-        raw = json.loads(raw).get("data") or raw
-    except ValueError:
-        pass
-    return html_to_text(raw)
+def document(did):
+    d = post("getDocumentContent", {"data": {"documentId": did}, "applicationName": "UyapMevzuat"}).get("data") or {}
+    if "html" not in (d.get("mimeType") or "html"):
+        return ""  # PDF kararlar şimdilik atlanır
+    return html_to_text(base64.b64decode(d.get("content") or "").decode("utf-8", "replace"))
 
 
 def ozet(text):
@@ -103,27 +96,12 @@ def send(rows):
         return json.loads(r.read() or b"0")
 
 
-def diag():
-    """Adalet Bakanlığı Mevzuat sitesinin karar arama servisini (tarih sıralı) dener; veritabanına yazmaz."""
-    body = {"data": {"pageSize": 10, "pageNumber": 1, "itemTypeList": ["YARGITAYKARARI"], "phrase": '"sahte fatura"',
-                     "sortFields": ["KARAR_TARIHI"], "sortDirection": "desc"}, "applicationName": "UyapMevzuat", "paging": True}
-    req = Request("https://bedesten.adalet.gov.tr/emsal-karar/searchDocuments", data=json.dumps(body).encode(), method="POST",
-                  headers={"Content-Type": "application/json; charset=utf-8", "AdaletApplicationName": "UyapMevzuat",
-                           "User-Agent": "TMPRO-karar-takip/1.0"})
-    try:
-        with urlopen(req, timeout=60) as r:
-            j = json.loads(r.read().decode("utf-8", "replace"))
-        rows = ((j.get("data") or {}).get("emsalKararList")) or []
-        print(f"Mevzuat servisi: {len(rows)} sonuç, toplam {(j.get('data') or {}).get('total')}")
-        for x in rows[:6]:
-            print(f"  {x.get('birimAdi')} E.{x.get('esasNo')} K.{x.get('kararNo')} ({x.get('kararTarihiStr')})")
-    except Exception as e:  # noqa: BLE001
-        print(f"Mevzuat servisi: HATA {e}")
+def tarih_key(r):
+    t = r["tarih"]
+    return t[6:10] + t[3:5] + t[0:2]
 
 
 def main():
-    if "--diag" in sys.argv:
-        return diag()
     try:
         with open(STATE, encoding="utf-8") as f:
             seen = set(json.load(f))
@@ -132,7 +110,7 @@ def main():
     found = {}
     for q in QUERIES:
         res = []
-        for page in range(1, (6 if SEED else 2)):
+        for page in range(1, (6 if SEED else 3)):
             try:
                 part = search(q, page)
             except Exception as e:  # noqa: BLE001
@@ -143,25 +121,19 @@ def main():
             if len(part) < 10:
                 break
         ceza = [r for r in res if "ceza" in r["daire"].lower()]
-        print(f"{q}: {len(res)} sonuç, {len(ceza)} ceza dairesi")
+        print(f"{q}: {len(res)} sonuç, {len(ceza)} ceza")
         for r in ceza:
             found.setdefault(r["id"], r)
-        time.sleep(PAUSE)
-    new = [r for k, r in found.items() if k not in seen]
+    new = sorted((r for k, r in found.items() if k not in seen), key=tarih_key, reverse=True)
     print(f"Yeni karar adayı: {len(new)}")
     if TEST:
-        shown = False
         for r in new[:6]:
             try:
                 t = document(r["id"])
             except Exception as e:  # noqa: BLE001
                 print(f"Metin alınamadı: {e}")
                 break
-            ok = bool(VERGI.search(t))
-            print(f"{r['daire']} E.{r['esas']} K.{r['karar']} ({r['tarih']}): {len(t)} krk, vergi: {ok}")
-            if not ok and not shown:
-                shown = True
-                print("   Örnek: " + t[:200].replace("\n", " "))
+            print(f"{r['daire']} E.{r['esas']} K.{r['karar']} ({r['tarih']}): {len(t)} krk, vergi: {bool(VERGI.search(t))}")
             time.sleep(PAUSE)
         return
     rows = []
@@ -172,13 +144,15 @@ def main():
             print(f"Metin alınamadı: {e}")
             continue
         seen.add(r["id"])
-        if not VERGI.search(t):
+        time.sleep(PAUSE)
+        if not t or not VERGI.search(t):
             continue
         rows.append({"title": f"Yargıtay {r['daire']} E. {r['esas']}, K. {r['karar']}", "meta": r["tarih"],
-                     "url": f"{BASE}/getDokuman?id={r['id']}", "ozet": ozet(t), "metin": t})
-        time.sleep(PAUSE)
+                     "url": SITE + r["id"], "ozet": ozet(t), "metin": t})
     if rows:
         print(f"Veritabanına eklenen: {send(rows)} / {len(rows)}")
+    else:
+        print("Eklenecek yeni vergi kararı yok")
     with open(STATE, "w", encoding="utf-8") as f:
         json.dump(sorted(seen), f)
 

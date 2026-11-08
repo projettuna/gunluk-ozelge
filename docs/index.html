@@ -86,6 +86,8 @@ svg{display:block}
 .pendSteps{font-size:13.5px;line-height:1.45;margin:0 0 14px;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--muted) 10%,transparent)}
 .pendSteps ol{margin:6px 0 0;padding-left:18px}.pendSteps li{margin:2px 0}
 #pendPush{margin-bottom:8px}
+.install{display:flex;flex-direction:column;gap:4px;margin:0 0 14px;padding:12px 14px;border-radius:14px;font-size:13.5px;line-height:1.45;background:color-mix(in srgb,var(--ok) 12%,transparent);border:1px solid color-mix(in srgb,var(--ok) 30%,transparent)}
+.install b{font-size:14.5px}.install .btn{align-self:flex-start;margin-top:6px}
 
 /* bildirim balonu */
 .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 10px);transform:translateX(-50%) translateY(-20px) scale(.96);opacity:0;
@@ -611,6 +613,7 @@ body.home::before{opacity:.85}
 <section class="auth" id="authView" hidden><div class="wrap">
   <div class="mark"><img src="icon-192.png?v=3" alt=""><h1>TMPRO</h1><p>Vergi Mevzuatı, Tek Ekranda</p></div>
   <div class="seg"><button data-mode="login" class="on">Giriş</button><button data-mode="signup">Abonelik Talebi</button></div>
+  <div class="install" data-install hidden><b>📲 Uygulama gibi kullanın</b><span data-install-text></span><button type="button" class="btn small" data-install-btn hidden>Ana Ekrana Ekle</button></div>
   <form id="loginForm"><div class="group">
     <label class="field"><span>Kullanıcı Adı</span><input placeholder="Kullanıcı Adı" aria-label="Kullanıcı Adı" name="username" autocomplete="username" autocapitalize="none" required></label>
     <label class="field"><span>Şifre</span><input placeholder="Şifre" aria-label="Şifre" name="password" type="password" autocomplete="current-password" required></label>
@@ -620,6 +623,7 @@ body.home::before{opacity:.85}
   <form id="signupForm" hidden><div class="group">
     <label class="field"><span>Ad Soyad</span><input placeholder="Ad Soyad" aria-label="Ad Soyad" name="full_name" autocomplete="name" required></label>
     <label class="field"><span>Kullanıcı Adı</span><input placeholder="Kullanıcı Adı" aria-label="Kullanıcı Adı" name="username" autocomplete="username" autocapitalize="none" pattern="[a-zA-Z0-9._]{3,20}" title="3-20 karakter: harf, rakam, nokta veya alt çizgi" required></label>
+    <label class="field"><span>E-posta</span><input placeholder="E-posta (ödeme ve onay bilgisi için)" aria-label="E-posta" name="email" type="email" autocomplete="email" autocapitalize="none" required></label>
     <label class="field"><span>Şifre (En Az 8 Karakter)</span><input placeholder="Şifre (En Az 8 Karakter)" aria-label="Şifre (En Az 8 Karakter)" name="password" type="password" autocomplete="new-password" minlength="8" required></label>
     <label class="field"><span>Ünvan (İsteğe Bağlı)</span><input placeholder="Ünvan (İsteğe Bağlı)" aria-label="Ünvan" name="unvan" list="unvanlar" maxlength="60"></label>
     <label class="field"><span>Telefon (İsteğe Bağlı)</span><input placeholder="Telefon (İsteğe Bağlı)" aria-label="Telefon (İsteğe Bağlı)" name="phone" type="tel" autocomplete="tel"></label>
@@ -629,7 +633,7 @@ body.home::before{opacity:.85}
     <div class="err" id="signupErr"></div>
     <div class="priceBox"><b id="supPrice">149 TL / 30 gün</b><span id="supAi">Mevzuat Asistanı: ayda 30 soru dahil</span></div>
     <button class="btn" type="submit">Talep Oluştur</button>
-    <p class="note">Sonraki ekranda IBAN ve açıklama kodu gösterilir; ödemeyi havale/EFT ile yaparsınız. Ödemeniz onaylanınca hesabınız açılır ve telefonunuza bildirim gelir.</p>
+    <p class="note">Ödeme bilgileri (IBAN ve açıklama kodu) hem sonraki ekranda gösterilir hem e-postanıza gönderilir. Ödemeniz onaylanınca hesabınızın açıldığını e-posta ile bildiririz.</p>
   </form>
 </div></section>
 
@@ -639,7 +643,7 @@ body.home::before{opacity:.85}
   <div class="mark"><img src="icon-192.png?v=3" alt=""><h1>TMPRO</h1></div>
   <div class="panel">
     <div class="row"><span class="status"><i></i><span id="pendTitle">Onay Bekleniyor</span></span><span class="spacer"></span><span class="small muted" id="pendUser"></span></div>
-    <p id="pendText" style="margin:14px 0 0">Talebiniz alındı. Aşağıdaki hesaba ödemeyi yapın; ödeme onaylanınca uygulama otomatik açılır.</p>
+    <p id="pendText" style="margin:14px 0 0">Talebiniz alındı. Aşağıdaki hesaba ödemeyi yapın; ödemeniz onaylanınca e-posta ile bilgilendirilirsiniz.</p>
     <div class="pay"><dl>
       <div class="pr"><dt>Tutar</dt><dd id="payAmount"></dd></div>
       <div class="pr"><dt>Alıcı</dt><dd id="payName"></dd></div>
@@ -647,8 +651,9 @@ body.home::before{opacity:.85}
       <div class="pr"><dt>Açıklama</dt><dd id="payCode"></dd><button class="copy" data-copy="payCode">Kopyala</button></div>
     </dl></div>
     <p class="small muted" style="margin:0 0 12px">Açıklamaya yukarıdaki kodu yazmayı unutmayın; ödemeniz bu kodla eşleştirilir.</p>
-    <div class="pendSteps"><b>Sonra ne olacak?</b><ol><li>Ödemeyi yapın.</li><li>Ödeme genellikle aynı gün kontrol edilip onaylanır.</li><li>Onaylanınca bu ekran kendiliğinden açılır; aşağıdan bildirimi açarsanız uygulama kapalıyken de telefonunuza haber gelir.</li></ol></div>
-    <button class="btn" id="pendPush">Onaylanınca Bildirim Al</button>
+    <div class="pendSteps"><b>Sonra ne olacak?</b><ol><li>Ödemeyi yapın. Bu bilgiler e-postanıza da gönderildi<span id="pendMail"></span>.</li><li>Ödemeniz kontrol edilip onaylanınca <b>e-posta ile bilgilendirilirsiniz</b>. Bu sayfada beklemenize gerek yok, kapatabilirsiniz.</li><li>Onaydan sonra bu adrese girip kullanıcı adınız ve şifrenizle giriş yapın.</li></ol></div>
+    <div class="install" data-install hidden><b>📲 Uygulama gibi kullanın</b><span data-install-text></span><button type="button" class="btn small" data-install-btn hidden>Ana Ekrana Ekle</button></div>
+    <button class="btn ghost" id="pendPush">Telefonuma da Bildirim Gelsin</button>
     <button class="btn ghost" id="pendRefresh">Durumu Yenile</button>
     <button class="btn plain" id="pendLogout" style="margin-top:4px">Çıkış Yap</button>
   </div>
@@ -744,7 +749,7 @@ const norm = s => String(s ?? "").toLocaleLowerCase("tr");
 const fmtDate = d => d ? new Date(d).toLocaleDateString("tr-TR", {day:"numeric", month:"long", year:"numeric"}) : "";
 const toEmail = u => `${u.trim().toLowerCase()}@${CFG.userDomain}`;
 function toast(m, ms = 2000){ const t = $("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), ms); }
-function show(view){ for(const v of ["authView","pendingView","appView","consentView"]) $(v).hidden = v !== view; }
+function show(view){ for(const v of ["authView","pendingView","appView","consentView"]) $(v).hidden = v !== view; if(view !== "appView") setupInstall(); }
 
 let me = null, items = [], settings = {};
 const KVKK_V = "1";  // hukuki metin sürümü: metinler değişince artırılır, herkesten yeniden onay alınır
@@ -782,10 +787,13 @@ $("signupForm").addEventListener("submit", async e => {
   const username = f.get("username").trim().toLowerCase();
   if([username, f.get("full_name"), f.get("unvan")].some(hasArgo)){ $("signupErr").textContent = "Uygunsuz ifade kullanılamaz."; return; }
   const btn = e.target.querySelector("button"); btn.disabled = true;
-  const { data: taken } = await sb.rpc("username_taken", { u: username });
-  if(taken){ btn.disabled = false; $("signupErr").textContent = "Bu kullanıcı adı alınmış, başka bir tane deneyin."; return; }
+  const email = String(f.get("email") || "").trim().toLowerCase();
+  let chk = await sb.rpc("signup_check", { u: username, addr: email, ph: f.get("phone").trim() });
+  if(chk.error){ const t = await sb.rpc("username_taken", { u: username }); chk = { data: t.data ? "taken" : "ok" }; }
+  if(chk.data === "banned"){ btn.disabled = false; $("signupErr").textContent = "Bu bilgilerle daha önce sistemden engellenmiş bir kullanıcı bulunuyor. Kayıt oluşturulamaz."; return; }
+  if(chk.data === "taken"){ btn.disabled = false; $("signupErr").textContent = "Bu kullanıcı adı alınmış, başka bir tane deneyin."; return; }
   const { error } = await sb.auth.signUp({ email: toEmail(username), password: f.get("password"),
-    options: { data: { username, full_name: f.get("full_name").trim(), phone: f.get("phone").trim(), unvan: (f.get("unvan") || "").trim() } } });
+    options: { data: { username, email, full_name: f.get("full_name").trim(), phone: f.get("phone").trim(), unvan: (f.get("unvan") || "").trim() } } });
   btn.disabled = false;
   if(error){ $("signupErr").textContent = error.message.includes("Password") ? "Şifre en az 8 karakter olmalı." : "Talep oluşturulamadı: " + error.message; return; }
   await sb.rpc("accept_terms", { v: KVKK_V, yd: true, ua: navigator.userAgent }).catch(() => {});
@@ -796,6 +804,19 @@ $("signupForm").addEventListener("submit", async e => {
 async function loadSettings(){
   const { data } = await sb.from("settings").select("key,value");
   settings = Object.fromEntries((data || []).map(r => [r.key, r.value]));
+}
+let deferredInstall = null;
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredInstall = e; setupInstall(); });
+function setupInstall(){
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent), android = /Android/.test(navigator.userAgent);
+  document.querySelectorAll("[data-install]").forEach(box => {
+    box.hidden = standalone || !(ios || android);
+    box.querySelector("[data-install-text]").innerHTML = ios
+      ? "Safari'de alttaki <b>Paylaş</b> düğmesine, sonra <b>Ana Ekrana Ekle</b>'ye dokunun. Bildirimler iPhone'da yalnızca bu şekilde çalışır."
+      : deferredInstall ? "Tek dokunuşla telefonunuza ekleyin." : "Chrome'da sağ üstteki <b>⋮</b> menüsünden <b>Ana ekrana ekle</b> veya <b>Uygulamayı yükle</b>'yi seçin.";
+    const b = box.querySelector("[data-install-btn]"); b.hidden = !deferredInstall;
+    b.onclick = async () => { if(!deferredInstall) return; deferredInstall.prompt(); await deferredInstall.userChoice.catch(() => {}); deferredInstall = null; setupInstall(); };
+  });
 }
 async function fillSignupPrice(){
   try{ if(!settings.fiyat) await loadSettings();
@@ -810,6 +831,8 @@ async function boot(){
   const { data: p, error } = await sb.from("profiles").select("*").eq("id", session.user.id).single();
   if(error || !p){ await sb.auth.signOut(); show("authView"); return; }
   me = p;
+  const ban = await sb.rpc("touch_ip");
+  if(ban.data === true){ await sb.auth.signOut(); show("authView"); fillSignupPrice(); $("loginErr").textContent = "Bu hesap sistemden engellenmiştir."; return; }
   if("kvkk_v" in p && p.kvkk_v !== KVKK_V){ show("consentView"); return; }
   if(!isActive(p)){ await loadSettings(); renderPending(); show("pendingView"); return; }
   read = new Set(store.get("read", [])); stars = new Set(store.get("stars", []));
@@ -833,13 +856,14 @@ function renderPending(){
   $("pendTitle").textContent = me.status === "rejected" ? "Talep Reddedildi" : expired ? "Abonelik Sona Erdi" : "Onay Bekleniyor";
   $("pendText").textContent = expired ? "Aboneliğinizi yenilemek için aşağıdaki hesaba ödeme yapın; onaylanınca hesabınız yeniden açılır."
     : me.status === "rejected" ? "Talebiniz onaylanmadı. Bir hata olduğunu düşünüyorsanız ödeme bilgileriyle tekrar iletişime geçin."
-    : "Talebiniz alındı. Aşağıdaki hesaba ödemeyi yapın; ödeme onaylanınca uygulama otomatik açılır.";
+    : "Talebiniz alındı. Aşağıdaki hesaba ödemeyi yapın; ödemeniz onaylanınca e-posta ile bilgilendirilirsiniz.";
   $("pendUser").textContent = "@" + me.username;
   $("payAmount").textContent = (settings.fiyat || "149") + " TL / " + (settings.sure_gun || "30") + " gün";
   $("payName").textContent = settings.alici || "—";
   $("payIban").textContent = settings.iban || "—";
   $("payCode").textContent = me.pay_code || me.username;
   $("pendPush").hidden = me.status === "rejected";
+  $("pendMail").textContent = me.email ? " (" + me.email + ")" : "";
   pendPushState(); pendPoll();
 }
 document.querySelectorAll(".copy").forEach(b => b.addEventListener("click", () => {
@@ -853,7 +877,7 @@ $("pendPush").addEventListener("click", async () => {
     await subscribePush(); pendPushState(); toast("Tamam, onaylanınca haber vereceğim");
   }catch(e){ toast("Bildirim açılamadı: " + e.message, 4000); }
 });
-async function pendPushState(){ const on = await pushEnabled().catch(() => false); $("pendPush").textContent = on ? "✓ Bildirim Açık" : "Onaylanınca Bildirim Al"; $("pendPush").disabled = on; }
+async function pendPushState(){ const on = await pushEnabled().catch(() => false); $("pendPush").textContent = on ? "✓ Bildirim Açık" : "Telefonuma da Bildirim Gelsin"; $("pendPush").disabled = on; }
 let pendTimer = null;
 function pendPoll(){
   clearInterval(pendTimer);
@@ -1852,6 +1876,9 @@ async function renderAccount(){
     </div>
     <div class="foot">Sohbette adınızın yanında görünür. Uygunsuz ifadeler kabul edilmez.</div>
     <button class="btn ghost" id="titleSave" style="margin-top:4px">Kaydet</button>
+    <div class="sect">E-posta</div>
+    <div class="group"><label class="field"><input id="mailIn" type="email" autocapitalize="none" placeholder="E-posta (abonelik ve kredi bilgileri için)" value="${esc(me.email || "")}"></label></div>
+    <button class="btn ghost" id="mailSave" style="margin-top:4px">E-postayı Kaydet</button>
     <div class="sect">Bildirimler</div>
     ${showHint ? `<div class="hint">Anlık bildirim için TMPRO'yu ana ekrana ekleyip oradan açın: Safari'de <b>Paylaş</b>, ardından <b>Ana Ekrana Ekle</b>.</div>` : ""}
     <div class="list">
@@ -1875,6 +1902,12 @@ async function renderAccount(){
     <div class="list"><a class="li" href="hukuki.html" style="text-decoration:none;color:inherit"><div class="grow"><b>Hukuki Metinler</b><small>KVKK aydınlatma, açık rıza, kullanım şartları</small></div><span style="color:var(--muted)">›</span></a></div>
     <div class="list" style="margin-top:12px"><button class="li" id="logout" style="width:100%;border:0;background:none;justify-content:center;color:var(--danger);font-size:17px;cursor:pointer">Çıkış Yap</button></div>
     <p class="small muted" style="text-align:center;margin-top:24px">TMPRO · GİB, Resmî Gazete, Danıştay, Anayasa Mahkemesi</p>`;
+  $("mailSave").onclick = async () => {
+    const v = $("mailIn").value.trim();
+    const { error } = await sb.rpc("set_my_email", { addr: v });
+    if(error){ toast(/geçersiz/.test(error.message) ? "Geçerli bir e-posta yazın" : "Kaydedilemedi", 3000); return; }
+    me.email = v.toLowerCase() || null; toast("Kaydedildi");
+  };
   $("titleSave").onclick = async () => {
     const u = $("unvanIn").value.trim(), b = $("birimIn").value.trim(), p = $("promoIn").value.trim();
     if([u, b, p].some(hasArgo)){ toast("Uygunsuz ifade kullanılamaz", 3000); return; }
@@ -1923,9 +1956,9 @@ async function renderAdmin(){
   const other = users.filter(u => !pending.includes(u) && !active.includes(u));
   const seg = (k, l, n) => `<button data-seg="${k}" class="${adminSeg === k ? "on" : ""}">${l}${n ? ` (${n})` : ""}</button>`;
   const person = (u, actions) => `<div class="li" style="display:block"><div class="row"><div class="grow"><b>${esc(u.full_name || u.username)}</b>
-      <small>${u.unvan ? esc(u.unvan) + " · " : ""}@${esc(u.username)}${u.phone ? " · " + esc(u.phone) : ""} · Kod: ${esc(u.pay_code || "")}</small>
+      <small>${u.unvan ? esc(u.unvan) + " · " : ""}@${esc(u.username)}${u.email ? " · " + esc(u.email) : ""}${u.phone ? " · " + esc(u.phone) : ""} · Kod: ${esc(u.pay_code || "")}</small>
       <small>Talep: ${fmtDate(u.created_at)}${u.expires_at ? " · Bitiş: " + fmtDate(u.expires_at) : u.status === "active" ? " · Süresiz" : ""}</small></div>
-      ${statusPill(u)}</div><div class="acts2">${actions(u)}</div></div>`;
+      ${statusPill(u)}</div><div class="acts2">${actions(u)}${u.role === "admin" ? "" : `<button class="btn small ghost" data-act="del" data-id="${u.id}">Sil</button><button class="btn small danger" data-act="ban" data-id="${u.id}">Engelle</button>`}</div></div>`;
   let body = "";
   if(adminSeg === "pending"){
     body = pending.length ? `<div class="list">${pending.map(u => person(u, u => `<button class="btn small ok" data-act="approve" data-id="${u.id}">Onayla (${settings.sure_gun || 30} Gün)</button><button class="btn small danger" data-act="reject" data-id="${u.id}">Reddet</button>`)).join("")}</div>`
@@ -1948,9 +1981,17 @@ async function renderAdmin(){
       <label class="field" style="flex:1"><span>Süre (Gün)</span><input name="sure_gun" inputmode="numeric" value="${esc(settings.sure_gun || "30")}"></label></div>
       <label class="field"><span>Aylık Asistan Sorusu</span><input name="ai_kota" inputmode="numeric" value="${esc(settings.ai_kota || "30")}"></label>
       <button class="btn" type="submit">Kaydet</button></form>
-      <p class="small muted" style="margin:12px 4px">Bu bilgiler abonelik talebi yapan kişilere ödeme ekranında gösterilir.</p>`;
+      <p class="small muted" style="margin:12px 4px">Bu bilgiler abonelik talebi yapan kişilere ödeme ekranında gösterilir.</p>
+      <div class="sect">Engellenenler</div><div class="list" id="banList"><div class="empty">Yükleniyor…</div></div>
+      <p class="small muted" style="margin:8px 4px">Engellenen IP, e-posta, telefon veya kullanıcı adıyla yeniden kayıt olunamaz.</p>`;
   }
   $("admin").innerHTML = `<div class="seg" id="adminSeg">${seg("pending", "Talepler", pending.length + co.length)}${seg("active", "Aboneler", active.length)}${seg("settings", "Ayarlar")}</div>${body}`;
+  if($("banList")){
+    const { data: bans } = await sb.from("banned").select("*").order("id", { ascending: false });
+    const lbl = { ip: "IP", email: "E-posta", phone: "Telefon", username: "Kullanıcı Adı" };
+    $("banList").innerHTML = (bans || []).length ? bans.map(x => `<div class="li"><div class="grow"><b>${esc(x.value)}</b><small>${lbl[x.kind] || x.kind} · ${fmtDate(x.created_at)}</small></div><button class="btn small ghost" data-unban="${x.id}">Kaldır</button></div>`).join("") : `<div class="empty">Engellenen kimse yok.</div>`;
+    $("banList").querySelectorAll("[data-unban]").forEach(b => b.onclick = async () => { if(!confirm("Engel kaldırılsın mı?")) return; await sb.from("banned").delete().eq("id", +b.dataset.unban); renderAdmin(); });
+  }
   $("adminSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; adminSeg = b.dataset.seg; renderAdmin(); };
   $("admin").querySelectorAll("[data-act]").forEach(b => b.onclick = async () => {
     b.disabled = true; const id = b.dataset.id, act = b.dataset.act; let r;
@@ -1959,6 +2000,13 @@ async function renderAdmin(){
     if(act === "cok" || act === "cno") r = await sb.rpc("decide_credit", { oid: +id, ok: act === "cok" });
     if(act === "ai") r = await sb.rpc("set_ai_unlimited", { uid: id, val: b.dataset.val === "1" });
     if(act === "reject") r = await sb.rpc("admin_set_status", { uid: id, new_status: "rejected" });
+    if(act === "del" || act === "ban"){
+      const u = (users || []).find(x => x.id === id) || {}, nm = u.full_name || u.username || "Bu kullanıcı";
+      const ban = act === "ban" ? true : confirm(nm + " silinecek.\n\nTekrar kayıt olmasını da engelleyeyim mi? (IP, e-posta, telefon, kullanıcı adı)\n\nTamam = Sil ve engelle · İptal = Sadece sil");
+      if(!confirm(act === "ban" ? nm + " engellenip silinsin mi? Bu işlem geri alınamaz." : nm + (ban ? " silinip engellensin mi?" : " silinsin mi?") + " Bu işlem geri alınamaz.")){ b.disabled = false; return; }
+      r = await sb.rpc("admin_ban_delete", { uid: id, do_ban: ban, do_delete: true });
+      if(r.error){ toast("İşlem başarısız: " + r.error.message, 4000); b.disabled = false; return; }
+    }
     if(act === "cancel"){ if(!confirm("Bu kullanıcının aboneliği kapatılsın mı?")){ b.disabled = false; return; } r = await sb.rpc("admin_set_status", { uid: id, new_status: "cancelled" }); }
     toast(r?.error ? "İşlem başarısız" : "Güncellendi"); refreshAdminBadge(); renderAdmin();
   });

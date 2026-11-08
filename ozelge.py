@@ -428,6 +428,45 @@ def send(subject, text, body, attachments=()):
 
 # ---------------------------------------------------------------- Supabase ve anlık bildirim
 
+
+def send_member_mails():
+    """mail_queue'daki üyelik/kredi e-postalarını gönderir (MAIL_ENABLED'dan bağımsız)."""
+    user, pw = os.environ.get("SMTP_USER"), os.environ.get("SMTP_PASS")
+    if not (user and pw):
+        print("SMTP ayarı yok, üye e-postaları atlanıyor")
+        return
+    try:
+        rows = db("GET", "mail_queue?select=id,to_email,subject,body&sent_at=is.null&error=is.null&order=id&limit=30") or []
+    except Exception as e:  # noqa: BLE001  (tablo henüz yoksa)
+        print(f"mail_queue okunamadı: {str(e)[:120]}")
+        return
+    if not rows:
+        return
+    sender = os.environ.get("MAIL_FROM") or user
+    host = os.environ.get("SMTP_HOST") or "smtp.gmail.com"
+    port = int(os.environ.get("SMTP_PORT") or "465")
+    ctx = ssl.create_default_context()
+    srv = smtplib.SMTP_SSL(host, port, context=ctx) if port == 465 else smtplib.SMTP(host, port)
+    if port != 465:
+        srv.starttls(context=ctx)
+    srv.login(user, pw)
+    ok = 0
+    for r in rows:
+        try:
+            msg = MIMEText(r["body"] + "\n\n—\nTMPRO · Vergi Mevzuatı, Tek Ekranda\nhttps://tmpro.tmproapp.workers.dev", "plain", "utf-8")
+            msg["Subject"] = r["subject"]
+            msg["From"] = formataddr(("TMPRO", sender))
+            msg["To"] = r["to_email"]
+            msg["Date"] = formatdate(localtime=False)
+            msg["Message-ID"] = make_msgid(domain=sender.split("@")[-1])
+            srv.sendmail(sender, [r["to_email"]], msg.as_string())
+            db("PATCH", f"mail_queue?id=eq.{r['id']}", {"sent_at": datetime.now(timezone.utc).isoformat()})
+            ok += 1
+        except Exception as e:  # noqa: BLE001
+            db("PATCH", f"mail_queue?id=eq.{r['id']}", {"error": str(e)[:300]})
+    srv.quit()
+    print(f"Üye e-postası gönderildi: {ok}/{len(rows)}")
+
 def db(method, path, body=None, prefer=None):
     headers = {"apikey": SUPABASE_KEY, "Content-Type": "application/json"}
     if SUPABASE_KEY.startswith("eyJ"):  # eski tip (JWT) anahtar
@@ -781,6 +820,10 @@ def main():
             notify_users()
         except Exception as e:  # noqa: BLE001
             print(f"Bildirim gönderilemedi: {e}")
+        try:
+            send_member_mails()
+        except Exception as e:  # noqa: BLE001
+            print(f"Üye e-postaları gönderilemedi: {str(e)[:200]}")
 
 
 if __name__ == "__main__":
