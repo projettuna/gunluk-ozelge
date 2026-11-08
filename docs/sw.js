@@ -37,8 +37,8 @@ self.addEventListener("push", event => {
   const n = { title, body: data.body || "Yeni mevzuat kaydı var.", url: data.url || "./", tag: data.tag || "tmpro", at: Date.now(), read: false };
   event.waitUntil(Promise.all([saveInbox(n), self.registration.showNotification(title, {
     body: data.body || "Yeni mevzuat kaydı var.",
-    icon: "icon-192.png",
-    badge: "icon-192.png",
+    icon: "icon-192.png?v=3",
+    badge: "icon-192.png?v=3",
     tag: data.tag || "tmpro",
     renotify: true,
     data: { url: data.url || "./" }
