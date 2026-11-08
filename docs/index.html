@@ -366,6 +366,21 @@ body.typing main{padding-bottom:80px}
 .cite{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--brand);color:#fff!important;font-size:11px;font-weight:700;text-decoration:none;vertical-align:2px;margin:0 2px}
 .asrc{border-top:.5px solid var(--line);padding-top:8px;margin-top:4px}.asrc small{display:block;font-size:11.5px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
 .asrc a{display:flex;align-items:center;gap:6px;padding:6px 0;font-size:13.5px;color:var(--ink);text-decoration:none}
+/* ---- asistan sohbeti ---- */
+.aihead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 2px 4px}.aihead b{flex:1;text-align:center;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.aithread{display:flex;flex-direction:column;gap:6px;padding:6px 0 10px}
+.msg.ai{max-width:92%}
+.msg.ai .bub{background:var(--surface);color:var(--ink);border-radius:20px 20px 20px 6px;padding:12px 14px;white-space:normal;cursor:default;-webkit-user-select:text;user-select:text}
+.msg.ai .aa p{font-size:15.5px;line-height:1.55;margin:0 0 8px}
+.msg.ai .asrc a{font-size:13px}
+.afiles{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.afiles span{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.2)}
+.afiles svg{width:13px;height:13px}
+.afiles.pend span{background:var(--fill);color:var(--ink)}.afiles.pend button{border:0;background:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 0 0 2px}
+.aicomp{position:sticky;bottom:calc(64px + env(safe-area-inset-bottom));padding:8px;border-radius:24px;background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border:.5px solid var(--glass-line);box-shadow:var(--glass-shadow)}
+.airow{display:flex;align-items:flex-end;gap:8px}
+.aiclip{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--accent);background:var(--fill);cursor:pointer;flex:none}
+#aiQ{flex:1;resize:none;border:.5px solid var(--glass-line);background:var(--surface);color:var(--ink);border-radius:18px;padding:8px 14px;font:inherit;font-size:16px;line-height:1.35;max-height:140px;outline:none}
+.aicomp .send{width:36px;height:36px;background:var(--brand)}
 /* ---- sohbet ekleri ---- */
 .head h2.small{font-size:24px!important;line-height:1.15;letter-spacing:-.02em}
 .msg .tm{display:flex;align-items:center;gap:4px}
@@ -805,7 +820,7 @@ const ICON_OPEN = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" s
 
 function render(){
   if($("reader").hidden && $("wxView").hidden) document.body.classList.remove("noscroll");  // kaydırma kilidi asılı kalmasın
-  _render();
+  _render(); syncNav();
   $("navTitle").textContent = $("heading").textContent;
   const home = tab === "feed" && filter === "Tümü" && !$("q").value.trim();
   $("eyebrow").textContent = home ? new Date().toLocaleDateString("tr-TR", {weekday:"long", day:"numeric", month:"long"}) : "";
@@ -829,11 +844,10 @@ function _render(){
   const unreadCount = items.filter(i => !read.has(i.id)).length;
   $("badge").hidden = !unreadCount; $("badge").textContent = unreadCount > 99 ? "99+" : unreadCount;
   const isFeed = ["feed", "unread", "star"].includes(tab);
-  $("grid").hidden = true; $("back").hidden = true;
+  $("grid").hidden = true;
   $("feedTools").hidden = !isFeed; $("list").hidden = !isFeed; $("account").hidden = tab !== "account"; $("admin").hidden = tab !== "admin";
   $("chat").hidden = tab !== "chat"; $("composer").hidden = true; $("wx").hidden = true; $("calCard").hidden = true; $("cal").hidden = tab !== "cal"; $("inbox").hidden = tab !== "inbox"; $("news").hidden = tab !== "news"; $("tools").hidden = tab !== "tools"; $("heading").classList.remove("small");
   $("heading").textContent = {tools:"Araçlar", news:"Haberler", feed:"Akış", unread:"Okunmamış", star:"Kaydedilenler", account:"Hesap", admin:"Yönetim", chat:"Sohbet", cal:"Takvim", inbox:"Bildirimler"}[tab];
-  if(tab === "unread" || tab === "star" || tab === "cal" || tab === "inbox") $("back").hidden = false;
   if(tab === "chat"){ $("back").firstChild && ($("back").lastChild.textContent = "Sohbet"); return renderChat(); }
   $("back").lastChild.textContent = "Akış";
   $("markAll").hidden = tab !== "unread" || !unreadCount;
@@ -858,7 +872,7 @@ function _render(){
   $("grid").hidden = !home; $("chips").hidden = home; $("sfil").hidden = home;
   const SF = [["all", "Tümü"], ["unread", "Okunmamış"], ["star", "Kaydedilen"]].filter(([k]) => !(k === "unread" && tab === "unread") && !(k === "star" && tab === "star"));
   $("sfil").innerHTML = SF.length > 1 ? SF.map(([k, l]) => `<button class="${sfil === k ? "on" : ""}" data-s="${k}">${l}<em>${sc[k]}</em></button>`).join("") : "";
-  $("sfil").hidden = home || SF.length < 2; $("back").hidden = !(tab === "feed" && filter !== "Tümü");
+  $("sfil").hidden = home || SF.length < 2;
   if(tab === "feed" && filter !== "Tümü") $("heading").textContent = filter === "__all" ? "Tüm Kayıtlar" : filter;
   $("wx").hidden = !home; $("calCard").hidden = !home; if(home){ renderWeather(); renderCalCard(); }
   if(home){
@@ -917,7 +931,35 @@ function _render(){
   $("list").innerHTML = html;
 }
 $("grid").addEventListener("click", e => { const b = e.target.closest(".tile"); if(!b) return; if(b.dataset.t === "__unread"){ tab = "unread"; store.set("tab", tab); render(); scrollTo({top:0}); return; } if(b.dataset.t === "__star"){ tab = "star"; render(); scrollTo({top:0}); return; } filter = b.dataset.t; if(filter === "Tümü"){ filter = "__all"; } store.set("filter", filter); render(); scrollTo({top:0}); });
-$("back").addEventListener("click", () => { sfil = "all"; if(tab === "chat"){ room = null; render(); scrollTo({top:0}); return; } tab = "feed"; filter = "Tümü"; store.set("filter", filter); render(); scrollTo({top:0}); });
+/* ---- geri: ekrandaki tuş + telefonun geri hareketi ---- */
+let navDepth = 0, skipPop = 0;
+function navLevel(){
+  if(tab === "chat") return room ? 2 : 1;
+  if(tab === "tools" && toolSeg === "asistan" && aiChat) return 2;
+  return (tab === "feed" && filter === "Tümü") ? 0 : 1;
+}
+function syncNav(){
+  const lv = navLevel();
+  $("back").hidden = lv === 0;
+  $("back").lastChild.textContent = lv === 2 ? (tab === "chat" ? "Sohbet" : "Sohbetler") : "Ana Sayfa";
+  if(lv > navDepth){ for(let i = navDepth; i < lv; i++) history.pushState({ nav: i + 1 }, ""); navDepth = lv; }
+  else if(lv < navDepth){ const d = navDepth - lv; navDepth = lv; if($("reader").hidden && $("wxView").hidden){ skipPop++; history.go(-d); } }
+}
+function goBack(){
+  if($("sheet")){ closeSheet(); return; }
+  sfil = "all";
+  if(tab === "chat" && room){ room = null; }
+  else if(tab === "tools" && toolSeg === "asistan" && aiChat){ aiChat = null; aiMsgs = []; aiChats = null; }
+  else { tab = "feed"; filter = "Tümü"; room = null; store.set("filter", filter); store.set("tab", tab); }
+  render(); scrollTo({ top: 0 });
+}
+$("back").addEventListener("click", () => { if(navDepth > 0){ history.back(); } else goBack(); });
+addEventListener("popstate", () => {
+  if(skipPop > 0){ skipPop--; return; }
+  if(!$("reader").hidden && $("reader").classList.contains("on")) return closeReader(true);
+  if(!$("wxView").hidden && $("wxView").classList.contains("on")) return closeWx(true);
+  navDepth = Math.max(0, navLevel() - 1); goBack();
+});
 $("sfil").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; sfil = b.dataset.s; render(); scrollTo({top:0, behavior:"smooth"}); });
 $("chips").addEventListener("click", e => { const b = e.target.closest(".chip"); if(!b) return; filter = b.dataset.t; if(filter === "Tümü" && tab === "feed") filter = "__all"; store.set("filter", filter); render(); scrollTo({top:0, behavior:"smooth"}); });
 $("tabs").addEventListener("click", e => { const b = e.target.closest(".tab"); if(!b) return; if(b.dataset.tab === tab && tab === "feed" && filter === "Tümü"){ scrollTo({top:0, behavior:"smooth"}); return; } tab = b.dataset.tab; store.set("tab", tab); room = null; sfil = "all"; if(filter === "__all" || tab === "feed") filter = "Tümü"; render(); scrollTo({top:0}); });
@@ -941,7 +983,7 @@ navigator.serviceWorker?.addEventListener("message", async e => {
 
 
 /* ---------------- müfettiş araçları ---------------- */
-let toolSeg = "sure", ORAN = null, askLog = [];
+let toolSeg = "sure", ORAN = null;
 const fmtTL = n => (Math.round(n * 100) / 100).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " TL";
 const isoD = d => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
 const trD = iso => iso ? new Date(iso + "T12:00").toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" }) : "";
@@ -955,7 +997,7 @@ function renderTools(){
   const segs = [["sure", "Süreler"], ["ceza", "Ceza ve Faiz"], ["asistan", "Asistan"]];
   $("tools").innerHTML = `<div class="sfil" id="toolSeg">${segs.map(([k, l]) => `<button data-s="${k}" class="${toolSeg === k ? "on" : ""}">${l}</button>`).join("")}</div><div id="toolBody"></div>
     <div class="foot" style="margin-top:14px">Hesaplamalar yardımcı amaçlıdır; sonuçları mevzuat ve güncel içtihatla teyit edin.</div>`;
-  $("toolSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; toolSeg = b.dataset.s; renderTools(); };
+  $("toolSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; toolSeg = b.dataset.s; renderTools(); syncNav(); };
   if(toolSeg === "sure") toolSure(); else if(toolSeg === "ceza") toolCeza(); else toolAsk();
 }
 function toolSure(){
@@ -1018,29 +1060,89 @@ async function toolCeza(){
   };
   $("toolBody").oninput = calc; $("toolBody").onchange = calc;
 }
-function toolAsk(){
+let aiChats = null, aiChat = null, aiMsgs = [], aiFiles = [], aiBusy = false;
+const ICON_CLIP = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.4 11.1-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg>';
+async function toolAsk(){
+  if(aiChats === null){
+    $("toolBody").innerHTML = `<div class="rload"><i></i><i></i><i></i></div>`;
+    const { data, error } = await sb.from("ai_chats").select("id,title,updated_at").order("updated_at", { ascending: false }).limit(50);
+    if(error){ $("toolBody").innerHTML = `<div class="tcard"><div class="thelp">Asistan sohbetleri için kurulum bekleniyor.</div></div>`; return; }
+    aiChats = data || [];
+  }
+  if(aiChat){ return renderAiChat(); }
   $("toolBody").innerHTML = `<div class="tcard"><div class="tt">Mevzuat Asistanı <span>Yapay zekâ</span></div>
-    <div class="thelp" style="margin-top:0">Sorunuzu yazın; uygulamadaki özelge, tebliğ, sirküler, kanun ve Danıştay metinlerinden kaynak göstererek yanıtlar.</div>
-    <textarea id="askQ" rows="3" maxlength="600" placeholder="Örn. Sahte fatura kullanımında KDV indirimi reddedilirken nelere dikkat edilmeli?"></textarea>
-    <button class="btn" id="askBtn" style="margin-top:10px">Sor</button></div><div id="askOut">${askLog.map(askHtml).join("")}</div>`;
-  $("askBtn").onclick = async () => {
-    const q = $("askQ").value.trim(); if(q.length < 5) return;
-    const btn = $("askBtn"); btn.disabled = true; btn.textContent = "Kaynaklar taranıyor…";
-    $("askOut").insertAdjacentHTML("afterbegin", `<div class="tcard" id="askWait"><div class="rload"><i></i><i></i><i></i></div></div>`);
-    let r; try{
-      const { data: { session } } = await sb.auth.getSession();
-      const res = await fetch("/api/ask", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session?.access_token }, body: JSON.stringify({ q }) });
-      r = await res.json(); if(!res.ok) throw new Error(r.error || res.status);
-    }catch(e){ r = { q, error: String(e.message || e) }; }
-    $("askWait")?.remove(); btn.disabled = false; btn.textContent = "Sor";
-    askLog.unshift({ q, ...r }); $("askQ").value = ""; $("askOut").innerHTML = askLog.map(askHtml).join("");
-  };
-  $("askOut").onclick = e => { const a = e.target.closest("[data-open]"); if(a){ e.preventDefault(); openReader(+a.dataset.open); } };
+      <div class="thelp" style="margin-top:0">Öncelikle Danıştay ve Anayasa Mahkemesi kararlarına, sonra kanun, tebliğ, sirküler ve özelgelere dayanarak kaynak göstererek yanıtlar. Fotoğraf veya PDF yükleyip inceletebilirsiniz. Sohbetleriniz yalnızca size görünür.</div>
+      <button class="btn" id="aiNew" style="margin-top:6px">Yeni Sohbet</button></div>
+    ${aiChats.length ? `<div class="sect">Sohbetlerim</div><div class="list">${aiChats.map(c => `<button class="li room" data-chat="${c.id}"><div class="rav" style="--c:var(--t-danistay)"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"/></svg></div><div class="grow"><b class="rn">${esc(c.title)}</b><small>${esc(dayLabel(c.updated_at))}</small></div></button>`).join("")}</div>` : ""}`;
+  $("aiNew").onclick = () => { aiChat = "new"; aiMsgs = []; aiFiles = []; renderAiChat(); };
+  $("toolBody").querySelectorAll("[data-chat]").forEach(b => b.onclick = async () => {
+    aiChat = +b.dataset.chat; aiFiles = [];
+    const { data } = await sb.from("ai_messages").select("id,role,content,sources,files,created_at").eq("chat_id", aiChat).order("id");
+    aiMsgs = data || []; renderAiChat();
+  });
 }
-function askHtml(r){
-  if(r.error) return `<div class="tcard"><div class="aq">${esc(r.q)}</div><div class="thelp">${r.error.includes("anahtar") ? "Asistan henüz etkin değil." : "Yanıt alınamadı: " + esc(r.error)}</div></div>`;
-  const body = esc(r.answer || "").replace(/\[(\d+)\]/g, (m, n) => { const s = (r.sources || [])[+n - 1]; return s ? `<a href="#" class="cite" data-open="${s.id}">${n}</a>` : m; }).split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("");
-  return `<div class="tcard"><div class="aq">${esc(r.q)}</div><div class="aa">${body}</div>${(r.sources || []).length ? `<div class="asrc"><small>Kaynaklar</small>${r.sources.map((s, i) => `<a href="#" data-open="${s.id}"><span class="cite">${i + 1}</span>${esc(s.tur)} · ${esc(s.title.slice(0, 90))}</a>`).join("")}</div>` : ""}</div>`;
+function aiBubble(m){
+  if(m.role === "user") return `<div class="msg me"><div class="bub">${esc(m.content)}${(m.files || []).length ? `<div class="afiles">${m.files.map(f => `<span>${ICON_CLIP}${esc(f)}</span>`).join("")}</div>` : ""}</div></div>`;
+  const src = m.sources || [];
+  const body = esc(m.content).replace(/\[(\d+)\]/g, (x, n) => { const s = src[+n - 1]; return s ? (s.id ? `<a href="#" class="cite" data-open="${s.id}">${n}</a>` : `<a href="${esc(s.url)}" target="_blank" rel="noopener" class="cite">${n}</a>`) : x; })
+    .split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("");
+  return `<div class="msg ai"><div class="bub"><div class="aa">${body}</div>${src.length ? `<div class="asrc"><small>Kaynaklar</small>${src.map((s, i) => s.id
+    ? `<a href="#" data-open="${s.id}"><span class="cite">${i + 1}</span>${esc(s.tur)} · ${esc((s.title || "").slice(0, 80))}</a>`
+    : `<a href="${esc(s.url)}" target="_blank" rel="noopener"><span class="cite">${i + 1}</span>${esc(s.tur)} · ${esc((s.title || "").slice(0, 80))} ${ICON_OPEN}</a>`).join("")}</div>` : ""}</div></div>`;
+}
+function renderAiChat(){
+  const title = aiChat === "new" ? "Yeni Sohbet" : (aiChats.find(c => c.id === aiChat)?.title || "Sohbet");
+  $("toolBody").innerHTML = `<div class="aihead"><span></span><b>${esc(title)}</b>${aiChat !== "new" ? `<button class="linkbtn" id="aiDel" style="color:var(--danger)">Sil</button>` : "<span></span>"}</div>
+    <div class="thread aithread" id="aiThread">${aiMsgs.length ? aiMsgs.map(aiBubble).join("") : `<div class="empty" style="padding:24px 8px">Sorunuzu yazın ya da bir fotoğraf/PDF ekleyin.<br><small>Örn. "Sahte fatura kullanan mükellefin KDV indirimlerinin reddinde Danıştay hangi kriterlere bakıyor?"</small></div>`}${aiBusy ? `<div class="msg ai"><div class="bub"><div class="rload" style="padding:8px 0"><i></i><i></i><i></i></div></div></div>` : ""}</div>
+    <div class="aicomp">${aiFiles.length ? `<div class="afiles pend">${aiFiles.map((f, i) => `<span>${ICON_CLIP}${esc(f.name)}<button data-rm="${i}" aria-label="Kaldır">×</button></span>`).join("")}</div>` : ""}
+      <div class="airow"><label class="aiclip" aria-label="Dosya ekle">${ICON_CLIP}<input type="file" id="aiFile" accept="image/*,application/pdf" multiple hidden></label>
+      <textarea id="aiQ" rows="1" maxlength="4000" placeholder="Mesaj yazın…"></textarea><button class="send" id="aiSend" aria-label="Gönder" ${aiBusy ? "disabled" : ""}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div></div>`;
+  syncNav();
+  const del = $("aiDel"); if(del) del.onclick = async () => { if(!confirm("Bu sohbet silinsin mi?")) return; await sb.from("ai_chats").delete().eq("id", aiChat); aiChat = null; aiChats = null; await toolAsk(); syncNav(); };
+  const ta = $("aiQ"); ta.oninput = () => { ta.style.height = "auto"; ta.style.height = Math.min(140, ta.scrollHeight) + "px"; };
+  $("aiFile").onchange = async e => { for(const f of e.target.files){ const x = await readAiFile(f); if(x) aiFiles.push(x); } renderAiChat(); };
+  $("toolBody").querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { aiFiles.splice(+b.dataset.rm, 1); renderAiChat(); });
+  $("aiThread").onclick = e => { const a = e.target.closest("[data-open]"); if(a){ e.preventDefault(); openReader(+a.dataset.open); } };
+  $("aiSend").onclick = sendAi;
+  requestAnimationFrame(() => { const t = $("aiThread"); if(t && aiMsgs.length) t.lastElementChild?.scrollIntoView({ block: "end" }); });
+}
+async function readAiFile(f){
+  if(f.type === "application/pdf"){
+    if(f.size > 4.5e6){ toast("PDF en fazla 4,5 MB olabilir", 3000); return null; }
+    const b64 = await new Promise(ok => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(",")[1]); r.readAsDataURL(f); });
+    return { kind: "pdf", media_type: "application/pdf", data: b64, name: f.name };
+  }
+  if(!f.type.startsWith("image/")){ toast("Yalnızca fotoğraf veya PDF", 2500); return null; }
+  const img = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = URL.createObjectURL(f); }).catch(() => null);
+  if(!img){ toast("Fotoğraf okunamadı", 2500); return null; }
+  const k = Math.min(1, 1800 / Math.max(img.width, img.height)), c = document.createElement("canvas");
+  c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+  return { kind: "image", media_type: "image/jpeg", data: c.toDataURL("image/jpeg", .86).split(",")[1], name: f.name || "fotoğraf.jpg" };
+}
+async function sendAi(){
+  if(aiBusy) return;
+  const text = $("aiQ").value.trim(); if(!text && !aiFiles.length) return;
+  aiBusy = true; const files = aiFiles; aiFiles = [];
+  try{
+    if(aiChat === "new"){
+      const { data, error } = await sb.from("ai_chats").insert({ title: (text || files[0]?.name || "Belge incelemesi").slice(0, 80) }).select("id,title,updated_at").single();
+      if(error) throw new Error("Sohbet açılamadı");
+      aiChat = data.id; aiChats = [data, ...(aiChats || [])];
+    }
+    const um = { role: "user", content: text || "Yüklediğim belgeyi müfettiş gözüyle incele.", files: files.map(f => f.name) };
+    aiMsgs.push(um); renderAiChat();
+    sb.from("ai_messages").insert({ chat_id: aiChat, ...um }).then(() => {});
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch("/api/ask", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session?.access_token },
+      body: JSON.stringify({ messages: aiMsgs.map(m => ({ role: m.role, content: m.content })), files }) });
+    const r = await res.json().catch(() => ({ error: "Yanıt okunamadı" }));
+    if(!res.ok || r.error) throw new Error(r.error || res.status);
+    const am = { role: "assistant", content: r.answer || "(boş yanıt)", sources: r.sources || [] };
+    aiMsgs.push(am);
+    await sb.from("ai_messages").insert({ chat_id: aiChat, ...am });
+    sb.from("ai_chats").update({ updated_at: new Date().toISOString() }).eq("id", aiChat).then(() => {});
+  }catch(e){ aiMsgs.push({ role: "assistant", content: "Yanıt alınamadı: " + (e.message || e) + ". Lütfen tekrar deneyin.", sources: [] }); }
+  aiBusy = false; if(tab === "tools" && toolSeg === "asistan") renderAiChat();
 }
 
 /* ---------------- haberler ---------------- */
@@ -1101,10 +1203,9 @@ async function openReader(id){
     : `${i.ozet ? `<div class="rtext"><p>${esc(i.ozet)}</p></div>` : ""}<div class="rwait">${metin === "" ? "Bu kaynağın tam metni otomatik alınamıyor. Aşağıdaki bağlantıdan resmî metne ulaşabilirsiniz." : "Tam metin hazırlanıyor. Birkaç dakika içinde burada olacak."}</div>`;
   $("rBody").innerHTML = head + note + body + ref;
 }
-function closeReader(fromPop){ const R = $("reader"); if(R.hidden) return; R.classList.remove("on"); document.body.classList.remove("noscroll"); setTimeout(() => { R.hidden = true; }, 220); rItem = null; if(!fromPop && history.state?.reader) history.back(); render(); }
+function closeReader(fromPop){ const R = $("reader"); if(R.hidden) return; R.classList.remove("on"); document.body.classList.remove("noscroll"); setTimeout(() => { R.hidden = true; }, 220); rItem = null; if(!fromPop && history.state?.reader){ skipPop++; history.back(); } render(); }
 const ICON_SPARK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"/></svg>';
 $("rClose").addEventListener("click", () => closeReader());
-addEventListener("popstate", () => closeReader(true));
 $("rShare").addEventListener("click", async () => { if(!rItem) return; const d = { title: rItem.title, text: rItem.title + "\n" + rItem.url }; try{ if(navigator.share) await navigator.share(d); else { await navigator.clipboard.writeText(d.text); toast("Bağlantı kopyalandı"); } }catch{} });
 
 /* ---------------- hava durumu ---------------- */
@@ -1183,9 +1284,8 @@ async function openWxView(){
   $("wxRes").onclick = e => { const b = e.target.closest(".wxpick"); if(!b) return; const l = { lat: +(+b.dataset.lat).toFixed(3), lon: +(+b.dataset.lon).toFixed(3), city: b.dataset.city };
     try{ localStorage.setItem("tmpro:wxloc", JSON.stringify(l)) }catch{} syncLocation(l, true); wxData = null; renderWeather(); toast(l.city + " seçildi"); openWxView(); };
 }
-function closeWx(fromPop){ const R = $("wxView"); if(R.hidden) return; R.classList.remove("on"); document.body.classList.remove("noscroll"); setTimeout(() => { R.hidden = true; }, 220); if(!fromPop && history.state?.wxv) history.back(); }
+function closeWx(fromPop){ const R = $("wxView"); if(R.hidden) return; R.classList.remove("on"); document.body.classList.remove("noscroll"); setTimeout(() => { R.hidden = true; }, 220); if(!fromPop && history.state?.wxv){ skipPop++; history.back(); } }
 $("wxClose").addEventListener("click", () => closeWx());
-addEventListener("popstate", () => closeWx(true));
 addEventListener("pageshow", () => { if($("reader").hidden && $("wxView").hidden) document.body.classList.remove("noscroll"); });
 // Günaydın bildirimindeki hava durumu için konum profile de yazılır
 async function syncLocation(loc, say){
@@ -1386,7 +1486,7 @@ function roomRow(r, name, avatar){
     <div class="row"><small class="rp">${esc(prev)}</small><span class="spacer"></span>${un ? `<span class="rb" ${isMuted(r) ? 'style="background:var(--faint)"' : ""}>${un}</span>` : ""}</div></div></button>`;
 }
 function renderChat(){
-  $("composer").hidden = !room || room === "__pick"; $("back").hidden = !room;
+  $("composer").hidden = !room || room === "__pick"; syncNav();
   if(room === "__pick") return;
   if(room){ return renderRoom(); }
   $("heading").textContent = "Sohbet"; $("navTitle").textContent = "Sohbet"; $("sub").textContent = "";
@@ -1483,7 +1583,7 @@ const ICON_EDIT = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" s
 const ICON_COPY = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>';
 const ICON_DEL = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>';
 function openNewGroup(){
-  room = "__pick"; $("back").hidden = false; $("composer").hidden = true;
+  room = "__pick"; syncNav(); $("composer").hidden = true;
   $("heading").textContent = "Yeni Grup"; $("navTitle").textContent = "Yeni Grup"; $("sub").textContent = "";
   $("msgs").innerHTML = `<form id="grpForm"><div class="sect" style="margin-top:8px">Grup Bilgileri</div>
     <div class="group"><label class="field"><input name="name" placeholder="Grup Adı" maxlength="60" required></label>
@@ -1499,7 +1599,7 @@ function openNewGroup(){
 }
 async function openBrowse(){
   await loadGroups();
-  room = "__pick"; $("back").hidden = false; $("composer").hidden = true;
+  room = "__pick"; syncNav(); $("composer").hidden = true;
   $("heading").textContent = "Tüm Gruplar"; $("navTitle").textContent = "Tüm Gruplar"; $("sub").textContent = `${groups.length} grup`;
   $("msgs").innerHTML = groups.length ? `<div class="list" style="margin-top:8px">${groups.map(g => `<button class="li room" data-join="${g.id}">${roomIcon(gcolor(g.id), GROUP_IC)}
       <div class="grow"><b class="rn">${esc(g.name)}</b><small>${g.locked ? LOCK + " Şifreli · " : ""}${g.members} üye · ${esc(g.owner_name || "")}</small></div>
@@ -1526,7 +1626,7 @@ async function openMembers(){
   $("msgs").innerHTML = `<div class="sect" style="margin-top:8px">Kime Yazmak İstiyorsunuz?</div><div class="list">${members.length ? members.map(m =>
     `<button class="li room" data-room="${esc(dmRoom(m.id))}"><div class="rav ava2">${esc(initialsOf(m.full_name || m.username))}</div><div class="grow"><b class="rn">${esc(m.full_name || m.username)}</b><small>${m.unvan ? esc(m.unvan) + " · " : ""}@${esc(m.username)}</small></div></button>`).join("")
     : `<div class="li"><small>Henüz başka aktif üye yok.</small></div>`}</div>`;
-  $("heading").textContent = "Yeni Mesaj"; $("back").hidden = false; room = "__pick";
+  $("heading").textContent = "Yeni Mesaj"; room = "__pick"; syncNav();
 }
 $("msgs").addEventListener("click", async e => {
   if(e.target.closest("#newDm")) return openMembers();

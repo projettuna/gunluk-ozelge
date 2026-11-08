@@ -130,39 +130,79 @@ function excerpt(text, ws, max) {
   for (let i = 0; i < low.length; i += 800) { const win = low.slice(i, i + max); const sc = ws.reduce((a, w) => a + (win.split(w).length - 1), 0); if (sc > bestScore) { bestScore = sc; best = i; } }
   return (best ? "… " : "") + t.slice(best, best + max) + "…";
 }
+const KARAR = /Danıştay|Anayasa/i;
+const stripHtml = h => String(h || "").replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, " ").replace(/<br\s*\/?>|<\/p>|<\/div>/gi, "\n").replace(/<[^>]+>/g, " ")
+  .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n\n").trim();
+// Danıştay karar arama (canlı). Erişilemezse sessizce boş döner.
+async function danistayLive(q) {
+  const words = [...new Set(q.toLocaleLowerCase("tr").replace(/[^a-zçğıöşü0-9 ]/g, " ").split(/\s+/).filter(w => w.length >= 5 && !STOP.has(w)))];
+  const tries = [words.slice(0, 3), words.slice(0, 2)].filter(t => t.length);
+  for (const kw of tries) {
+    try {
+      const r = await fetch("https://karararama.danistay.gov.tr/aramalist", { method: "POST", headers: { "Content-Type": "application/json; charset=UTF-8", "User-Agent": "Mozilla/5.0" },
+        body: JSON.stringify({ data: { andKelimeler: kw, pageSize: 4, pageNumber: 1 } }), signal: AbortSignal.timeout(7000) });
+      if (!r.ok) continue;
+      const list = ((await r.json())?.data?.data || []).slice(0, 3);
+      if (!list.length) continue;
+      const docs = await Promise.all(list.map(async k => {
+        const url = `https://karararama.danistay.gov.tr/getDokuman?id=${k.id}&arananKelime=${encodeURIComponent(kw.join(","))}`;
+        try { const d = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(7000) }); let t = await d.text(); try { t = JSON.parse(t).data || t; } catch {}
+          return { tur: "Danıştay kararı", title: `${k.daireKurul || k.daire || "Danıştay"} E. ${k.esasNo || ""}, K. ${k.kararNo || ""}`, meta: k.kararTarihi || "", url, metin: stripHtml(t) }; } catch { return null; }
+      }));
+      return docs.filter(Boolean);
+    } catch {}
+  }
+  return [];
+}
 async function ask(req, env) {
   if (!env.ANTHROPIC_API_KEY) return Response.json({ error: "API anahtarı tanımlı değil" }, { status: 503 });
   const token = (req.headers.get("Authorization") || "").replace(/^Bearer /, "");
   let j; try { j = await req.json(); } catch { return Response.json({ error: "bad json" }, { status: 400 }); }
-  const q = String(j.q || "").trim().slice(0, 600);
-  if (!token || q.length < 5) return Response.json({ error: "Soru eksik" }, { status: 400 });
+  const hist = (Array.isArray(j.messages) ? j.messages : j.q ? [{ role: "user", content: j.q }] : []).slice(-14)
+    .map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content || "").slice(0, 8000) })).filter(m => m.content);
+  const last = hist[hist.length - 1];
+  const files = (Array.isArray(j.files) ? j.files : []).slice(0, 4);
+  if (!token || !last || last.role !== "user" || (last.content.length < 2 && !files.length)) return Response.json({ error: "Soru eksik" }, { status: 400 });
   const H = { apikey: SB_KEY, Authorization: "Bearer " + token };
   const me = await fetch(SB_URL + "/rest/v1/rpc/is_active", { method: "POST", headers: { ...H, "Content-Type": "application/json" }, body: "{}" });
   if (!me.ok || (await me.json()) !== true) return Response.json({ error: "Yetkisiz" }, { status: 401 });
-  const ws = stems(q);
+  const qText = hist.filter(m => m.role === "user").slice(-2).map(m => m.content).join(" ");
+  const ws = stems(qText);
   let rows = [];
   if (ws.length) {
     const or = ws.flatMap(w => [`title.ilike.*${w}*`, `metin.ilike.*${w}*`]).join(",");
     const r = await fetch(`${SB_URL}/rest/v1/items?select=id,tur,title,meta,url,metin,ozet&or=(${encodeURIComponent(or)})&order=id.desc&limit=60`, { headers: H });
     rows = r.ok ? await r.json() : [];
   }
-  const scored = rows.map(x => { const tl = (x.title || "").toLocaleLowerCase("tr"), ml = (x.metin || x.ozet || "").toLocaleLowerCase("tr");
+  const live = ws.length ? await danistayLive(qText) : [];
+  const score = x => { const tl = (x.title || "").toLocaleLowerCase("tr"), ml = (x.metin || x.ozet || "").toLocaleLowerCase("tr");
     const hit = ws.filter(w => tl.includes(w) || ml.includes(w)).length;
-    const sc = ws.reduce((a, w) => a + 6 * (tl.split(w).length - 1) + Math.min(15, ml.split(w).length - 1), 0) + hit * 10;
-    return { x, sc }; }).sort((a, b) => b.sc - a.sc).slice(0, 6).map(o => o.x);
-  const sources = scored.map((x, i) => ({ n: i + 1, id: x.id, tur: x.tur, title: x.title, meta: x.meta }));
-  const ctx = scored.map((x, i) => `[${i + 1}] ${x.tur} · ${x.title}${x.meta ? " · " + x.meta : ""}\n${excerpt(x.metin || x.ozet || "", ws, 5000)}`).join("\n\n---\n\n");
-  const system = `Sen Türkiye vergi mevzuatında uzman, vergi müfettişlerine yardım eden bir asistansın. Yalnızca verilen kaynaklara dayan.
-Kurallar: Türkçe, açık ve kısa yaz (en fazla 6 kısa paragraf ya da madde). Her bilginin sonuna dayandığı kaynağı [1], [2] biçiminde ekle.
-Kaynaklarda cevap yoksa bunu açıkça söyle ve hangi tür mevzuata bakılması gerektiğini belirt; tahmin yürütme, madde numarası veya oran uydurma.
-Markdown başlığı ve kalın yazı kullanma. Son satırda tek cümleyle müfettiş açısından dikkat edilecek noktayı yaz.`;
-  const body = { model: env.ASK_MODEL || "claude-sonnet-5-5", max_tokens: 1400, system,
-    messages: [{ role: "user", content: `Soru: ${q}\n\nKaynaklar:\n${ctx || "(Uygulamada eşleşen kayıt bulunamadı.)"}` }] };
+    return ws.reduce((a, w) => a + 6 * (tl.split(w).length - 1) + Math.min(15, ml.split(w).length - 1), 0) + hit * 10 + (KARAR.test(x.tur || "") ? 40 : 0); };
+  const local = rows.map(x => ({ x, sc: score(x) })).sort((a, b) => b.sc - a.sc).map(o => o.x);
+  const picked = [...live.slice(0, 3), ...local.filter(x => KARAR.test(x.tur)).slice(0, 3), ...local.filter(x => !KARAR.test(x.tur)).slice(0, 4)].slice(0, 8);
+  const sources = picked.map((x, i) => ({ n: i + 1, id: x.id || null, url: x.id ? null : x.url, tur: x.tur, title: x.title, meta: x.meta }));
+  const ctx = picked.map((x, i) => `[${i + 1}] ${x.tur} · ${x.title}${x.meta ? " · " + x.meta : ""}\n${excerpt(x.metin || x.ozet || "", ws, 4500)}`).join("\n\n---\n\n");
+  const system = `Sen Türkiye vergi mevzuatında ve vergi ceza hukukunda uzman, vergi müfettişlerine yardım eden bir asistansın. Kullanıcı bir vergi müfettişidir.
+Öncelik sırası: önce yargı kararları (Danıştay, Anayasa Mahkemesi), sonra kanun, tebliğ, sirküler ve özelgeler. Kararlarda esas/karar numarasını ve kararın sonucunu belirt.
+Verilen kaynaklara dayan ve her bilginin sonuna kaynağını [1], [2] biçiminde ekle. Kaynaklarda olmayan genel bilgiyi kullanırsan bunu "kaynaklarda yer almıyor, genel bilgi:" diye açıkça ayır; madde numarası, oran veya karar numarası uydurma.
+Kullanıcı fotoğraf veya belge yüklerse içeriğini müfettiş gözüyle incele: belge türü, tarih, taraflar, tutarlar, sahte veya muhteviyatı itibarıyla yanıltıcı belge işaretleri, eksik zorunlu bilgiler (VUK 230), tutarsızlıklar.
+Bu bir sohbettir: önceki mesajları dikkate al, kısa ve net yaz, gerektiğinde maddeler kullan. Markdown başlığı ve kalın yazı kullanma.`;
+  const lastBlocks = [];
+  for (const f of files) {
+    const data = String(f.data || "");
+    if (!data || data.length > 7_000_000) continue;
+    if (f.kind === "image" && /^image\/(jpeg|png|webp|gif)$/.test(f.media_type)) lastBlocks.push({ type: "image", source: { type: "base64", media_type: f.media_type, data } });
+    else if (f.kind === "pdf") lastBlocks.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data } });
+  }
+  lastBlocks.push({ type: "text", text: `${last.content || "Yüklediğim belgeyi incele."}\n\n(Uygulamadaki ilgili kaynaklar:)\n${ctx || "(Eşleşen kaynak bulunamadı.)"}` });
+  const messages = [...hist.slice(0, -1), { role: "user", content: lastBlocks }];
+  while (messages.length && messages[0].role !== "user") messages.shift();
+  const body = { model: env.ASK_MODEL || "claude-sonnet-5-5", max_tokens: 2000, system, messages };
   const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify(body) });
-  if (!r.ok) return Response.json({ error: "Yapay zekâ yanıt vermedi (" + r.status + ")" }, { status: 502 });
+  if (!r.ok) { let m = ""; try { m = (await r.json())?.error?.message || ""; } catch {} return Response.json({ error: "Yapay zekâ yanıt vermedi (" + r.status + ") " + m.slice(0, 120) }, { status: 502 }); }
   const d = await r.json();
   const answer = (d.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();
-  return Response.json({ answer, sources });
+  return Response.json({ answer, sources, live: live.length });
 }
 
 export default {
