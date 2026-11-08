@@ -796,7 +796,7 @@ $("signupForm").addEventListener("submit", async e => {
     options: { data: { username, email, full_name: f.get("full_name").trim(), phone: f.get("phone").trim(), unvan: (f.get("unvan") || "").trim() } } });
   btn.disabled = false;
   if(error){ $("signupErr").textContent = error.message.includes("Password") ? "Şifre en az 8 karakter olmalı." : "Talep oluşturulamadı: " + error.message; return; }
-  await sb.rpc("accept_terms", { v: KVKK_V, yd: true, ua: navigator.userAgent }).catch(() => {});
+  try{ await sb.rpc("accept_terms", { v: KVKK_V, yd: true, ua: navigator.userAgent }); }catch{}
   boot();
 });
 
