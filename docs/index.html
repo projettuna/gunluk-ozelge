@@ -296,6 +296,36 @@ body.typing .tabbar{display:none}
 body.typing .composer{bottom:0;padding-bottom:8px}
 body.typing main{padding-bottom:80px}
 
+/* ---- tam metin okuyucu ---- */
+button.title{display:block;width:100%;text-align:left;border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer}
+.open{border:0;cursor:pointer;font-family:inherit}
+body.noscroll{overflow:hidden}
+.reader{position:fixed;inset:0;z-index:60;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg);opacity:0;transform:translateY(24px);transition:opacity .22s,transform .22s}
+.reader.on{opacity:1;transform:none}
+.reader::before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(60% 40% at 0% 0%,var(--a1),transparent 70%),radial-gradient(50% 35% at 100% 10%,var(--a2),transparent 70%);opacity:.45}
+.rbar{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top) + 8px) 16px 8px;background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);box-shadow:0 .5px 0 var(--line)}
+.rbar #rType{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+.rbar .cic{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;background:var(--brand);color:#fff}
+.rclose{width:36px;height:36px;border-radius:50%;border:.5px solid var(--glass-line);background:var(--surface);display:grid;place-items:center;color:var(--ink);cursor:pointer;flex:none}
+.rbody{position:relative;max-width:720px;margin:0 auto;padding:20px 20px calc(40px + env(safe-area-inset-bottom))}
+.rtitle{font-size:26px;line-height:1.2;letter-spacing:-.02em;font-weight:750;margin:6px 0 12px}
+.rmeta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.rmeta span{font-size:12.5px;font-weight:600;color:var(--muted);background:var(--fill);border:.5px solid var(--glass-line);padding:5px 10px;border-radius:999px;font-variant-numeric:tabular-nums}
+.rnote{margin:0 0 18px;padding:14px 16px;border-radius:20px;background:linear-gradient(135deg,color-mix(in srgb,var(--gold) 16%,transparent),color-mix(in srgb,var(--accent) 10%,transparent));border:.5px solid color-mix(in srgb,var(--gold) 40%,transparent)}
+.rnl{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:750;color:var(--gold);margin-bottom:6px}
+.rnl em{margin-left:auto;font-style:normal;font-weight:600;font-size:11px;color:var(--muted)}
+.rnote p{margin:0 0 8px;font-size:15.5px;line-height:1.55}
+.rtext{padding:18px 18px 8px;border-radius:22px;background:var(--surface);border:.5px solid var(--glass-line);box-shadow:var(--glass-shadow);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+.rtext p{margin:0 0 12px;font-size:16.5px;line-height:1.65;color:var(--ink);overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto}
+.rwait{margin-top:14px;padding:14px 16px;border-radius:16px;background:var(--fill);color:var(--muted);font-size:14.5px;line-height:1.45}
+.rload{display:flex;gap:6px;justify-content:center;padding:40px 0}
+.rload i{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:rl 1s infinite ease-in-out}
+.rload i:nth-child(2){animation-delay:.15s}.rload i:nth-child(3){animation-delay:.3s}
+@keyframes rl{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:1;transform:none}}
+.rref{margin-top:18px;padding:14px 16px;border-radius:18px;border:.5px dashed color-mix(in srgb,var(--accent) 45%,transparent)}
+.rrl{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.rref a{display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-weight:600;font-size:14.5px;text-decoration:none;word-break:break-all}
+.rrn{font-size:12px;color:var(--muted);margin-top:6px}
 /* ---- TMPRO v3 (2026-11-08): canlı ışık zemini + cam bento ---- */
 :root{--bg:#f4f3f8;--surface:rgba(255,255,255,.62);--solid:#fff;--accent:#5b4bff;--gold:#b8862f;--ink:#0d0f1f;
   --glass-line:rgba(255,255,255,.75);--glass-shadow:0 1px 0 rgba(255,255,255,.8) inset,0 18px 40px -12px rgba(40,30,120,.18),0 2px 6px rgba(40,30,120,.05);
@@ -477,6 +507,10 @@ body.home::before{opacity:.85}
   </div>
 </div></section>
 
+<div class="reader" id="reader" hidden role="dialog" aria-modal="true">
+  <div class="rbar"><button class="rclose" id="rClose" aria-label="Kapat"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button><span id="rType"></span><button class="rclose" id="rShare" aria-label="Paylaş"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button></div>
+  <div class="rbody" id="rBody"></div>
+</div>
 <!-- UYGULAMA -->
 <div id="appView" hidden>
 <header class="appbar" id="appbar"><div class="wrap bar">
@@ -650,6 +684,7 @@ function dayLabel(iso){
 }
 const ICON_STAR = f => `<svg width="18" height="18" viewBox="0 0 24 24" fill="${f ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/></svg>`;
 const ICON_READ = r => `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/>${r ? '<path d="m8.5 12.5 2.5 2.5 4.5-5"/>' : ""}</svg>`;
+const ICON_DOC = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>';
 const ICON_OPEN = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>';
 
 function render(){
@@ -743,10 +778,10 @@ function _render(){
     const time = i.eklendi ? new Date(i.eklendi).toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"}) : "";
     html += `<article class="card ${unread ? "unread" : ""}" data-id="${i.id}" style="--c:var(${TYPES[i.tur] || "--muted"})">
       <div class="ctop"><span class="cic">${icon(i.tur, 15)}</span><span class="type">${esc(i.tur.replace(" (VUK 359)", " · VUK 359"))}</span>${unread ? `<span class="newtag">Yeni</span>` : ""}<span class="when">${esc(mDate || time)}</span></div>
-      <a class="title" href="${esc(i.url)}" target="_blank" rel="noopener">${hl(i.title, q)}</a>
+      <button class="title rdr">${hl(i.title, q)}</button>
       ${mRest ? `<div class="meta"><span>${hl(mRest, q)}</span></div>` : ""}
       ${i.ozet ? `<div class="ozbox"><div class="ozet ${long ? "clip" : ""}">${hl(i.ozet, q)}</div>${long ? `<button class="more">Devamı</button>` : ""}</div>` : ""}
-      <div class="cfoot"><a class="open" href="${esc(i.url)}" target="_blank" rel="noopener">Kaynağı Aç ${ICON_OPEN}</a>
+      <div class="cfoot"><button class="open rdr">Metni Oku ${ICON_DOC}</button>
         <button class="act rd" aria-label="${unread ? "Okundu say" : "Okunmadı say"}">${ICON_READ(!unread)}</button>
         <button class="act st ${st ? "on" : ""}" aria-label="Kaydet">${ICON_STAR(st)}</button></div>
     </article>`;
@@ -762,6 +797,7 @@ $("list").addEventListener("click", e => {
   const c = e.target.closest(".card"); if(!c) return; const id = +c.dataset.id;
   if(e.target.closest(".st")){ const on = !stars.has(id); on ? stars.add(id) : stars.delete(id); store.set("stars", [...stars]); toast(on ? "Kaydedildi" : "Kayıttan çıkarıldı"); render(); return; }
   if(e.target.closest(".rd")){ read.has(id) ? read.delete(id) : read.add(id); store.set("read", [...read]); render(); return; }
+  if(e.target.closest(".rdr")){ read.add(id); store.set("read", [...read]); c.classList.remove("unread"); openReader(id); return; }
   if(e.target.closest(".more")){ const o = c.querySelector(".ozet"); o.classList.toggle("clip"); e.target.textContent = o.classList.contains("clip") ? "Devamı" : "Daralt"; return; }
   if(e.target.closest("a")){ read.add(id); store.set("read", [...read]); c.classList.remove("unread"); setTimeout(render, 400); }
 });
@@ -775,6 +811,32 @@ navigator.serviceWorker?.addEventListener("message", async e => {
   if(e.data?.type === "open"){ const r = new URL(e.data.url).searchParams.get("room"); if(r && me){ await fetchNewMsgs(); tab = "chat"; room = r; render(); } else { await loadItems(); render(); } }
 });
 
+
+/* ---------------- tam metin okuyucu ---------------- */
+let rItem = null;
+const fmtText = t => esc(t).split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("");
+async function openReader(id){
+  const i = items.find(x => x.id === id); if(!i) return; rItem = i;
+  const mParts = (i.meta || "").split(" · ").filter(Boolean);
+  $("rType").innerHTML = `<span class="cic">${icon(i.tur, 13)}</span>${esc(i.tur.replace(" (VUK 359)", " · VUK 359"))}`;
+  const ref = `<div class="rref"><div class="rrl">Kaynak</div><a href="${esc(i.url)}" target="_blank" rel="noopener">${esc(i.url.replace(/^https?:\/\/(www\.)?/, "").slice(0, 70))}${i.url.length > 80 ? "…" : ""} ${ICON_OPEN}</a><div class="rrn">Metin resmî kaynaktan otomatik alınmıştır; esas olan kaynaktaki metindir.</div></div>`;
+  const head = `<h1 class="rtitle">${esc(i.title)}</h1>${mParts.length ? `<div class="rmeta">${mParts.map(m => `<span>${esc(m)}</span>`).join("")}</div>` : ""}`;
+  $("rBody").innerHTML = head + `<div class="rload"><i></i><i></i><i></i></div>` + ref;
+  const R = $("reader"); R.hidden = false; R.scrollTop = 0; requestAnimationFrame(() => R.classList.add("on")); document.body.classList.add("noscroll");
+  if(history.state?.reader !== true) history.pushState({ reader: true }, "");
+  let metin = null, yorum = null;
+  try{ const { data, error } = await sb.from("items").select("metin,yorum").eq("id", id).single(); if(!error){ metin = data.metin; yorum = data.yorum; } }catch{}
+  if(rItem !== i) return;
+  const note = yorum ? `<div class="rnote"><div class="rnl">${ICON_SPARK} Müfettiş Notu <em>Yapay zekâ yorumu</em></div>${fmtText(yorum)}</div>` : "";
+  const body = metin ? `<div class="rtext">${fmtText(metin)}</div>`
+    : `${i.ozet ? `<div class="rtext"><p>${esc(i.ozet)}</p></div>` : ""}<div class="rwait">${metin === "" ? "Bu kaynağın tam metni otomatik alınamıyor. Aşağıdaki bağlantıdan resmî metne ulaşabilirsiniz." : "Tam metin hazırlanıyor. Birkaç dakika içinde burada olacak."}</div>`;
+  $("rBody").innerHTML = head + note + body + ref;
+}
+function closeReader(fromPop){ const R = $("reader"); if(R.hidden) return; R.classList.remove("on"); document.body.classList.remove("noscroll"); setTimeout(() => { R.hidden = true; }, 220); rItem = null; if(!fromPop && history.state?.reader) history.back(); render(); }
+const ICON_SPARK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"/></svg>';
+$("rClose").addEventListener("click", () => closeReader());
+addEventListener("popstate", () => closeReader(true));
+$("rShare").addEventListener("click", async () => { if(!rItem) return; const d = { title: rItem.title, text: rItem.title + "\n" + rItem.url }; try{ if(navigator.share) await navigator.share(d); else { await navigator.clipboard.writeText(d.text); toast("Bağlantı kopyalandı"); } }catch{} });
 
 /* ---------------- hava durumu ---------------- */
 const WMO = c => c === 0 ? ["Açık", "☀️", "🌙"] : c <= 2 ? ["Az Bulutlu", "🌤️", "☁️"] : c === 3 ? ["Kapalı", "☁️", "☁️"] : c <= 48 ? ["Sisli", "🌫️", "🌫️"]

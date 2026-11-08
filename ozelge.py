@@ -791,3 +791,8 @@ if __name__ == "__main__":
             metin.fill(db, limit=int(os.environ.get("METIN_LIMIT") or 15))
         except Exception as e:  # noqa: BLE001
             print(f"Tam metin turu atlandı: {type(e).__name__} {getattr(e, 'code', '')}")
+        try:
+            import yorum
+            yorum.fill(db)
+        except Exception as e:  # noqa: BLE001
+            print(f"Müfettiş notu turu atlandı: {type(e).__name__} {getattr(e, 'code', '')}")

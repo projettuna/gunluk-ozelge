@@ -36,8 +36,14 @@ def decode(raw, ctype=""):
 
 def html_to_text(s):
     s = re.sub(r"<(script|style|head)[^>]*>.*?</\1>", " ", s or "", flags=re.S | re.I)
-    s = re.sub(r"<br\s*/?>|</(p|div|tr|li|h\d|table|blockquote)>", "\n", s, flags=re.I)
+    s = re.sub(r"<!--.*?-->", " ", s, flags=re.S)
+    s = re.sub(r"\s+", " ", s)  # kaynaktaki satır sonları anlam taşımaz
+    # Tablo satırını tek satıra indir: "Sayı : E-123" gibi alanlar bölünmesin
+    s = re.sub(r"<tr[^>]*>.*?</tr>", lambda m: re.sub(r"</?(p|div|br|span)[^>]*>", " ", m.group(0), flags=re.I), s, flags=re.S | re.I)
     s = re.sub(r"</t[dh]>", "  ", s, flags=re.I)
+    s = re.sub(r"</tr>", "\n", s, flags=re.I)
+    s = re.sub(r"<br\s*/?>", "\n", s, flags=re.I)
+    s = re.sub(r"</(p|div|li|h\d|table|blockquote|ul|ol)>|<(p|div|li|h\d|table)[\s>]", lambda m: "\n\n" + (m.group(0) if m.group(0).startswith("<") and not m.group(0).startswith("</") else ""), s, flags=re.I)
     s = html.unescape(re.sub(r"<[^>]+>", " ", s)).replace("\xa0", " ")
     lines = [re.sub(r"[ \t\r\f\v]+", " ", ln).strip() for ln in s.split("\n")]
     out, blank = [], False
@@ -71,15 +77,26 @@ def gib_text(path, id_):
     files = d.get("fileNames") or []
     m = re.search(r'href="([^"]+\.pdf)"', desc)
     url = m.group(1) if m else (f"https://cdn.gib.gov.tr/api/gibportal-file/file/getFile?objectKey={files[0]}" if files else "")
-    return pdf_to_text(fetch(url)[0]) if url else ""
+    txt = pdf_to_text(fetch(url)[0]) if url else ""
+    return txt if len(txt) >= 300 else ""  # taranmış (resim) PDF
 
 
 def kanun_text(meta):
-    m = re.search(r"Kanun No:\s*(\d+)", meta or "")
-    if not m:
+    """Kanunun Resmî Gazete'de yayımlandığı sayfayı bulur (ilk birkaç .htm)."""
+    no = re.search(r"Kanun No:\s*(\d+)", meta or "")
+    d = re.search(r"(\d{2})\.(\d{2})\.(\d{4})", meta or "")
+    if not (no and d):
         return ""
-    raw, _ = fetch(f"https://www.mevzuat.gov.tr/MevzuatMetin/1.5.{m.group(1)}.pdf")
-    return pdf_to_text(raw) if raw[:4] == b"%PDF" else ""
+    day = f"{d.group(3)}{d.group(2)}{d.group(1)}"
+    for n in range(1, 6):
+        try:
+            raw, ctype = fetch(f"https://www.resmigazete.gov.tr/eskiler/{d.group(3)}/{d.group(2)}/{day}-{n}.htm")
+        except Exception:  # noqa: BLE001
+            continue
+        txt = html_to_text(decode(raw, ctype))
+        if re.search(rf"Kanun\s*No\.?\s*:?\s*{no.group(1)}\b", txt, re.I):
+            return txt
+    return ""
 
 
 def danistay_text(url):

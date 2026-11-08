@@ -2,7 +2,7 @@ import sys, re
 sys.path.insert(0, ".")
 import metin, ozelge as o
 tests = [
- ("https://gib.gov.tr/mevzuat/kanun/436/ozelge/39068", "Özelge", ""),
+ ("https://gib.gov.tr/mevzuat/kanun/436/ozelge/39068", "Özelge", ""), ("https://gib.gov.tr/mevzuat/kanun/660", "Kanun", "Resmî Gazete 04.06.2026 · Kanun No: 7582"),
  ("https://gib.gov.tr/mevzuat/kanun/435/teblig/8551", "Tebliğ", ""),
  ("https://gib.gov.tr/mevzuat/kanun/435/sirkuler/1150", "Sirküler", ""),
  ("https://gib.gov.tr/mevzuat/kanun/442/icgenelge/722", "İç Genelge", ""),
