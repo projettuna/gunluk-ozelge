@@ -686,6 +686,33 @@ def main():
         for p in safe("profiles?select=role,status"):
             st[p["role"] + "/" + p["status"]] = st.get(p["role"] + "/" + p["status"], 0) + 1
         print("Profiller:", st, "| bildirim cihazı:", len(safe("push_subs?select=id")))
+        # Özel mesajların tarafları (kimlik yazdırılmaz, yalnızca rol/durum)
+        prof = {p["id"]: p for p in safe("profiles?select=id,role,status,chat_notify")}
+        subs = {}
+        for x in safe("push_subs?select=user_id"):
+            subs[x.get("user_id")] = subs.get(x.get("user_id"), 0) + 1
+        dmr = []
+        for r in m:
+            if r["room"].startswith("dm:") and r["room"] not in dmr:
+                dmr.append(r["room"])
+        for i, room in enumerate(dmr[:5], 1):
+            side = []
+            for uid in room.split(":")[1:]:
+                pr = prof.get(uid)
+                side.append(f"{pr['role']}/{pr['status']}/bildirim={pr.get('chat_notify')}/cihaz={subs.get(uid, 0)}" if pr else "PROFİL YOK")
+            print(f"DM {i}: {len([x for x in m if x['room'] == room])} mesaj | taraflar: {side}")
+        def count(q):
+            try:
+                req = Request(f"{SUPABASE_URL}/rest/v1/{q}&limit=1", headers={"apikey": SUPABASE_KEY, "Prefer": "count=exact",
+                              **({"Authorization": f"Bearer {SUPABASE_KEY}"} if SUPABASE_KEY.startswith("eyJ") else {})})
+                with urlopen(req, timeout=60) as r:
+                    return r.headers.get("Content-Range", "").split("/")[-1]
+            except Exception as e:  # noqa: BLE001
+                return f"HATA {getattr(e, 'code', e)}"
+        print("Kayıt:", count("items?select=id"), "| metin dolu:", count("items?select=id&metin=neq."),
+              "| metin bekliyor:", count("items?select=id&metin=is.null"), "| not yazılmış:", count("items?select=id&yorum=not.is.null"),
+              "| Yargıtay:", count("items?select=id&tur=eq." + quote("Yargıtay (Ceza)")),
+              "| Yargıtay notsuz metinli:", count("items?select=id&yorum=is.null&metin=neq.&tur=eq." + quote("Yargıtay (Ceza)")))
         return
 
     # Özelgeler
