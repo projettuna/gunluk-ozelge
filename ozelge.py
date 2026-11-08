@@ -797,7 +797,12 @@ if __name__ == "__main__":
                 import haber
                 haber.run(db)
             except Exception as e:  # noqa: BLE001
-                print(f"Haber turu atlandı: {type(e).__name__} {getattr(e, 'code', '')}")
+                detail = ""
+                try:
+                    detail = json.loads(e.read().decode()).get("message", "")[:160]  # PostgREST hata metni (kullanıcı verisi içermez)
+                except Exception:  # noqa: BLE001
+                    pass
+                print(f"Haber turu atlandı: {type(e).__name__} {getattr(e, 'code', '')} {detail}")
         try:
             import yorum
             yorum.fill(db)
