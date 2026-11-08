@@ -105,7 +105,38 @@ def send(rows):
         return json.loads(r.read() or b"0")
 
 
+def diag():
+    from datetime import date, timedelta
+    bas, bit = (date.today() - timedelta(days=365)).strftime("%d.%m.%Y"), date.today().strftime("%d.%m.%Y")
+    bos = {"birimYrgKurulDaire": "ALL", "esasYil": "", "esasIlkSiraNo": "", "esasSonSiraNo": "", "kararYil": "",
+           "kararIlkSiraNo": "", "kararSonSiraNo": "", "baslangicTarihi": "", "bitisTarihi": "", "pageSize": 10, "pageNumber": 1}
+    denemeler = [
+        ("A detay, düz", "/aramadetaylist", dict(bos, arananKelime="sahte fatura")),
+        ("B detay, düz+tarih", "/aramadetaylist", dict(bos, arananKelime="sahte fatura", baslangicTarihi=bas, bitisTarihi=bit)),
+        ("C detay, tırnak", "/aramadetaylist", dict(bos, arananKelime='"sahte fatura"')),
+        ("D detay, düz+sıralı", "/aramadetaylist", dict(bos, arananKelime="sahte fatura", siralama="3", siralamaDirection="desc")),
+        ("E detay, yıl 2025", "/aramadetaylist", dict(bos, arananKelime="sahte fatura", kararYil="2025")),
+        ("F liste, sıralı", "/aramalist", {"aranan": "sahte fatura", "arananKelime": "sahte fatura", "siralama": "3",
+                                          "siralamaDirection": "desc", "pageSize": 10, "pageNumber": 1}),
+    ]
+    for ad, yol, d in denemeler:
+        try:
+            raw = http(BASE + yol, {"data": d}, timeout=90)
+            j = json.loads(raw)
+            inner = j.get("data") or {}
+            rows = inner.get("data") or []
+            tarihler = ", ".join((r.get("kararTarihi") or "?") for r in rows[:4])
+            print(f"{ad}: {len(rows)} sonuç, toplam {inner.get('recordsTotal')} | {tarihler}")
+            if not rows:
+                print("   yanıt: " + raw[:160])
+        except Exception as e:  # noqa: BLE001
+            print(f"{ad}: HATA {e}")
+        time.sleep(PAUSE)
+
+
 def main():
+    if "--diag" in sys.argv:
+        return diag()
     try:
         with open(STATE, encoding="utf-8") as f:
             seen = set(json.load(f))
