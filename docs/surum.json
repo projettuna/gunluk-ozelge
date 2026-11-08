@@ -1,6 +1,19 @@
 {
  "surumler": [
   {
+   "surum": "2.6",
+   "tarih": "2026-11-08",
+   "baslik": "Arkadaş kodu ve gizlilik",
+   "bildir": false,
+   "yeniden_ekle": false,
+   "notlar": [
+    "Özel mesaj artık yalnızca arkadaşlar arasında: arkadaş kodunuzu paylaşın, karşı taraf onaylayınca yazışın.",
+    "Onaylamadığınız kimse size özel mesaj atamaz; arkadaşlıktan çıkarabilir veya istekleri reddedebilirsiniz.",
+    "Gizlilik için diğer üyelerin adları baş harfleri dışında yıldızlı görünür (M**** Y*****).",
+    "Profil fotoğrafı: Hesap ekranında isminizin yanındaki daireye dokunun. Fotoğrafınızı yalnızca arkadaşlarınız görür."
+   ]
+  },
+  {
    "surum": "2.5",
    "tarih": "2026-11-08",
    "baslik": "Yargıtay kararları, Müfettiş Notları ve daha fazlası",

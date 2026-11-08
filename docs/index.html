@@ -836,7 +836,7 @@ async function fillSignupPrice(){
 }
 function isActive(p){ return p.role === "admin" || (p.status === "active" && (!p.expires_at || new Date(p.expires_at) > new Date())); }
 /* ---------------- sürüm ---------------- */
-const APP_VERSION = "2.5";
+const APP_VERSION = "2.6";
 const verNum = v => String(v || "0").split(".").map(n => +n || 0);
 const verGt = (a, b) => { const x = verNum(a), y = verNum(b); for(let k = 0; k < Math.max(x.length, y.length); k++){ if((x[k] || 0) !== (y[k] || 0)) return (x[k] || 0) > (y[k] || 0); } return false; };
 let releases = [];
@@ -1673,6 +1673,12 @@ const dmRoom = uid => "dm:" + [me.id, uid].sort().join(":");
 const dmOther = r => r.slice(3).split(":").find(x => x !== me.id);
 const roomName = r => r.startsWith("dm:") ? (memberName(dmOther(r)) || "Özel Mesaj") : r.startsWith("g:") ? (groups.find(g => g.id === r.slice(2))?.name || "Grup") : (ROOMS.find(x => x.id === r)?.name || r);
 function memberName(uid){ const m = members?.find(x => x.id === uid); if(m) return m.full_name || m.username; const msg = msgs.find(x => x.user_id === uid); return msg?.username || null; }
+let friends = [];
+const friendsIn = () => friends.filter(f => f.kind === "in").length;
+async function loadFriends(){
+  try{ const { data, error } = await sb.rpc("list_friends"); if(error) return; friends = data || [];
+    members = friends.filter(f => f.kind === "friend").map(f => ({ id: f.id, username: f.name, full_name: f.name, unvan: f.unvan, avatar: f.avatar })); }catch{}
+}
 const avaUrl = u => /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(u || "") ? u : "";
 const avaOf = (uid, name) => { const u = avaUrl(members?.find(x => x.id === uid)?.avatar); return u ? `<div class="rav ava2" style="background:url(${u}) center/cover"></div>` : `<div class="rav ava2">${esc(initialsOf(name))}</div>`; };
 function shrinkImage(file, size = 256){
@@ -1688,7 +1694,7 @@ async function startChat(){
   if(error){ chatStarted = false; toast("Mesajlar yüklenemedi: " + error.message, 6000); return; }
   msgs = (data || []).reverse();
   await loadGroups();
-  if(!members) sb.rpc("list_members").then(({ data }) => { if(data){ members = data; if(tab === "chat") renderChat(); } });
+  loadFriends().then(() => { if(tab === "chat" && !room) renderChat(); else updateChatBadge(); });
   if(store.get("chatSeenRooms", null) === null){ const m = {}; msgs.forEach(x => m[x.room] = x.id); store.set("chatSeenRooms", m); }
   updateChatBadge();
   sb.channel("sohbet").on("postgres_changes", { event: "*", schema: "public", table: "messages" }, p => {
@@ -1719,6 +1725,7 @@ const unreadIn = r => { const s = seenMap()[r] || 0; return msgs.filter(m => m.r
 function updateChatBadge(){
   const rooms = new Set(msgs.map(m => m.room)); let n = 0;
   rooms.forEach(r => { if(!(tab === "chat" && room === r)) n += unreadIn(r); });
+  n += friendsIn();
   $("chatBadge").hidden = !n; $("chatBadge").textContent = n > 99 ? "99+" : n;
 }
 const roomIcon = (c, ic) => `<div class="rav" style="--c:var(${c})"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ic}</svg></div>`;
@@ -1741,9 +1748,9 @@ function renderChat(){
     <div class="sect row" style="margin-right:4px"><span>Gruplarım</span><span class="spacer"></span><button class="linkbtn" id="browseGroups" style="font-size:15px;text-transform:none;padding:0">Tüm Gruplar</button></div>
     <div class="list">${groups.filter(g => g.is_member).map(g => roomRow("g:" + g.id, g.name, roomIcon(gcolor(g.id), GROUP_IC))).join("")}
       <button class="li room" id="newGroup"><div class="rav" style="--c:var(--fill);color:var(--accent)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div><div class="grow"><b class="rn" style="color:var(--accent)">Grup Oluştur</b><small>İsterseniz şifre koyabilirsiniz</small></div></button></div>
-    <div class="sect row" style="margin-right:4px"><span>Özel Mesajlar</span><span class="spacer"></span><button class="linkbtn" id="newDm" style="font-size:15px;text-transform:none;padding:0">Yeni Mesaj</button></div>
+    <div class="sect row" style="margin-right:4px"><span>Özel Mesajlar</span><span class="spacer"></span><button class="linkbtn" id="newDm" style="font-size:15px;text-transform:none;padding:0">Arkadaşlar${friendsIn() ? ` <span class="rb" style="display:inline-grid;vertical-align:1px">${friendsIn()}</span>` : ""}</button></div>
     ${dms.length ? `<div class="list">${dms.map(r => roomRow(r, roomName(r), avaOf(dmOther(r), roomName(r)))).join("")}</div>`
-      : `<div class="hint" style="text-align:center">Bir üyeye özel mesaj atmak için <b>Yeni Mesaj</b>'a dokunun.</div>`}`;
+      : `<div class="hint" style="text-align:center">Özel mesaj yalnızca arkadaşlarınızla yazışılır. <b>Arkadaşlar</b>'a dokunup arkadaş kodunuzu paylaşın veya bir kod girin.</div>`}`;
   updateChatBadge();
 }
 function renderRoom(){
@@ -1866,20 +1873,49 @@ function openJoin(g){
   };
 }
 async function openMembers(){
-  if(!members){ const { data } = await sb.rpc("list_members"); members = data || []; }
-  $("msgs").innerHTML = `<div class="sect" style="margin-top:8px">Kime Yazmak İstiyorsunuz?</div><div class="list">${members.length ? members.map(m =>
-    `<button class="li room" data-room="${esc(dmRoom(m.id))}">${avaOf(m.id, m.full_name || m.username)}<div class="grow"><b class="rn">${esc(m.full_name || m.username)}</b><small>${m.unvan ? esc(m.unvan) + " · " : ""}@${esc(m.username)}</small></div></button>`).join("")
-    : `<div class="li"><small>Henüz başka aktif üye yok.</small></div>`}</div>`;
-  $("heading").textContent = "Yeni Mesaj"; room = "__pick"; syncNav();
+  await loadFriends();
+  const code = me.friend_code || "";
+  const fr = friends.filter(f => f.kind === "friend"), inc = friends.filter(f => f.kind === "in"), out = friends.filter(f => f.kind === "out");
+  const btn = (a, id, label, danger) => `<button class="linkbtn" data-fr="${a}" data-id="${esc(id)}" style="font-size:15px;padding:4px 6px;${danger ? "color:var(--danger)" : ""}">${label}</button>`;
+  $("msgs").innerHTML = `<div class="sect" style="margin-top:8px">Arkadaş Kodunuz</div>
+    <div class="list"><div class="li" style="display:block"><div class="row"><b style="font-size:26px;letter-spacing:4px;font-variant-numeric:tabular-nums">${esc(code || "—")}</b><span class="spacer"></span>
+      <button class="linkbtn" id="frCopy" style="font-size:15px">Kopyala</button>${navigator.share ? `<button class="linkbtn" id="frShare" style="font-size:15px">Paylaş</button>` : ""}</div>
+      <small>Bu kodu yalnızca yazışmak istediğiniz kişiye verin. Onaylamadığınız kimse size mesaj atamaz.</small></div></div>
+    <div class="sect">Arkadaş Ekle</div>
+    <div class="list"><div class="li"><input id="frCode" maxlength="6" placeholder="Kod, örn. K7QM2X" autocomplete="off" autocapitalize="characters" style="flex:1;border:0;background:none;font:inherit;font-size:17px;color:var(--ink);outline:none;text-transform:uppercase;letter-spacing:2px"><button class="linkbtn" id="frAdd" style="font-size:16px;white-space:nowrap">Ekle</button></div></div>
+    ${inc.length ? `<div class="sect">Gelen İstekler</div><div class="list">${inc.map(f => `<div class="li">${avaOf(f.id, f.name)}<div class="grow"><b class="rn">${esc(f.name)}</b><small>${f.unvan ? esc(f.unvan) : "Sizi eklemek istiyor"}</small></div>${btn("acc", f.id, "Kabul Et")}${btn("rej", f.id, "Reddet", 1)}</div>`).join("")}</div>` : ""}
+    <div class="sect">Arkadaşlarım</div>
+    <div class="list">${fr.length ? fr.map(f => `<div class="li"><button class="room" data-room="${esc(dmRoom(f.id))}" style="display:flex;align-items:center;gap:12px;flex:1;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer;padding:0">${avaOf(f.id, f.name)}<div class="grow"><b class="rn">${esc(f.name)}</b><small>${f.unvan ? esc(f.unvan) + " · " : ""}Mesaj yazmak için dokunun</small></div></button>${btn("del", f.id, "Çıkar", 1)}</div>`).join("")
+      : `<div class="li"><small>Henüz arkadaşınız yok. Kodunuzu paylaşın ya da bir arkadaş kodu girin.</small></div>`}</div>
+    ${out.length ? `<div class="sect">Gönderdiğim İstekler</div><div class="list">${out.map(f => `<div class="li">${avaOf(f.id, f.name)}<div class="grow"><b class="rn">${esc(f.name)}</b><small>Onay bekleniyor</small></div>${btn("del", f.id, "Geri Al", 1)}</div>`).join("")}</div>` : ""}
+    <div class="foot">Diğer üyelerin adları gizlilik için yıldızlı görünür (M**** Y*****).</div>`;
+  $("heading").textContent = "Arkadaşlar"; room = "__pick"; syncNav();
+}
+async function frAction(a, id){
+  if(a === "del" && !confirm("Bu kişi arkadaş listenizden çıkarılsın mı? Artık size mesaj atamaz.")) return;
+  const { error } = a === "del" ? await sb.rpc("friend_remove", { other: id }) : await sb.rpc("friend_respond", { other: id, accept: a === "acc" });
+  if(error){ toast("İşlem yapılamadı"); return; }
+  toast(a === "acc" ? "Arkadaş eklendi" : a === "rej" ? "İstek reddedildi" : "Çıkarıldı"); openMembers();
+}
+async function frAdd(){
+  const code = ($("frCode").value || "").trim().toUpperCase(); if(code.length < 6){ toast("Kodu eksiksiz girin"); return; }
+  const { data, error } = await sb.rpc("friend_request", { code });
+  if(error){ toast("İstek gönderilemedi"); return; }
+  toast({ gonderildi: "İstek gönderildi. Karşı taraf onaylayınca yazışabilirsiniz.", kabul: "Arkadaş eklendi", zaten: "Zaten arkadaşsınız", bekliyor: "İsteğiniz onay bekliyor", kendin: "Bu sizin kodunuz", bulunamadi: "Bu koda ait aktif üye bulunamadı", sinir: "Bugün çok fazla istek gönderdiniz" }[data] || "Tamam", 4000);
+  openMembers();
 }
 $("msgs").addEventListener("click", async e => {
   if(e.target.closest("#newDm")) return openMembers();
+  if(e.target.closest("#frAdd")) return frAdd();
+  if(e.target.closest("#frCopy")){ try{ await navigator.clipboard.writeText(me.friend_code || ""); toast("Kod kopyalandı"); }catch{ toast(me.friend_code || ""); } return; }
+  if(e.target.closest("#frShare")){ try{ await navigator.share({ text: `TMPRO arkadaş kodum: ${me.friend_code}` }); }catch{} return; }
+  const fa = e.target.closest("[data-fr]"); if(fa) return frAction(fa.dataset.fr, fa.dataset.id);
   if(e.target.closest("#newGroup")) return openNewGroup();
   if(e.target.closest("#browseGroups")) return openBrowse();
   const j = e.target.closest("[data-join]");
   if(j){ const g = groups.find(x => x.id === j.dataset.join); if(!g) return; if(g.is_member){ room = "g:" + g.id; render(); return; } return openJoin(g); }
   const r = e.target.closest(".room");
-  if(r){ room = r.dataset.room; if(room.startsWith("dm:") && !members){ sb.rpc("list_members").then(({ data }) => { members = data || []; if(tab === "chat" && room) renderRoom(); }); } renderChat(); setTimeout(() => msgIn.focus(), 50); return; }
+  if(r){ room = r.dataset.room; if(room.startsWith("dm:") && !members) loadFriends().then(() => { if(tab === "chat" && room) renderRoom(); }); renderChat(); setTimeout(() => msgIn.focus(), 50); return; }
   const m = e.target.closest(".msg"); if(!m || !e.target.closest(".bub")) return;
   const msg = msgs.find(x => x.id === +m.dataset.id); if(!msg || (msg.user_id !== me.id && !(me.role === "admin" && !msg.room.startsWith("dm:")))) return;
   if(!confirm("Bu mesaj silinsin mi?")) return;
@@ -1895,7 +1931,7 @@ $("composer").addEventListener("submit", async e => {
   e.preventDefault(); const body = msgIn.value.trim(); if(!body || !room || room === "__pick") return;
   msgIn.value = ""; msgIn.style.height = "auto"; $("sendBtn").disabled = true;
   const { data, error } = await sb.from("messages").insert({ body, room }).select().single();
-  if(error){ msgIn.value = body; toast("Gönderilemedi"); return; }
+  if(error){ msgIn.value = body; toast(room.startsWith("dm:") && /security|policy/i.test(error.message || "") ? "Bu kişiyle arkadaş olmadan mesaj gönderemezsiniz" : "Gönderilemedi", 4000); return; }
   if(!msgs.some(m => m.id === data.id)) msgs.push(data);
   renderChat();
 });
