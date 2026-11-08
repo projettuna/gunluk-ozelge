@@ -47,14 +47,14 @@ create trigger profiles_argo before insert or update of unvan, birim, promosyon,
 -- Ünvan, birim ve promosyon ayrı saklanır; sohbette görünen "unvan" üçünün birleşimidir
 create or replace function public.set_my_titles(u text, b text, p text) returns text
 language plpgsql security definer set search_path = public as $$
-declare uu text := nullif(left(trim(u), 60), ''); bb text := nullif(left(trim(b), 60), ''); pp text := nullif(left(trim(p), 40), ''); full text;
+declare uu text := nullif(left(trim(u), 60), ''); bb text := nullif(left(trim(b), 60), ''); pp text := nullif(left(trim(p), 40), ''); birlesik text;
 begin
   if has_argo(uu) or has_argo(bb) or has_argo(pp) then
     raise exception 'Uygunsuz ifade kullanılamaz' using errcode = '22023';
   end if;
-  full := nullif(concat_ws(' · ', uu, bb, pp), '');
-  update profiles set unvan = full, birim = bb, promosyon = pp where id = auth.uid();
-  return full;
+  birlesik := nullif(concat_ws(' · ', uu, bb, pp), '');
+  update profiles set unvan = birlesik, birim = bb, promosyon = pp where id = auth.uid();
+  return birlesik;
 end $$;
 grant execute on function public.set_my_titles(text, text, text) to authenticated;
 
