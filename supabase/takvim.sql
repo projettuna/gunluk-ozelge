@@ -50,6 +50,9 @@ begin
            'name', coalesce(p.full_name, p.username), 'lat', p.wx_lat, 'lon', p.wx_lon, 'city', p.wx_city,
            'events', coalesce((select jsonb_agg(e.title order by e.id) from user_events e
                                where e.user_id = p.id and (e.day = today or (e.yearly and to_char(e.day, 'MM-DD') = to_char(today, 'MM-DD')))), '[]'::jsonb),
+           'news', (select jsonb_object_agg(x.tur, x.n) from (select it.tur, count(*) n from items it
+                    where it.created_at > now() - interval '24 hours' and it.eklendi is not null
+                      and it.tur = any (coalesce(p.notify_types, '{}')) group by it.tur order by count(*) desc) x),
            'subs', (select jsonb_agg(jsonb_build_object('endpoint', s.endpoint, 'p256dh', s.p256dh, 'auth', s.auth))
                     from push_subs s where s.user_id = p.id)))
     into users

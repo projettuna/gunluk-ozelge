@@ -92,6 +92,12 @@ export function composeMorning(u, w, hol, today, tomorrow) {
     const a = weatherAdvice(w);
     lines.push(`${WICON(w.code)} ${city} ${Math.round(w.min)}°/${Math.round(w.max)}° · ${WMO(w.code)}` + (a ? `\n${a}` : ""));
   }
+  const gun = new Date(today + "T12:00:00Z").toLocaleDateString("tr-TR", { day: "numeric", month: "long", weekday: "long", timeZone: "UTC" });
+  lines.splice(special ? 1 : 0, 0, `📆 ${gun}`);
+  if (u.news && typeof u.news === "object") {
+    const ent = Object.entries(u.news), n = ent.reduce((a, [, c]) => a + c, 0);
+    lines.push(n ? `📰 Son 24 saatte ${n} yeni kayıt: ${ent.slice(0, 4).map(([t, c]) => `${c} ${t}`).join(", ")}${ent.length > 4 ? "…" : ""}` : "📰 Son 24 saatte yeni mevzuat yok");
+  } else if (u.news === null) lines.push("📰 Son 24 saatte yeni mevzuat yok");
   const nt = tm.find(h => h.tur !== "anma");
   if (nt && !th.some(h => h.tur === "tatil")) lines.push(`📅 Yarın ${nt.ad}${nt.tur === "yarim" ? " (yarım gün)" : ""}`);
   if (u.events?.length) lines.push("📌 " + u.events.join(", "));
