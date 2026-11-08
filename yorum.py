@@ -60,7 +60,12 @@ def fill(db, limit=None, budget=None):
         try:
             note = ask(r)
         except Exception as e:  # noqa: BLE001
-            print(f"Müfettiş notu yazılamadı (#{r['id']}): {type(e).__name__} {getattr(e, 'code', '')}")
+            detail = ""
+            try:
+                detail = json.loads(e.read().decode()).get("error", {}).get("message", "")[:160]  # API hata metni (içerik değil)
+            except Exception:  # noqa: BLE001
+                pass
+            print(f"Müfettiş notu yazılamadı (#{r['id']}): {type(e).__name__} {getattr(e, 'code', '')} {detail}")
             if getattr(e, "code", 0) in (401, 403):
                 stop = True
             return
