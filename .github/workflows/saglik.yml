@@ -1,0 +1,37 @@
+name: Nöbetçi (sağlık kontrolü)
+
+on:
+  schedule:
+    - cron: "3,18,33,48 * * * *"   # 15 dakikada bir
+  workflow_dispatch:
+    inputs:
+      test_alert:
+        description: "Deneme uyarısı gönder (yöneticiye)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: saglik
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q pywebpush==2.0.3
+      - name: Kontrol et
+        env:
+          SUPABASE_URL: https://hnolhapzcisavhkwyzhs.supabase.co
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python saglik.py ${{ inputs.test_alert && '--test-alert' || '' }}
