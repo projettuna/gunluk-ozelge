@@ -1,0 +1,47 @@
+name: Gece yedeği
+
+on:
+  schedule:
+    - cron: "40 0 * * *"   # her gece 03:40 TR
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yedek
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Tabloları indir
+        env:
+          SUPABASE_URL: https://hnolhapzcisavhkwyzhs.supabase.co
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: python yedek.py
+      - name: Şifrele ve doğrula
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          # Şifre, gizli servis anahtarından türetilir (ayrı bir sır gerekmez; servis anahtarı değişirse eski yedekler eski anahtarla açılır)
+          export YK=$(printf '%s' "tmpro-yedek-v1" | openssl dgst -sha256 -hmac "$SUPABASE_SERVICE_KEY" -r | cut -d' ' -f1)
+          D=$(date -u +%Y-%m-%d)
+          tar czf yedek.tgz yedek
+          openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -pass env:YK -in yedek.tgz -out "tmpro-yedek-$D.enc"
+          rm -rf yedek yedek.tgz
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -pass env:YK -in "tmpro-yedek-$D.enc" | tar tzf - | wc -l | xargs echo "Doğrulandı, dosya sayısı:"
+          ls -la "tmpro-yedek-$D.enc" | awk '{print "Boyut:", $5}'
+          echo "D=$D" >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tmpro-yedek-${{ env.D }}
+          path: tmpro-yedek-*.enc
+          retention-days: 30
+          if-no-files-found: error
