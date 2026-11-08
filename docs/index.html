@@ -18,7 +18,7 @@
 <script>try{const t=localStorage.getItem("tmpro:theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch{}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400..800&family=Fraunces:opsz,wght@9..144,400..600&display=swap" rel="stylesheet">
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.79.0/dist/umd/supabase.js"></script>
 <style>
@@ -296,32 +296,48 @@ body.typing .tabbar{display:none}
 body.typing .composer{bottom:0;padding-bottom:8px}
 body.typing main{padding-bottom:80px}
 
-/* ---- premium katman (2026-11-08) ---- */
-:root{--accent:#5145e5;--t-ozelge:#4a5bdc;--t-teblig:#7a4fe0;--t-sirkuler:#1597b0;--t-kanun:#d9443f;--t-cb:#e3891b;--t-ic:#69748a;--t-rg:#c49a3c;--t-danistay:#18a06a;--t-aym:#d8426f;
-  --card-shadow:0 1px 2px rgba(16,24,64,.04),0 10px 28px rgba(16,24,64,.07);--card-line:rgba(255,255,255,0)}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--card-shadow:0 10px 30px rgba(0,0,0,.45);--card-line:rgba(255,255,255,.07);--surface:#141418;--accent:#8a82ff;--t-ozelge:#5b6cf0;--t-teblig:#8b62f0;--t-sirkuler:#22a9c2;--t-kanun:#e8554f;--t-cb:#f0982c;--t-ic:#7d889e;--t-rg:#d4ab4c;--t-danistay:#26b37a;--t-aym:#e65580;}}
-:root[data-theme="dark"]{--card-shadow:0 10px 30px rgba(0,0,0,.45);--card-line:rgba(255,255,255,.07);--surface:#141418;--accent:#8a82ff;--t-ozelge:#5b6cf0;--t-teblig:#8b62f0;--t-sirkuler:#22a9c2;--t-kanun:#e8554f;--t-cb:#f0982c;--t-ic:#7d889e;--t-rg:#d4ab4c;--t-danistay:#26b37a;--t-aym:#e65580;}
+/* ---- premium katman v2 (2026-11-08): özel bankacılık dili ---- */
+:root{--bg:#f5f4f0;--surface:#ffffff;--accent:#4f46e5;--gold:#b8862f;--ink:#12142b;
+  --card-shadow:0 1px 1px rgba(18,20,43,.03),0 12px 32px rgba(18,20,43,.07);--card-line:rgba(18,20,43,.06);
+  --brand:linear-gradient(155deg,#7b72ff 0%,#4f46e5 50%,#2a1f8f 100%);--goldg:linear-gradient(135deg,#f6dc95,#c99a3e 55%,#a5762a)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#07080f;--surface:#11131f;--accent:#8c85ff;--gold:#e2b964;--ink:#fff;
+  --card-shadow:0 12px 34px rgba(0,0,0,.5);--card-line:rgba(255,255,255,.07);--fill:rgba(140,140,170,.16);--line:rgba(255,255,255,.08)}}
+:root[data-theme="dark"]{--bg:#07080f;--surface:#11131f;--accent:#8c85ff;--gold:#e2b964;--ink:#fff;
+  --card-shadow:0 12px 34px rgba(0,0,0,.5);--card-line:rgba(255,255,255,.07);--fill:rgba(140,140,170,.16);--line:rgba(255,255,255,.08)}
+body{font-family:Manrope,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;letter-spacing:-.005em;font-feature-settings:normal}
+.head h2{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:38px;letter-spacing:-.02em;font-variation-settings:"opsz" 72}
+.eyebrow{font-weight:700;letter-spacing:.14em;font-size:11.5px;color:var(--gold)}
+.brand b{font-family:Manrope;font-weight:800;letter-spacing:.16em}
+.brand img{border-radius:11px;box-shadow:0 6px 16px rgba(79,70,229,.35)}
+.navtitle{font-family:Manrope;font-weight:700}
+/* kutular */
 .grid{gap:12px}
-.tile{border-radius:24px;padding:14px;box-shadow:var(--card-shadow);border:.5px solid var(--card-line);overflow:hidden;isolation:isolate;
-  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 7%,var(--surface)) 0%,var(--surface) 55%)}
-.tile::before{content:"";position:absolute;right:-30%;top:-30%;width:90%;height:90%;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--c) 16%,transparent),transparent 70%);z-index:-1}
-.tile .ic{width:40px;height:40px;border-radius:12px;
-  background:linear-gradient(155deg,color-mix(in srgb,var(--c) 62%,#fff) 0%,var(--c) 52%,color-mix(in srgb,var(--c) 72%,#000) 100%);
-  box-shadow:0 6px 14px color-mix(in srgb,var(--c) 38%,transparent),inset 0 1px 0 rgba(255,255,255,.45),inset 0 -1px 0 rgba(0,0,0,.12)}
-.tile .ic svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,.18))}
-.tile b{font-size:15.5px;letter-spacing:-.02em}
-.tile small{font-variant-numeric:tabular-nums}
-.tile .nb{top:13px;right:13px;height:24px;min-width:24px;border-radius:12px;background:linear-gradient(180deg,#ff5a52,#e5322b);box-shadow:0 4px 10px rgba(229,50,43,.35);font-variant-numeric:tabular-nums}
-.tile.all{border-radius:20px;background:var(--surface)}
-.tile.all::before{display:none}
-.tile.all .ic{background:linear-gradient(155deg,#6d63ff 0%,#4a3ad8 55%,#2a1f8f 100%);color:#fff;box-shadow:0 6px 14px rgba(74,58,216,.35),inset 0 1px 0 rgba(255,255,255,.4)}
+.tile{border-radius:22px;padding:14px 14px 13px;background:var(--surface);box-shadow:var(--card-shadow);border:.5px solid var(--card-line);overflow:hidden}
+.tile .ic{width:36px;height:36px;border-radius:11px;background:var(--brand);color:#fff;box-shadow:0 6px 14px rgba(79,70,229,.28),inset 0 1px 0 rgba(255,255,255,.35)}
+.tile .num{display:block;font-style:normal;font-family:Fraunces,Georgia,serif;font-weight:500;font-size:30px;line-height:1;letter-spacing:-.02em;font-variant-numeric:lining-nums tabular-nums;color:var(--ink);font-variation-settings:"opsz" 72}
+.tile b{font-size:13px;font-weight:700;color:var(--muted);margin-top:5px;letter-spacing:.01em}
+.tile .nb{top:14px;right:14px;height:22px;min-width:22px;border-radius:11px;background:var(--goldg);color:#2a1d05;font-weight:800;font-size:12px;box-shadow:0 3px 8px rgba(185,134,47,.35)}
+.tile.all{border-radius:20px}
+.tile.all .ic{background:var(--goldg);color:#2a1d05;box-shadow:0 6px 14px rgba(185,134,47,.3),inset 0 1px 0 rgba(255,255,255,.5)}
+.tile.all b{font-size:16px;color:var(--text);font-weight:700;margin:0}
+.tile.all small{font-size:13px}
+/* hava ve takvim */
+.wx,.wx.night,.wx.cloud{border-radius:24px;background:radial-gradient(120% 90% at 85% 0%,rgba(140,133,255,.45),transparent 55%),linear-gradient(160deg,#1b2147 0%,#0d1029 100%);box-shadow:0 14px 36px rgba(13,16,41,.35);border:.5px solid rgba(255,255,255,.08)}
+.wx .temp{font-family:Manrope;font-weight:300;font-size:58px;letter-spacing:-.04em}
+.wx .city{font-weight:700;letter-spacing:.01em}
+.wx .hl{opacity:.75}
+.wx .locbtn{background:rgba(255,255,255,.12);border:.5px solid rgba(255,255,255,.2)}
 .calcard{border-radius:22px;box-shadow:var(--card-shadow);border:.5px solid var(--card-line)}
-.calcard .cd{box-shadow:0 4px 10px rgba(0,0,0,.08);background:var(--surface);border:.5px solid var(--line)}
-.calcard .cd i{background:linear-gradient(180deg,#ff5a52,#e5322b)}
-.wx{border-radius:26px}
-.list,.group,.cal{box-shadow:var(--card-shadow);border:.5px solid var(--card-line)}
-.card{box-shadow:var(--card-shadow);border:.5px solid var(--card-line)}
-.brand img{border-radius:11px;box-shadow:0 4px 14px rgba(74,58,216,.35)}
+.calcard .cd{background:var(--surface);border:.5px solid var(--line);box-shadow:0 4px 10px rgba(0,0,0,.06)}
+.calcard .cd i{background:var(--goldg);color:#2a1d05}
+.calcard .cd b{font-family:Fraunces,Georgia,serif;font-weight:500}
+.list,.group,.cal,.card{box-shadow:var(--card-shadow);border:.5px solid var(--card-line)}
+.sect{font-weight:700;letter-spacing:.1em;font-size:11.5px}
+.tabbar .tab.on{color:var(--accent)}
+.badge{background:var(--goldg);color:#2a1d05;font-weight:800}
+.card .type{color:var(--gold);text-transform:uppercase;letter-spacing:.12em;font-size:11px;font-weight:800}
+.card .title{font-weight:600;letter-spacing:-.01em}
+.day{font-family:Fraunces,Georgia,serif;font-weight:500;letter-spacing:-.01em}
 </style>
 </head>
 <body>
@@ -581,7 +597,7 @@ function _render(){
     const all = {}, un = {}; items.forEach(i => { all[i.tur] = (all[i.tur] || 0) + 1; if(!read.has(i.id)) un[i.tur] = (un[i.tur] || 0) + 1; });
     const tile = (t, cls) => `<button class="tile ${cls || ""}" data-t="${esc(t)}" style="--c:var(${TYPES[t] || "--gold"})">
       ${(t === "Tümü" ? unreadCount : un[t]) ? `<span class="nb">${t === "Tümü" ? unreadCount : un[t]}</span>` : ""}
-      <span class="ic">${icon(t)}</span><span><b>${esc(t === "Tümü" ? "Tüm Kayıtlar" : SHORT(t))}</b><small>${t === "Tümü" ? items.length : (all[t] || 0)} kayıt</small></span></button>`;
+      <span class="ic">${icon(t)}</span><span><em class="num">${t === "Tümü" ? items.length : (all[t] || 0)}</em><b>${esc(t === "Tümü" ? "Tüm Kayıtlar" : SHORT(t))}</b></span></button>`;
     const wide = (t, ic, label, n, badge) => `<button class="tile all" data-t="${t}"><span class="ic">${ic}</span><span><b>${label}</b><small>${n} kayıt</small></span>${badge ? `<span class="nb">${badge}</span>` : ""}</button>`;
     const bell = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
     $("grid").innerHTML = ORDER.map(t => tile(t)).join("") + (unreadCount ? wide("__unread", bell, "Okunmamış", unreadCount, unreadCount) : "") + wide("Tümü", icon("Tümü"), "Tüm Kayıtlar", items.length, 0);
