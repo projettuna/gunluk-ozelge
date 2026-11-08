@@ -138,7 +138,7 @@ main{padding:0 16px calc(96px + env(safe-area-inset-bottom))}
 .linkbtn{border:0;background:none;color:var(--accent);font-size:17px;cursor:pointer;padding:6px 0}
 .back{display:inline-flex;align-items:center;gap:2px;border:0;background:none;color:var(--accent);font-size:17px;padding:2px 0 6px;margin-left:-6px;cursor:pointer}
 .searchbox{position:relative;margin:0 0 4px}
-.searchbox svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.searchbox svg{position:absolute;z-index:2;pointer-events:none;left:9px;top:50%;transform:translateY(-50%);color:var(--muted)}
 .searchbox input{width:100%;border:0;background:var(--fill);border-radius:11px;height:38px;padding:0 10px 0 34px;font-size:17px;outline:none;-webkit-appearance:none}
 .searchbox input::placeholder{color:var(--muted)}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 4px;margin:0 -16px;scrollbar-width:none}
@@ -370,6 +370,25 @@ body.home .head h2{font-size:36px;background:linear-gradient(100deg,var(--ink) 3
 .calcard .cd i{background:var(--goldg);color:#2a1d05}
 .card .type{color:var(--gold);text-transform:uppercase;letter-spacing:.1em;font-size:11px;font-weight:700}
 .card .title{font-weight:600}
+/* kayıt kutusu v3 */
+.card{border-radius:24px;padding:16px 16px 12px;margin-bottom:14px}
+.card.unread .ctop::before{display:none}
+.ctop{gap:8px;margin-bottom:12px}
+.cic{width:28px;height:28px;border-radius:9px;background:var(--brand);color:#fff;display:grid;place-items:center;flex:none;box-shadow:0 4px 10px rgba(91,75,255,.3),inset 0 1px 0 rgba(255,255,255,.3)}
+.cic svg{width:15px;height:15px}
+.card .type{font-size:11.5px;letter-spacing:.09em}
+.newtag{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:999px;background:var(--goldg);color:#2a1d05}
+.when{margin-left:auto;font-size:12.5px;font-weight:600;color:var(--muted);background:var(--fill-2);padding:4px 9px;border-radius:999px;font-variant-numeric:tabular-nums}
+.card .title{font-size:17px;line-height:1.32;letter-spacing:-.02em;color:var(--ink)}
+.meta{margin-top:8px}.meta span{display:inline-block;font-size:12px;font-weight:600;color:var(--muted);background:var(--fill-2);border-radius:8px;padding:4px 8px;font-variant-numeric:tabular-nums;letter-spacing:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:top}
+.ozbox{margin-top:12px;padding:11px 13px;border-radius:16px;background:color-mix(in srgb,var(--accent) 6%,transparent);border-left:3px solid color-mix(in srgb,var(--accent) 55%,transparent)}
+.ozbox .ozet{margin:0;font-size:14.5px;line-height:1.5;color:var(--text);opacity:.78}
+.ozbox .more{font-weight:650;font-size:14px;padding:6px 0 0}
+.cfoot{border-top:0;margin-top:12px;padding-top:0;gap:8px}
+.open{background:var(--brand);color:#fff!important;font-weight:650;font-size:14px;padding:8px 14px;border-radius:999px;box-shadow:0 6px 14px -6px rgba(91,75,255,.6)}
+.open svg{stroke:#fff}
+.act{width:36px;height:36px;background:var(--fill-2);border:.5px solid var(--glass-line)}
+.act.on{background:color-mix(in srgb,var(--gold) 16%,transparent)}
 .day{font-weight:700;letter-spacing:-.025em}
 .sect{font-weight:600;letter-spacing:.06em}
 .badge{background:var(--goldg);color:#2a1d05;font-weight:800}
@@ -720,12 +739,13 @@ function _render(){
     const dl = dayLabel(i.eklendi);
     if(dl !== last && !home){ html += `<div class="day">${esc(dl)}</div>`; last = dl; }
     const unread = !read.has(i.id), st = stars.has(i.id), long = (i.ozet || "").length > 200;
+    const mParts = (i.meta || "").split(" · "), mDate = /^\d{2}\.\d{2}\.\d{4}$/.test(mParts[0]) ? mParts.shift() : "", mRest = mParts.join(" · ");
     const time = i.eklendi ? new Date(i.eklendi).toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"}) : "";
     html += `<article class="card ${unread ? "unread" : ""}" data-id="${i.id}" style="--c:var(${TYPES[i.tur] || "--muted"})">
-      <div class="ctop"><span class="type">${esc(i.tur.replace(" (VUK 359)", " · VUK 359"))}</span>${time ? `<span class="dot"></span><span class="when">${time}</span>` : ""}</div>
+      <div class="ctop"><span class="cic">${icon(i.tur, 15)}</span><span class="type">${esc(i.tur.replace(" (VUK 359)", " · VUK 359"))}</span>${unread ? `<span class="newtag">Yeni</span>` : ""}<span class="when">${esc(mDate || time)}</span></div>
       <a class="title" href="${esc(i.url)}" target="_blank" rel="noopener">${hl(i.title, q)}</a>
-      ${i.meta ? `<div class="meta">${hl(i.meta, q)}</div>` : ""}
-      ${i.ozet ? `<div class="ozet ${long ? "clip" : ""}">${hl(i.ozet, q)}</div>${long ? `<button class="more">Devamı</button>` : ""}` : ""}
+      ${mRest ? `<div class="meta"><span>${hl(mRest, q)}</span></div>` : ""}
+      ${i.ozet ? `<div class="ozbox"><div class="ozet ${long ? "clip" : ""}">${hl(i.ozet, q)}</div>${long ? `<button class="more">Devamı</button>` : ""}</div>` : ""}
       <div class="cfoot"><a class="open" href="${esc(i.url)}" target="_blank" rel="noopener">Kaynağı Aç ${ICON_OPEN}</a>
         <button class="act rd" aria-label="${unread ? "Okundu say" : "Okunmadı say"}">${ICON_READ(!unread)}</button>
         <button class="act st ${st ? "on" : ""}" aria-label="Kaydet">${ICON_STAR(st)}</button></div>
@@ -1261,7 +1281,7 @@ function statusPill(u){
   return `<span class="pill ok">Aktif</span>`;
 }
 
-new IntersectionObserver(([e]) => $("appbar").classList.toggle("solid", !e.isIntersecting), { rootMargin: "-56px 0px 0px 0px" }).observe($("headRow"));
+const barSolid = () => $("appbar").classList.toggle("solid", scrollY > 2); addEventListener("scroll", barSolid, { passive: true }); barSolid();
 sb.auth.onAuthStateChange(ev => { if(ev === "SIGNED_OUT"){ me = null; show("authView"); } });
 setInterval(async () => { if(me && !$("appView").hidden && document.visibilityState === "visible"){ await loadItems(); if(["feed","unread","star"].includes(tab)) render(); } }, 5 * 60 * 1000);
 boot();
