@@ -17,7 +17,11 @@ QUERIES = [
     ("GİB", '"Gelir İdaresi Başkanlığı" OR "Gelir İdaresi"'),
     ("Kaçakçılık", '"vergi kaçakçılığı" OR "sahte fatura" OR "naylon fatura" OR "vergi incelemesi"'),
     ("Vergi", '"vergi düzenlemesi" OR "vergi paketi" OR "vergi affı" OR "yapılandırma" vergi'),
+    ("Dünya", 'OECD vergi OR "küresel asgari vergi" OR "uluslararası vergi" OR "vergi cenneti" OR "dijital hizmet vergisi"'),
 ]
+# Başlık yabancı bir ülkeyi/kurumu anıyorsa "Dünya" başlığına alınır
+FOREIGN = re.compile(r"\b(ABD|Amerika|Avrupa|AB'|AB |Avrupa Birliği|Britanya|İngiltere|Almanya|Fransa|İtalya|İspanya|Hollanda|Belçika|İsviçre|Avusturya|Yunanistan|Rusya|Ukrayna|Çin|Japonya|Hindistan|Kanada|Avustralya|Brezilya|Arjantin|Meksika|Malezya|Endonezya|Kore|İsrail|İran|Irak|Suriye|Mısır|Suudi|Katar|Dubai|BAE|Azerbaycan|Kazakistan|Özbekistan|Gürcistan|Bulgaristan|Romanya|Polonya|Macaristan|Trump|Biden|Washington|Londra|Berlin|Paris|Brüksel|Moskova|Pekin|OECD|IMF|G20|G7|Dünya Bankası|BM |Birleşmiş Milletler|küresel|uluslararası|global)", re.I)
+
 RSS = "https://news.google.com/rss/search?q={q}&hl=tr&gl=TR&ceid=TR:tr"
 SKIP = re.compile(r"\b(burç|maç|transfer|dizi|magazin|altın fiyat|hava durumu)\b", re.I)
 
@@ -44,7 +48,8 @@ def fetch_news():
                 when = parsedate_to_datetime(pub).astimezone(timezone.utc).isoformat()
             except (TypeError, ValueError):
                 when = None
-            out.append({"title": title[:300], "url": link, "source": src[:80] or None, "konu": konu, "published": when})
+            out.append({"title": title[:300], "url": link, "source": src[:80] or None,
+                        "konu": "Dünya" if konu != "VDK" and FOREIGN.search(title) else konu, "published": when})
     return out
 
 
@@ -52,8 +57,8 @@ def run(db):
     items = fetch_news()
     added = 0
     for i in range(0, len(items), 200):
-        res = db("POST", "news?on_conflict=url", items[i:i + 200], prefer="resolution=ignore-duplicates,return=representation")
+        res = db("POST", "news?on_conflict=url", items[i:i + 200], prefer="resolution=merge-duplicates,return=representation")
         added += len(res or [])
     old = (datetime.now(timezone.utc) - timedelta(days=60)).strftime("%Y-%m-%dT%H:%M:%SZ")
     db("DELETE", f"news?published=lt.{old}", prefer="return=minimal")
-    print(f"Haberler: {len(items)} bulundu, {added} yeni")
+    print(f"Haberler: {len(items)} bulundu/güncellendi, Dünya: {sum(1 for x in items if x['konu'] == 'Dünya')}")
