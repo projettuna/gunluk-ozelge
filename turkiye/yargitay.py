@@ -20,6 +20,7 @@ import re
 import sys
 import time
 from urllib.parse import quote
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 BASE = "https://karararama.yargitay.gov.tr"
@@ -34,10 +35,22 @@ QUERIES = [
 VERGI = re.compile(r"vergi usul|213 sayılı|vuk|359|sahte fatura|yanıltıcı belge|vergi kaçakçılığı|naylon fatura", re.I)
 STATE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "yargitay_gorulen.json")
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+PAUSE = 6
 TEST, SEED = "--test" in sys.argv, "--seed" in sys.argv
 
 
 def http(url, body=None, timeout=60):
+    for wait in (30, 90, 240, None):
+        try:
+            return _http(url, body, timeout)
+        except HTTPError as e:
+            if e.code != 429 or wait is None:
+                raise
+            print(f"Site yavaşla dedi (429), {wait} sn bekleniyor…", flush=True)
+            time.sleep(wait)
+
+
+def _http(url, body=None, timeout=60):
     data = json.dumps(body).encode() if body is not None else None
     req = Request(url, data=data, method="POST" if data else "GET", headers={
         "User-Agent": UA, "Accept": "application/json, text/plain, */*", "Content-Type": "application/json; charset=UTF-8",
@@ -97,33 +110,37 @@ def main():
     found = {}
     for q in QUERIES:
         res = []
-        for page in range(1, (6 if SEED else 3)):
+        for page in range(1, (6 if SEED else 2)):
             try:
                 part = search(q, page)
             except Exception as e:  # noqa: BLE001
                 print(f"Arama hatası ({q}, sayfa {page}): {e}")
                 break
             res += part
-            time.sleep(2)
+            time.sleep(PAUSE)
             if len(part) < 10:
                 break
         ceza = [r for r in res if "ceza" in r["daire"].lower()]
         print(f"{q}: {len(res)} sonuç, {len(ceza)} ceza dairesi")
         for r in ceza:
             found.setdefault(r["id"], r)
-        time.sleep(2)
+        time.sleep(PAUSE)
     new = [r for k, r in found.items() if k not in seen]
     print(f"Yeni karar adayı: {len(new)}")
     if TEST:
         shown = False
         for r in new[:6]:
-            t = document(r["id"])
+            try:
+                t = document(r["id"])
+            except Exception as e:  # noqa: BLE001
+                print(f"Metin alınamadı: {e}")
+                break
             ok = bool(VERGI.search(t))
             print(f"{r['daire']} E.{r['esas']} K.{r['karar']}: {len(t)} krk, vergi: {ok}")
             if not ok and not shown:
                 shown = True
                 print("   Örnek: " + t[:200].replace("\n", " "))
-            time.sleep(2)
+            time.sleep(PAUSE)
         return
     rows = []
     for r in (new if SEED else new[:40]):
@@ -137,7 +154,7 @@ def main():
             continue
         rows.append({"title": f"Yargıtay {r['daire']} E. {r['esas']}, K. {r['karar']}", "meta": r["tarih"],
                      "url": f"{BASE}/getDokuman?id={r['id']}", "ozet": ozet(t), "metin": t})
-        time.sleep(2)
+        time.sleep(PAUSE)
     if rows:
         print(f"Veritabanına eklenen: {send(rows)} / {len(rows)}")
     with open(STATE, "w", encoding="utf-8") as f:
