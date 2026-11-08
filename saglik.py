@@ -266,8 +266,9 @@ def ai():
 
 
 def phone():
-    rows, _ = db("items?select=eklendi&tur=eq.Yarg%C4%B1tay%20(Ceza)&eklendi=not.is.null&order=eklendi.desc&limit=1")
-    last = ts(rows[0]["eklendi"]) if rows else None
+    # arşive giden eski kararlar da telefonun çalıştığını gösterir, bu yüzden created_at
+    rows, _ = db("items?select=created_at&tur=eq.Yarg%C4%B1tay%20(Ceza)&order=created_at.desc&limit=1")
+    last = ts(rows[0]["created_at"]) if rows else None
     if last and NOW - last > timedelta(days=10):
         bad("telefon", "uyari", "10 gündür telefondan yeni Yargıtay kararı gelmedi; telefon/Termux açık mı?")
 
