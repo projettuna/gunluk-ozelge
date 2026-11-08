@@ -137,7 +137,10 @@ def main():
             time.sleep(PAUSE)
         return
     rows = []
-    for r in (new if SEED else new[:40]):
+    todo = new if SEED else new[:40]
+    for i, r in enumerate(todo, 1):
+        if i % 20 == 0:
+            print(f"  {i}/{len(todo)} karar işlendi…", flush=True)
         try:
             t = document(r["id"])
         except Exception as e:  # noqa: BLE001
