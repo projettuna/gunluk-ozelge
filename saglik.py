@@ -314,7 +314,7 @@ def main():
     fixed = [k for k in old if k not in problems]
     due = problems and (NOW - (ts(st.get("last_alert")) or NOW - REMIND - timedelta(1))) >= REMIND
     send = [v for k, v in problems.items() if (k in new or due) and (v[0] == "kritik" or not night)]
-    print(f"Sorun: {len(problems)} (yeni {len(new)}, düzelen {len(fixed)})")
+    print(f"Sorun: {len(problems)} (yeni {len(new)}, düzelen {len(fixed)})" + (f" · {', '.join(sorted(problems))}" if problems else ""))
 
     if send:
         crit = [m for lv, m in send if lv == "kritik"]
