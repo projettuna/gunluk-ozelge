@@ -948,7 +948,9 @@ function _render(){
   $("heading").textContent = {tools:"Araçlar", news:"Haberler", feed:"Akış", unread:"Okunmamış", star:"Kaydedilenler", account:"Hesap", admin:"Yönetim", chat:"Sohbet", cal:"Takvim", inbox:"Bildirimler"}[tab];
   if(tab === "chat"){ $("back").firstChild && ($("back").lastChild.textContent = "Sohbet"); return renderChat(); }
   $("back").lastChild.textContent = "Akış";
-  $("markAll").hidden = tab !== "unread" || !unreadCount;
+  const viewUnread = items.filter(i => !read.has(i.id) && (tab === "unread" || filter === "Tümü" || filter === "__all" || i.tur === filter)).length;
+  $("markAll").hidden = !["feed", "unread"].includes(tab) || !viewUnread;
+  $("markAll").textContent = tab === "feed" && filter !== "Tümü" && filter !== "__all" ? `Tümünü Oku (${viewUnread})` : `Hepsini Oku (${viewUnread})`;
   if(tab === "account") return renderAccount();
   if(tab === "cal") return renderCal();
   if(tab === "inbox") return renderInbox();
@@ -1072,7 +1074,13 @@ $("list").addEventListener("click", e => {
 });
 let deb; $("q").addEventListener("input", () => { clearTimeout(deb); deb = setTimeout(render, 150); });
 $("refresh").addEventListener("click", async () => { await loadItems(true); render(); if(me?.role === "admin") refreshAdminBadge(); });
-$("markAll").addEventListener("click", () => { items.forEach(i => read.add(i.id)); store.set("read", [...read]); toast("Tümü okundu"); render(); });
+$("markAll").addEventListener("click", () => {
+  const only = tab === "feed" && filter !== "Tümü" && filter !== "__all" ? filter : null;
+  const n = items.filter(i => !read.has(i.id) && (!only || i.tur === only)).length;
+  if(n > 20 && !confirm(`${n} kayıt okundu olarak işaretlensin mi?`)) return;
+  items.forEach(i => { if(!only || i.tur === only) read.add(i.id); });
+  store.set("read", [...read]); toast(only ? `${only}: tümü okundu` : "Tümü okundu"); render();
+});
 document.addEventListener("visibilitychange", async () => { if(document.visibilityState === "visible" && me && !$("appView").hidden){ await loadItems(); render(); } });
 navigator.serviceWorker?.addEventListener("message", async e => {
   if(e.data?.type === "inbox"){ refreshBell(); if(tab === "inbox") renderInbox(); }
