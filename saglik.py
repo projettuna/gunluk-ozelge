@@ -99,6 +99,11 @@ def setup():
             db(f"profiles?select={col}&limit=1")
         except RuntimeError:
             bad("kurulum_" + col, "uyari", f"Veritabanında {what} kurulumu eksik görünüyor")
+    for tbl, what in (("feedback", "Sorun Bildir"), ("usage_daily", "kullanım istatistiği"), ("password_resets", "şifre sıfırlama")):
+        try:
+            db(f"{tbl}?select=*&limit=1")
+        except RuntimeError:
+            bad("kurulum_" + tbl, "uyari", f"Veritabanında {what} kurulumu eksik (destek.sql çalıştırılmalı)")
 
 
 def main_job():
@@ -316,3 +321,10 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # Üye e-postaları (şifre sıfırlama, onay) 15 dakikayı geçmeden gitsin
+    if os.environ.get("SMTP_USER"):
+        try:
+            import ozelge
+            ozelge.send_member_mails()
+        except Exception as e:  # noqa: BLE001
+            print(f"Üye e-postaları gönderilemedi: {type(e).__name__}")

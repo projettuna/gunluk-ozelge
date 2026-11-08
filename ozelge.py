@@ -452,6 +452,14 @@ def send_member_mails():
     srv.login(user, pw)
     ok = 0
     for r in rows:
+        # Aynı e-posta iki iş tarafından gönderilmesin: önce "gönderiliyor" diye işaretle
+        try:
+            claimed = db("PATCH", f"mail_queue?id=eq.{r['id']}&sent_at=is.null&error=is.null",
+                         {"sent_at": datetime.now(timezone.utc).isoformat()}, prefer="return=representation")
+        except Exception:  # noqa: BLE001
+            continue
+        if not claimed:
+            continue
         try:
             msg = MIMEText(r["body"] + "\n\n—\nTMPRO · Vergi Mevzuatı, Tek Ekranda\nhttps://tmpro.tmproapp.workers.dev", "plain", "utf-8")
             msg["Subject"] = r["subject"]
@@ -460,10 +468,9 @@ def send_member_mails():
             msg["Date"] = formatdate(localtime=False)
             msg["Message-ID"] = make_msgid(domain=sender.split("@")[-1])
             srv.sendmail(sender, [r["to_email"]], msg.as_string())
-            db("PATCH", f"mail_queue?id=eq.{r['id']}", {"sent_at": datetime.now(timezone.utc).isoformat()})
             ok += 1
         except Exception as e:  # noqa: BLE001
-            db("PATCH", f"mail_queue?id=eq.{r['id']}", {"error": str(e)[:300]})
+            db("PATCH", f"mail_queue?id=eq.{r['id']}", {"sent_at": None, "error": str(e)[:300]})
     srv.quit()
     print(f"Üye e-postası gönderildi: {ok}/{len(rows)}")
 

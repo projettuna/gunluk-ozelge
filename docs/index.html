@@ -232,6 +232,8 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
 .hint{font-size:15px;color:var(--muted);background:var(--surface);border-radius:14px;padding:14px 16px;margin-bottom:8px;line-height:1.45}
 .hint b{color:var(--text);font-weight:600}
 #admin .seg,#account .seg{margin:0 0 8px}
+.sheet #fbKind button{flex:1;width:auto;justify-content:center;padding:8px 6px;font-size:15px;border-radius:8px}.sheet #fbKind button.on{background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+#adminSeg{overflow-x:auto;scrollbar-width:none}#adminSeg::-webkit-scrollbar{display:none}#adminSeg button{flex:0 0 auto;padding-left:12px;padding-right:12px;white-space:nowrap}
 #setForm{background:none;padding:0}
 #setForm .field span{display:block;font-size:13px;color:var(--muted);padding:10px 16px 0}
 #setForm .field input{height:40px}
@@ -628,6 +630,22 @@ body.home::before{opacity:.85}
     <label class="field"><span>Şifre</span><input placeholder="Şifre" aria-label="Şifre" name="password" type="password" autocomplete="current-password" required></label>
     </div><div class="err" id="loginErr"></div>
     <button class="btn" type="submit">Giriş Yap</button>
+    <button class="linkbtn" type="button" id="forgotBtn" style="display:block;margin:14px auto 0;font-size:15.5px">Şifremi Unuttum</button>
+  </form>
+  <form id="forgotForm" hidden><div class="group">
+    <label class="field"><span>Kullanıcı Adı</span><input placeholder="Kullanıcı Adı" aria-label="Kullanıcı Adı" name="username" autocomplete="username" autocapitalize="none" required></label>
+    <label class="field"><span>Kayıtlı E-posta</span><input placeholder="Kayıtlı E-posta" aria-label="Kayıtlı E-posta" name="email" type="email" autocomplete="email" autocapitalize="none" required></label>
+    </div><div class="err" id="forgotMsg"></div>
+    <button class="btn" type="submit">Sıfırlama Bağlantısı Gönder</button>
+    <p class="small muted" style="margin:12px 4px;text-align:center">Kayıtlı e-postanız yoksa yöneticiye ulaşın; şifrenizi o belirleyebilir.</p>
+    <button class="linkbtn" type="button" data-back-login style="display:block;margin:8px auto 0;font-size:15.5px">Girişe Dön</button>
+  </form>
+  <form id="resetForm" hidden><div class="group">
+    <label class="field"><span>Yeni Şifre (En Az 8 Karakter)</span><input placeholder="Yeni Şifre (En Az 8 Karakter)" aria-label="Yeni Şifre" name="p1" type="password" autocomplete="new-password" minlength="8" required></label>
+    <label class="field"><span>Yeni Şifre (Tekrar)</span><input placeholder="Yeni Şifre (Tekrar)" aria-label="Yeni Şifre Tekrar" name="p2" type="password" autocomplete="new-password" minlength="8" required></label>
+    </div><div class="err" id="resetMsg"></div>
+    <button class="btn" type="submit">Şifremi Değiştir</button>
+    <button class="linkbtn" type="button" data-back-login style="display:block;margin:14px auto 0;font-size:15.5px">Girişe Dön</button>
   </form>
   <form id="signupForm" hidden><div class="group">
     <label class="field"><span>Ad Soyad</span><input placeholder="Ad Soyad" aria-label="Ad Soyad" name="full_name" autocomplete="name" required></label>
@@ -782,7 +800,30 @@ const store = {
 document.querySelector(".seg").addEventListener("click", e => {
   const b = e.target.closest("button"); if(!b) return;
   document.querySelectorAll(".seg button").forEach(x => x.classList.toggle("on", x === b));
-  $("loginForm").hidden = b.dataset.mode !== "login"; $("signupForm").hidden = b.dataset.mode !== "signup";
+  authMode(b.dataset.mode === "signup" ? "signupForm" : "loginForm");
+});
+function authMode(m){
+  for(const f of ["loginForm", "signupForm", "forgotForm", "resetForm"]) $(f).hidden = f !== m;
+  document.querySelector("#authView .seg").hidden = m === "forgotForm" || m === "resetForm";
+}
+$("forgotBtn").onclick = () => { authMode("forgotForm"); $("forgotMsg").textContent = ""; };
+document.querySelectorAll("[data-back-login]").forEach(b => b.onclick = () => { authMode("loginForm"); document.querySelectorAll("#authView .seg button").forEach(x => x.classList.toggle("on", x.dataset.mode === "login")); });
+$("forgotForm").addEventListener("submit", async e => {
+  e.preventDefault(); const f = new FormData(e.target), btn = e.target.querySelector("button[type=submit]"); btn.disabled = true;
+  const { error } = await sb.rpc("request_password_reset", { uname: String(f.get("username")).trim().toLowerCase(), addr: String(f.get("email")).trim().toLowerCase() });
+  btn.disabled = false;
+  $("forgotMsg").style.color = error ? "" : "var(--ok, #34c759)";
+  $("forgotMsg").textContent = error ? "Şu an gönderilemedi, biraz sonra tekrar deneyin." : "Bilgiler doğruysa en geç 15 dakika içinde e-postanıza sıfırlama bağlantısı gelecek. Gereksiz (spam) klasörünü de kontrol edin.";
+});
+let resetTok = null;
+$("resetForm").addEventListener("submit", async e => {
+  e.preventDefault(); const f = new FormData(e.target);
+  if(f.get("p1") !== f.get("p2")){ $("resetMsg").textContent = "Şifreler aynı değil."; return; }
+  const btn = e.target.querySelector("button[type=submit]"); btn.disabled = true;
+  const { data, error } = await sb.rpc("reset_password", { tok: resetTok, newpw: f.get("p1") });
+  btn.disabled = false;
+  if(error || !data){ $("resetMsg").textContent = error ? "Şifre kaydedilemedi: " + error.message : "Bağlantının süresi dolmuş veya daha önce kullanılmış. Yeniden \"Şifremi Unuttum\" deyin."; return; }
+  resetTok = null; authMode("loginForm"); toast("Şifreniz değiştirildi, yeni şifrenizle giriş yapabilirsiniz.", 5000);
 });
 $("loginForm").addEventListener("submit", async e => {
   e.preventDefault(); const f = new FormData(e.target); $("loginErr").textContent = "";
@@ -863,6 +904,32 @@ function openVersionSheet(mode){
   document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
   el.onclick = e => { if(e.target === el || e.target.closest("button")?.dataset.a === "x") closeSheet(); };
 }
+async function openFeedback(){
+  closeSheet();
+  const el = document.createElement("div"); el.className = "sheetwrap"; el.id = "sheet"; let kind = "sorun";
+  el.innerHTML = `<div class="sheet"><div class="stitle">Sorun Bildir / Öneri</div>
+    <div class="seg" id="fbKind" style="margin:0 4px 10px">${[["sorun","Sorun"],["oneri","Öneri"],["soru","Soru"]].map(([k, l]) => `<button type="button" data-k="${k}" class="${k === "sorun" ? "on" : ""}">${l}</button>`).join("")}</div>
+    <div style="padding:0 4px"><textarea id="fbText" rows="5" maxlength="2000" placeholder="Ne oldu, nerede oldu? Ya da neyin eklenmesini istersiniz?"></textarea></div>
+    <button data-a="send" class="primary" style="justify-content:center;margin-top:8px">Gönder</button>
+    <div id="fbOld" class="vnotes" style="max-height:30vh"></div>
+    <button data-a="x" class="cancel">Kapat</button></div>`;
+  document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
+  sb.from("feedback").select("kind,body,status,reply,created_at").order("id", { ascending: false }).limit(5).then(({ data }) => {
+    if(data?.length && $("fbOld")) $("fbOld").innerHTML = `<small>Önceki bildirimleriniz</small><ul>${data.map(f => `<li>${esc(f.body.slice(0, 80))} <small>· ${f.status === "cozuldu" ? "✅ Çözüldü" : "İnceleniyor"}</small>${f.reply ? `<br><small>Yanıt: ${esc(f.reply)}</small>` : ""}</li>`).join("")}</ul>`;
+  }, () => {});
+  el.onclick = async e => {
+    if(e.target === el) return closeSheet();
+    const k = e.target.closest("[data-k]"); if(k){ kind = k.dataset.k; el.querySelectorAll("[data-k]").forEach(x => x.classList.toggle("on", x === k)); return; }
+    const a = e.target.closest("button")?.dataset.a; if(a === "x") return closeSheet();
+    if(a === "send"){
+      const body = $("fbText").value.trim(); if(body.length < 3){ toast("Lütfen kısaca yazın"); return; }
+      e.target.disabled = true;
+      const { error } = await sb.rpc("send_feedback", { k: kind, b: body, pg: tab, u: navigator.userAgent + " · v" + APP_VERSION });
+      if(error){ e.target.disabled = false; toast("Gönderilemedi: " + error.message, 4000); return; }
+      closeSheet(); toast("Teşekkürler, iletildi. Yanıtı bildirim olarak alacaksınız.", 4000);
+    }
+  };
+}
 async function checkVersion(){
   try{
     const r = await fetch("surum.json?t=" + Date.now(), { cache: "no-store" }); if(!r.ok) return;
@@ -885,6 +952,8 @@ async function checkVersion(){
 document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && me && isActive(me)) checkVersion(); });
 
 async function boot(){
+  const sq = new URLSearchParams(location.search).get("sifre");
+  if(sq){ resetTok = sq; history.replaceState(null, "", location.pathname); await sb.auth.signOut().catch(() => {}); show("authView"); authMode("resetForm"); return; }
   const { data: { session } } = await sb.auth.getSession();
   if(!session){ show("authView"); fillSignupPrice(); return; }
   const { data: p, error } = await sb.from("profiles").select("*").eq("id", session.user.id).single();
@@ -905,6 +974,7 @@ async function boot(){
   ensurePushIfGranted();
   refreshBell();
   checkVersion();
+  track("acilis");
   if(new URLSearchParams(location.search).has("yenilikler")){ history.replaceState(null, "", location.pathname); setTimeout(() => openVersionSheet("all"), 400); }
   syncLocation(wxLoc(), false);
   await startChat();
@@ -977,7 +1047,11 @@ const ICON_READ = r => `<svg width="18" height="18" viewBox="0 0 24 24" fill="no
 const ICON_DOC = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>';
 const ICON_OPEN = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>';
 
+const tracked = new Set();
+function track(k){ if(!me || tracked.has(k)) return; tracked.add(k); try{ sb.rpc("track", { k }).then(() => {}, () => {}); }catch{} }
+const TRACK = { feed: "akis", news: "haberler", chat: "sohbet", tools: "araclar", account: "hesap", cal: "takvim", inbox: "bildirimler", unread: "akis", star: "yildizli" };
 function render(){
+  if(TRACK[tab]) track(tab === "tools" && typeof toolSeg !== "undefined" && toolSeg === "asistan" ? "asistan" : TRACK[tab]);
   if($("reader").hidden && $("wxView").hidden) document.body.classList.remove("noscroll");  // kaydırma kilidi asılı kalmasın
   _render(); syncNav();
   $("navTitle").textContent = $("heading").textContent;
@@ -1421,6 +1495,7 @@ const hasArgo = t => ARGO_RE.test(String(t || "").replace(/İ/g, "i").replace(/I
 let rItem = null;
 const fmtText = t => esc(t).split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("");
 async function openReader(id){
+  track("okuyucu");
   const i = items.find(x => x.id === id); if(!i) return; rItem = i;
   const mParts = (i.meta || "").split(" · ").filter(Boolean);
   $("rType").innerHTML = `<span class="cic">${icon(i.tur, 13)}</span>${esc(i.tur.replace(" (VUK 359)", " · VUK 359"))}`;
@@ -1931,6 +2006,7 @@ $("composer").addEventListener("submit", async e => {
   e.preventDefault(); const body = msgIn.value.trim(); if(!body || !room || room === "__pick") return;
   msgIn.value = ""; msgIn.style.height = "auto"; $("sendBtn").disabled = true;
   const { data, error } = await sb.from("messages").insert({ body, room }).select().single();
+  if(!error) track("mesaj");
   if(error){ msgIn.value = body; toast(room.startsWith("dm:") && /security|policy/i.test(error.message || "") ? "Bu kişiyle arkadaş olmadan mesaj gönderemezsiniz" : "Gönderilemedi", 4000); return; }
   if(!msgs.some(m => m.id === data.id)) msgs.push(data);
   renderChat();
@@ -2014,11 +2090,13 @@ async function renderAccount(){
     <div class="seg" id="themeSeg">${["auto:Otomatik","light:Açık","dark:Koyu"].map(x => { const [k, l] = x.split(":"); return `<button data-th="${k}" class="${getTheme() === k ? "on" : ""}">${l}</button>`; }).join("")}</div>
     <div class="foot" style="margin-top:0">Otomatik, telefonunuzun açık/koyu ayarını izler.</div>
     <div class="sect"></div>
-    <div class="list"><button class="li" id="verNotes" style="width:100%;border:0;background:none;font:inherit;text-align:left;cursor:pointer;color:inherit"><div class="grow"><b>Sürüm Notları</b><small>Sürüm ${APP_VERSION} · neler değişti</small></div><span style="color:var(--muted)">›</span></button>
+    <div class="list"><button class="li" id="fbOpen" style="width:100%;border:0;background:none;font:inherit;text-align:left;cursor:pointer;color:inherit"><div class="grow"><b>Sorun Bildir / Öneri</b><small>Gördüğünüz hatayı veya isteğinizi doğrudan bize iletin</small></div><span style="color:var(--muted)">›</span></button></div>
+    <div class="list" style="margin-top:12px"><button class="li" id="verNotes" style="width:100%;border:0;background:none;font:inherit;text-align:left;cursor:pointer;color:inherit"><div class="grow"><b>Sürüm Notları</b><small>Sürüm ${APP_VERSION} · neler değişti</small></div><span style="color:var(--muted)">›</span></button>
       <button class="li" id="verRe" style="width:100%;border:0;background:none;font:inherit;text-align:left;cursor:pointer;color:inherit"><div class="grow"><b>Ana Ekrana Yeniden Ekleme</b><small>Uygulama güncellenmezse adım adım</small></div><span style="color:var(--muted)">›</span></button></div>
     <div class="list" style="margin-top:12px"><a class="li" href="hukuki.html" style="text-decoration:none;color:inherit"><div class="grow"><b>Hukuki Metinler</b><small>KVKK aydınlatma, açık rıza, kullanım şartları</small></div><span style="color:var(--muted)">›</span></a></div>
     <div class="list" style="margin-top:12px"><button class="li" id="logout" style="width:100%;border:0;background:none;justify-content:center;color:var(--danger);font-size:17px;cursor:pointer">Çıkış Yap</button></div>
     <p class="small muted" style="text-align:center;margin-top:24px">TMPRO · GİB, Resmî Gazete, Danıştay, Anayasa Mahkemesi</p>`;
+  $("fbOpen").onclick = openFeedback;
   $("verNotes").onclick = async () => { if(!releases.length) await checkVersion(); openVersionSheet("all"); };
   $("verRe").onclick = () => openVersionSheet("reinstall");
   $("avaIn").onchange = async e => {
@@ -2083,7 +2161,7 @@ async function renderAdmin(){
   const person = (u, actions) => `<div class="li" style="display:block"><div class="row"><div class="grow"><b>${esc(u.full_name || u.username)}</b>
       <small>${u.unvan ? esc(u.unvan) + " · " : ""}@${esc(u.username)}${u.email ? " · " + esc(u.email) : ""}${u.phone ? " · " + esc(u.phone) : ""} · Kod: ${esc(u.pay_code || "")}</small>
       <small>Talep: ${fmtDate(u.created_at)}${u.expires_at ? " · Bitiş: " + fmtDate(u.expires_at) : u.status === "active" ? " · Süresiz" : ""}</small></div>
-      ${statusPill(u)}</div><div class="acts2">${actions(u)}${u.role === "admin" ? "" : `<button class="btn small ghost" data-act="del" data-id="${u.id}">Sil</button><button class="btn small danger" data-act="ban" data-id="${u.id}">Engelle</button>`}</div></div>`;
+      ${statusPill(u)}</div><div class="acts2">${actions(u)}${u.role === "admin" ? "" : `<button class="btn small ghost" data-act="pw" data-id="${u.id}">Şifre Belirle</button><button class="btn small ghost" data-act="del" data-id="${u.id}">Sil</button><button class="btn small danger" data-act="ban" data-id="${u.id}">Engelle</button>`}</div></div>`;
   let body = "";
   if(adminSeg === "pending"){
     body = pending.length ? `<div class="list">${pending.map(u => person(u, u => `<button class="btn small ok" data-act="approve" data-id="${u.id}">Onayla (${settings.sure_gun || 30} Gün)</button><button class="btn small danger" data-act="reject" data-id="${u.id}">Reddet</button>`)).join("")}</div>`
@@ -2095,6 +2173,29 @@ async function renderAdmin(){
   }else if(adminSeg === "active"){
     body = `<div class="list">${active.map(u => person(u, u => u.role === "admin" ? "" : `<button class="btn small ghost" data-act="approve" data-id="${u.id}">+${settings.sure_gun || 30} Gün</button><button class="btn small ghost" data-act="forever" data-id="${u.id}">Süresiz Yap</button><button class="btn small ghost" data-act="ai" data-val="${u.ai_unlimited ? "0" : "1"}" data-id="${u.id}">${u.ai_unlimited ? "Asistanı Sınırla" : "Asistan Sınırsız"}</button><button class="btn small danger" data-act="cancel" data-id="${u.id}">Aboneliği Kapat</button>`)).join("")}</div>`
       + (other.length ? `<div class="sect">Süresi Dolan / Reddedilen</div><div class="list">${other.map(u => person(u, u => `<button class="btn small ghost" data-act="approve" data-id="${u.id}">Aç (${settings.sure_gun || 30} Gün)</button>`)).join("")}</div>` : "");
+  }else if(adminSeg === "feedback"){
+    const { data: fb } = await sb.from("feedback").select("*").order("id", { ascending: false }).limit(100);
+    const nm = id => { const u = users.find(x => x.id === id); return u ? (u.full_name || u.username) : "?"; };
+    const lbl = { sorun: "🐞 Sorun", oneri: "💡 Öneri", soru: "❓ Soru" };
+    body = (fb || []).length ? `<div class="list">${fb.map(f => `<div class="li" style="display:block"><div class="row"><div class="grow"><b>${lbl[f.kind] || f.kind} · ${esc(nm(f.user_id))}</b>
+        <small>${esc(f.body)}</small><small>${fmtDate(f.created_at)}${f.page ? " · " + esc(f.page) : ""}${f.ua ? " · " + esc(f.ua.split(" · ").pop()) : ""}</small>${f.reply ? `<small>Yanıtınız: ${esc(f.reply)}</small>` : ""}</div>
+        <span class="pill ${f.status === "cozuldu" ? "ok" : ""}">${f.status === "cozuldu" ? "Çözüldü" : "Açık"}</span></div>
+        <div class="acts2"><button class="btn small ghost" data-fb="reply" data-id="${f.id}">Yanıtla</button><button class="btn small ${f.status === "cozuldu" ? "ghost" : "ok"}" data-fb="${f.status === "cozuldu" ? "open" : "done"}" data-id="${f.id}">${f.status === "cozuldu" ? "Yeniden Aç" : "Çözüldü"}</button></div></div>`).join("")}</div>`
+      : `<div class="empty">Henüz geri bildirim yok.</div>`;
+  }else if(adminSeg === "stats"){
+    const { data: st, error: se } = await sb.rpc("usage_summary", { days: 30 });
+    if(se || !st) body = `<div class="empty">İstatistik okunamadı.</div>`;
+    else {
+      const KL = { acilis: "Açılış", akis: "Akış", okuyucu: "Metin okuma", haberler: "Haberler", sohbet: "Sohbet", mesaj: "Mesaj gönderme", araclar: "Araçlar", asistan: "Asistan", hesap: "Hesap", takvim: "Takvim", bildirimler: "Bildirimler", yildizli: "Yıldızlılar" };
+      const days = st.daily || [], mx = Math.max(1, ...days.map(d => d.users)), last7 = days.slice(-7);
+      const kinds = Object.entries(st.kinds || {}).filter(([k]) => k !== "acilis").sort((a, b) => b[1] - a[1]);
+      body = `<div class="sect">Günlük Aktif Üye (30 gün)</div><div class="list"><div class="li" style="display:block">
+          <div style="display:flex;align-items:flex-end;gap:3px;height:80px">${days.map(d => `<div title="${esc(d.day)}: ${d.users}" style="flex:1;background:var(--accent);opacity:.85;border-radius:3px 3px 0 0;height:${Math.max(4, d.users / mx * 100)}%"></div>`).join("")}</div>
+          <small>Son 7 günde ortalama ${last7.length ? (last7.reduce((a, d) => a + d.users, 0) / 7).toFixed(1) : 0} üye/gün · En yüksek ${mx}</small></div></div>
+        <div class="sect">En Çok Kullanılan Bölümler</div><div class="list">${kinds.map(([k, n]) => `<div class="li"><div class="grow"><b>${esc(KL[k] || k)}</b></div><span class="pill">${n}</span></div>`).join("") || `<div class="empty">Henüz veri yok.</div>`}</div>
+        <div class="sect">Üyeler</div><div class="list">${(st.users || []).map(u => `<div class="li" style="display:block"><b>${esc(u.name)}</b><small>Son giriş: ${fmtDate(u.last)} · ${u.days} gün aktif · ${u.opens} açılış${u.top ? " · En çok: " + esc(u.top.split(", ").map(k => KL[k] || k).join(", ")) : ""}</small></div>`).join("") || `<div class="empty">Henüz veri yok.</div>`}</div>
+        <p class="small muted" style="margin:8px 4px">Yalnızca siz görürsünüz. Hangi bölümün kaç kez açıldığı sayılır; içerik kaydedilmez.</p>`;
+    }
   }else{
     body = `<form id="setForm" class="panel">
       <label class="field"><span>IBAN</span><input name="iban" value="${esc(settings.iban || "")}" placeholder="TR00 0000 0000 0000 0000 0000 00"></label>
@@ -2110,7 +2211,13 @@ async function renderAdmin(){
       <div class="sect">Engellenenler</div><div class="list" id="banList"><div class="empty">Yükleniyor…</div></div>
       <p class="small muted" style="margin:8px 4px">Engellenen IP, e-posta, telefon veya kullanıcı adıyla yeniden kayıt olunamaz.</p>`;
   }
-  $("admin").innerHTML = `<div class="seg" id="adminSeg">${seg("pending", "Talepler", pending.length + co.length)}${seg("active", "Aboneler", active.length)}${seg("settings", "Ayarlar")}</div>${body}`;
+  $("admin").innerHTML = `<div class="seg" id="adminSeg">${seg("pending", "Talepler", pending.length + co.length)}${seg("active", "Aboneler", active.length)}${seg("feedback", "Geri Bildirim")}${seg("stats", "İstatistik")}${seg("settings", "Ayarlar")}</div>${body}`;
+  $("admin").querySelectorAll("[data-fb]").forEach(b => b.onclick = async () => {
+    const a = b.dataset.fb, id = +b.dataset.id; let ans = null;
+    if(a === "reply"){ ans = prompt("Üyeye gidecek yanıt (bildirim olarak gider):"); if(!ans) return; }
+    const { error } = await sb.rpc("admin_feedback", { fid: id, done: a === "done" || a === "reply", answer: ans });
+    if(error){ toast("Kaydedilemedi"); return; } toast(a === "reply" ? "Yanıt gönderildi" : "Kaydedildi"); renderAdmin();
+  });
   if($("banList")){
     const { data: bans } = await sb.from("banned").select("*").order("id", { ascending: false });
     const lbl = { ip: "IP", email: "E-posta", phone: "Telefon", username: "Kullanıcı Adı" };
@@ -2131,6 +2238,12 @@ async function renderAdmin(){
       if(!confirm(act === "ban" ? nm + " engellenip silinsin mi? Bu işlem geri alınamaz." : nm + (ban ? " silinip engellensin mi?" : " silinsin mi?") + " Bu işlem geri alınamaz.")){ b.disabled = false; return; }
       r = await sb.rpc("admin_ban_delete", { uid: id, do_ban: ban, do_delete: true });
       if(r.error){ toast("İşlem başarısız: " + r.error.message, 4000); b.disabled = false; return; }
+    }
+    if(act === "pw"){
+      const pw = prompt("Bu üyenin yeni şifresi (en az 8 karakter). Üyeye kendiniz iletin:");
+      if(!pw){ b.disabled = false; return; }
+      r = await sb.rpc("admin_set_password", { uid: id, newpw: pw });
+      if(!r.error){ toast("Şifre değiştirildi"); b.disabled = false; return; }
     }
     if(act === "cancel"){ if(!confirm("Bu kullanıcının aboneliği kapatılsın mı?")){ b.disabled = false; return; } r = await sb.rpc("admin_set_status", { uid: id, new_status: "cancelled" }); }
     toast(r?.error ? "İşlem başarısız" : "Güncellendi"); refreshAdminBadge(); renderAdmin();
