@@ -67,18 +67,18 @@ async function fetchWx(lat, lon) {
 }
 
 export function weatherAdvice(w) {
-  const out = [], c = w.code;
+  const c = w.code;
   const snow = w.snow > 0 || (c >= 71 && c <= 77) || c === 85 || c === 86;
-  const storm = c >= 95;
-  const rain = !snow && (storm || (c >= 51 && c <= 67) || (c >= 80 && c <= 82) || (w.pop >= 50 && w.rain >= 0.5));
-  if (w.min <= 0) out.push("🧊 Buzlanma ve don riski var; yollar ve kaldırımlar kaygan olabilir. Araçla çıkacaklar lütfen dikkatli olsun.");
-  else if (w.min < 3) out.push(`❄️ Hava soğuk (en düşük ${Math.round(w.min)}°); yerler kaygan olabilir, araçla lütfen dikkatli olun.`);
-  if (snow) out.push("🌨️ Kar yağışı bekleniyor; yollar kaygan olabilir, araçla çıkmadan önce hazırlıklı olun.");
-  else if (storm) out.push("⛈️ Gök gürültülü sağanak bekleniyor; araçla gidenler lütfen dikkatli olsun, şemsiyenizi almayı unutmayın.");
-  else if (rain) out.push("☂️ Yağış bekleniyor; araçla gidenler lütfen dikkatli olsun, şemsiyenizi almayı unutmayın.");
-  if (c === 45 || c === 48) out.push("🌫️ Sis bekleniyor; araçla gidenler görüş mesafesine dikkat etsin.");
-  if (w.max >= 35) out.push("🥵 Hava çok sıcak; bol su için, öğle saatlerinde güneşten korunun.");
-  return out;
+  const rain = !snow && (c >= 95 || (c >= 51 && c <= 67) || (c >= 80 && c <= 82) || (w.pop >= 50 && w.rain >= 0.5));
+  // En önemli tek uyarı
+  if (snow) return "🌨️ Kar bekleniyor, yollar kaygan olabilir.";
+  if (w.min <= 0) return "🧊 Buzlanma riski var, yollarda dikkatli olun.";
+  if (rain && w.min < 3) return "☂️ Yağış ve soğuk var, şemsiyenizi alın, yollarda dikkatli olun.";
+  if (rain) return "☂️ Yağmur bekleniyor, şemsiyenizi almayı unutmayın.";
+  if (w.min < 3) return "❄️ Hava soğuk, yerler kaygan olabilir.";
+  if (c === 45 || c === 48) return "🌫️ Sis var, araçla dikkatli olun.";
+  if (w.max >= 35) return "🥵 Çok sıcak, bol su için.";
+  return "";
 }
 
 export function composeMorning(u, w, hol, today, tomorrow) {
@@ -87,17 +87,15 @@ export function composeMorning(u, w, hol, today, tomorrow) {
   const special = th.find(h => h.mesaj);
   const lines = [];
   if (special) lines.push(special.mesaj);
-  else if (th.length) lines.push(`Bugün ${th[0].ad}.`);
   if (w) {
-    lines.push(`${city}: ${WMO(w.code)}${w.cur != null ? `, şu an ${Math.round(w.cur)}°` : ""}; gün içinde ${Math.round(w.min)}° ile ${Math.round(w.max)}° arası.`);
-    lines.push(...weatherAdvice(w));
+    lines.push(`${city} · ${WMO(w.code)} · ${Math.round(w.min)}° / ${Math.round(w.max)}°`);
+    const a = weatherAdvice(w); if (a) lines.push(a);
   }
   const nt = tm.find(h => h.tur !== "anma");
-  if (nt && !th.some(h => h.tur === "tatil")) lines.push(nt.tur === "yarim" ? `📅 Yarın ${nt.ad}; öğleden sonra resmî tatil.` : `📅 Yarın ${nt.ad}, resmî tatil.`);
-  if (u.events?.length) lines.push("📌 Bugün: " + u.events.join(", ") + ".");
-  if (!special && !w) lines.push("İyi çalışmalar dileriz.");
-  const title = special ? th.find(h => h.mesaj).ad : `Günaydın${first ? " " + first : ""} ☀️`;
-  return { title, body: lines.join("\n").slice(0, 600), url: "/", tag: "tmpro-gunaydin" };
+  if (nt && !th.some(h => h.tur === "tatil")) lines.push(`📅 Yarın ${nt.ad}${nt.tur === "yarim" ? " (yarım gün)" : ""}`);
+  if (u.events?.length) lines.push("📌 " + u.events.join(", "));
+  const title = special ? special.ad : `Günaydın${first ? " " + first : ""} ☀️`;
+  return { title, body: (lines.join("\n") || "İyi çalışmalar.").slice(0, 400), url: "/", tag: "tmpro-gunaydin" };
 }
 
 async function morning(j, env) {
