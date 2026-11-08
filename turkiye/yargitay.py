@@ -68,7 +68,10 @@ def html_to_text(s):
 
 
 def search(q, page=1, size=10):
-    body = {"data": {"aranan": q, "arananKelime": q, "pageSize": size, "pageNumber": page}}
+    from datetime import date, timedelta
+    bas = (date.today() - timedelta(days=(5 * 365 if SEED else 365))).strftime("%d.%m.%Y")
+    body = {"data": {"aranan": q, "arananKelime": q, "baslangicTarihi": bas, "bitisTarihi": date.today().strftime("%d.%m.%Y"),
+                     "siralama": "1", "siralamaDirection": "desc", "pageSize": size, "pageNumber": page}}
     data = json.loads(http(BASE + "/aramalist", body, timeout=90))
     rows = ((data.get("data") or {}).get("data")) or []
     return [{"id": str(r.get("id")), "daire": r.get("daire") or r.get("daireKurul") or "Yargıtay",
