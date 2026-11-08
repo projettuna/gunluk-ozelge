@@ -296,6 +296,15 @@ body.typing .tabbar{display:none}
 body.typing .composer{bottom:0;padding-bottom:8px}
 body.typing main{padding-bottom:80px}
 
+/* tür çipleri marka rengiyle */
+.chip{background:var(--surface);border:.5px solid var(--glass-line)}
+.chip.on{background:var(--brand);color:#fff;border-color:transparent;box-shadow:0 6px 14px -6px rgba(91,75,255,.6)}
+/* ---- durum filtresi (Tümü / Okunmamış / Kaydedilen) ---- */
+.sfil{display:flex;gap:3px;margin:10px 0 2px;padding:3px;border-radius:14px;background:var(--surface);border:.5px solid var(--glass-line);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+.sfil button{flex:1;border:0;background:none;height:34px;border-radius:11px;font:inherit;font-size:14px;font-weight:550;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .2s,color .2s}
+.sfil button em{font-style:normal;font-size:12px;font-weight:650;min-width:20px;padding:1px 6px;border-radius:999px;background:var(--fill)}
+.sfil button.on{background:var(--solid);color:var(--accent);font-weight:650;box-shadow:0 4px 12px rgba(40,30,120,.14)}
+.sfil button.on em{background:var(--brand);color:#fff}
 /* ---- tam metin okuyucu ---- */
 button.title{display:block;width:100%;text-align:left;border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer}
 .open{border:0;cursor:pointer;font-family:inherit}
@@ -534,6 +543,7 @@ body.home::before{opacity:.85}
     <div class="searchbox"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="q" type="search" placeholder="Ara" autocomplete="off" enterkeyhint="search"></div>
     <div class="chips" id="chips"></div>
+    <div class="sfil" id="sfil"></div>
   </div>
   <div id="wx" class="wx" hidden></div>
   <button id="calCard" class="calcard" hidden></button>
@@ -587,6 +597,7 @@ function toast(m, ms = 2000){ const t = $("toast"); t.textContent = m; t.classLi
 function show(view){ for(const v of ["authView","pendingView","appView"]) $(v).hidden = v !== view; }
 
 let me = null, items = [], settings = {};
+let sfil = "all";
 let tab = "feed", filter = "Tümü", read = new Set(), stars = new Set(), firstVisit = false;
 const store = {
   k: k => `tmpro:${me ? me.id : "x"}:${k}`,
@@ -733,14 +744,21 @@ function _render(){
   if(tab === "inbox") return renderInbox();
   if(tab === "admin") return renderAdmin();
   const q = norm($("q").value.trim()), words = q.split(/\s+/).filter(Boolean);
-  const base = items.filter(i => (tab !== "unread" || !read.has(i.id)) && (tab !== "star" || stars.has(i.id))
+  const pre = items.filter(i => (tab !== "unread" || !read.has(i.id)) && (tab !== "star" || stars.has(i.id))
+    && words.every(w => norm(`${i.title} ${i.meta} ${i.ozet} ${i.tur}`).includes(w)));
+  const inType = i => filter === "Tümü" || filter === "__all" || i.tur === filter;
+  const sc = { all: pre.filter(inType).length, unread: pre.filter(i => inType(i) && !read.has(i.id)).length, star: pre.filter(i => inType(i) && stars.has(i.id)).length };
+  const base = pre.filter(i => (sfil !== "unread" || !read.has(i.id)) && (sfil !== "star" || stars.has(i.id))
     && words.every(w => norm(`${i.title} ${i.meta} ${i.ozet} ${i.tur}`).includes(w)));
   const counts = {}; base.forEach(i => counts[i.tur] = (counts[i.tur] || 0) + 1);
   const types = ["Tümü", ...ORDER.filter(t => counts[t])];
   if(filter !== "__all" && !types.includes(filter) && !(tab === "feed" && ORDER.includes(filter))) filter = "Tümü";
-  $("chips").innerHTML = types.map(t => `<button class="chip ${t === filter ? "on" : ""}" data-t="${esc(t)}" style="--c:var(${TYPES[t] || "--faint"})">${t === "Tümü" ? "" : "<i></i>"}${esc(t.replace(" (VUK 359)", ""))}<em>${t === "Tümü" ? base.length : counts[t]}</em></button>`).join("");
+  $("chips").innerHTML = types.map(t => `<button class="chip ${t === filter || (t === "Tümü" && filter === "__all") ? "on" : ""}" data-t="${esc(t)}" style="--c:var(${TYPES[t] || "--faint"})">${t === "Tümü" ? "" : "<i></i>"}${esc(t.replace(" (VUK 359)", ""))}<em>${t === "Tümü" ? base.length : counts[t]}</em></button>`).join("");
   const home = tab === "feed" && filter === "Tümü" && !q;
-  $("grid").hidden = !home; $("chips").hidden = tab === "feed"; $("back").hidden = !(tab === "feed" && filter !== "Tümü");
+  $("grid").hidden = !home; $("chips").hidden = home; $("sfil").hidden = home;
+  const SF = [["all", "Tümü"], ["unread", "Okunmamış"], ["star", "Kaydedilen"]].filter(([k]) => !(k === "unread" && tab === "unread") && !(k === "star" && tab === "star"));
+  $("sfil").innerHTML = SF.length > 1 ? SF.map(([k, l]) => `<button class="${sfil === k ? "on" : ""}" data-s="${k}">${l}<em>${sc[k]}</em></button>`).join("") : "";
+  $("sfil").hidden = home || SF.length < 2; $("back").hidden = !(tab === "feed" && filter !== "Tümü");
   if(tab === "feed" && filter !== "Tümü") $("heading").textContent = filter === "__all" ? "Tüm Kayıtlar" : filter;
   $("wx").hidden = !home; $("calCard").hidden = !home; if(home){ renderWeather(); renderCalCard(); }
   if(home){
@@ -798,9 +816,10 @@ function _render(){
   $("list").innerHTML = html;
 }
 $("grid").addEventListener("click", e => { const b = e.target.closest(".tile"); if(!b) return; if(b.dataset.t === "__unread"){ tab = "unread"; store.set("tab", tab); render(); scrollTo({top:0}); return; } filter = b.dataset.t; if(filter === "Tümü"){ filter = "__all"; } store.set("filter", filter); render(); scrollTo({top:0}); });
-$("back").addEventListener("click", () => { if(tab === "chat"){ room = null; render(); scrollTo({top:0}); return; } tab = "feed"; filter = "Tümü"; store.set("filter", filter); render(); scrollTo({top:0}); });
-$("chips").addEventListener("click", e => { const b = e.target.closest(".chip"); if(!b) return; filter = b.dataset.t; store.set("filter", filter); render(); scrollTo({top:0, behavior:"smooth"}); });
-$("tabs").addEventListener("click", e => { const b = e.target.closest(".tab"); if(!b) return; if(b.dataset.tab === tab && tab === "feed" && filter === "Tümü"){ scrollTo({top:0, behavior:"smooth"}); return; } tab = b.dataset.tab; store.set("tab", tab); room = null; if(filter === "__all" || tab === "feed") filter = "Tümü"; render(); scrollTo({top:0}); });
+$("back").addEventListener("click", () => { sfil = "all"; if(tab === "chat"){ room = null; render(); scrollTo({top:0}); return; } tab = "feed"; filter = "Tümü"; store.set("filter", filter); render(); scrollTo({top:0}); });
+$("sfil").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; sfil = b.dataset.s; render(); scrollTo({top:0, behavior:"smooth"}); });
+$("chips").addEventListener("click", e => { const b = e.target.closest(".chip"); if(!b) return; filter = b.dataset.t; if(filter === "Tümü" && tab === "feed") filter = "__all"; store.set("filter", filter); render(); scrollTo({top:0, behavior:"smooth"}); });
+$("tabs").addEventListener("click", e => { const b = e.target.closest(".tab"); if(!b) return; if(b.dataset.tab === tab && tab === "feed" && filter === "Tümü"){ scrollTo({top:0, behavior:"smooth"}); return; } tab = b.dataset.tab; store.set("tab", tab); room = null; sfil = "all"; if(filter === "__all" || tab === "feed") filter = "Tümü"; render(); scrollTo({top:0}); });
 $("list").addEventListener("click", e => {
   const c = e.target.closest(".card"); if(!c) return; const id = +c.dataset.id;
   if(e.target.closest(".st")){ const on = !stars.has(id); on ? stars.add(id) : stars.delete(id); store.set("stars", [...stars]); toast(on ? "Kaydedildi" : "Kayıttan çıkarıldı"); render(); return; }
