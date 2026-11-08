@@ -3,8 +3,8 @@
     {
       "surum": "2.7",
       "tarih": "2026-11-08",
-      "baslik": "Takip listesi ve hesap araçları",
-      "bildir": false,
+      "baslik": "Yeni: Takip Listem ve ceza hesaplama araçları",
+      "bildir": true,
       "notlar": [
         "Takip Listem: ilgilendiğiniz konuları (ör. \"sahte belge\", \"KDV iadesi\") ekleyin; bu kelimelerin geçtiği yeni özelge, karar, tebliğ ve Resmî Gazete kayıtlarında bildirim gelsin.",
         "Araçlar → Ceza ve Faiz: usulsüzlük (VUK 352) ve belge düzeni özel usulsüzlük (VUK 353/1) cezaları 2026 tutarlarıyla.",
