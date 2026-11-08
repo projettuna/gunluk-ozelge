@@ -94,16 +94,16 @@ def database():
 
 
 def setup():
-    for col, what in (("friend_code", "arkadaş sistemi"), ("avatar", "profil fotoğrafı"), ("email", "üye e-postası")):
+    for col, what in (("friend_code", "arkadaş sistemi"), ("avatar", "profil fotoğrafı"), ("email", "üye e-postası"), ("watch_words", "takip listesi")):
         try:
             db(f"profiles?select={col}&limit=1")
         except RuntimeError:
             bad("kurulum_" + col, "uyari", f"Veritabanında {what} kurulumu eksik görünüyor")
-    for tbl, what in (("feedback", "Sorun Bildir"), ("usage_daily", "kullanım istatistiği"), ("password_resets", "şifre sıfırlama")):
+    for tbl, what in (("feedback", "Sorun Bildir"), ("usage_daily", "kullanım istatistiği"), ("password_resets", "şifre sıfırlama"), ("watch_hits", "takip listesi")):
         try:
             db(f"{tbl}?select=*&limit=1")
         except RuntimeError:
-            bad("kurulum_" + tbl, "uyari", f"Veritabanında {what} kurulumu eksik (destek.sql çalıştırılmalı)")
+            bad("kurulum_" + tbl, "uyari", f"Veritabanında {what} kurulumu eksik ({'takip' if tbl == 'watch_hits' else 'destek'}.sql çalıştırılmalı)")
 
 
 def main_job():
