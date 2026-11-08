@@ -297,6 +297,7 @@ body.typing .composer{bottom:0;padding-bottom:8px}
 body.typing main{padding-bottom:80px}
 body.typing .aicomp{bottom:8px}
 body.typing.aichat main{padding-bottom:12px}
+body.typing .aithread{min-height:0!important}
 body.aichat #tools>.foot{display:none}
 
 /* tür çipleri marka rengiyle */
@@ -1144,7 +1145,7 @@ function renderAiChat(){
   syncNav();
   const del = $("aiDel"); if(del) del.onclick = async () => { if(!confirm("Bu sohbet silinsin mi?")) return; await sb.from("ai_chats").delete().eq("id", aiChat); aiChat = null; aiChats = null; await toolAsk(); syncNav(); };
   const ta = $("aiQ");
-  ta.onfocus = () => document.body.classList.add("typing");
+  ta.onfocus = () => { document.body.classList.add("typing"); [80, 320, 650].forEach(ms => setTimeout(alignAiComp, ms)); };
   ta.onblur = () => setTimeout(() => { if(document.activeElement !== ta) document.body.classList.remove("typing"); }, 100);
   fitAiThread();
   ta.oninput = () => { ta.style.height = "auto"; ta.style.height = Math.min(140, ta.scrollHeight) + "px"; };
@@ -1162,6 +1163,15 @@ function fitAiThread(){
   t.style.minHeight = Math.max(0, innerHeight - top - c.offsetHeight - tb - 20) + "px";
 }
 addEventListener("resize", () => { if(!document.body.classList.contains("typing")) fitAiThread(); });
+/* klavye açıkken: boşluğu kaldır, kutunun altını klavyenin hemen üstüne hizala */
+function alignAiComp(){
+  const c = document.querySelector(".aicomp"), v = window.visualViewport;
+  if(!c || !document.body.classList.contains("typing")) return;
+  const bottom = v ? v.offsetTop + v.height : innerHeight;
+  const d = c.getBoundingClientRect().bottom - bottom + 6;
+  if(Math.abs(d) > 4) scrollBy(0, d);
+}
+if(window.visualViewport) visualViewport.addEventListener("resize", () => setTimeout(alignAiComp, 30));
 async function readAiFile(f){
   if(f.type === "application/pdf"){
     if(f.size > 4.5e6){ toast("PDF en fazla 4,5 MB olabilir", 3000); return null; }
