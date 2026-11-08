@@ -130,7 +130,7 @@ function excerpt(text, ws, max) {
   for (let i = 0; i < low.length; i += 800) { const win = low.slice(i, i + max); const sc = ws.reduce((a, w) => a + (win.split(w).length - 1), 0); if (sc > bestScore) { bestScore = sc; best = i; } }
   return (best ? "… " : "") + t.slice(best, best + max) + "…";
 }
-const KARAR = /Danıştay|Anayasa/i;
+const KARAR = /Danıştay|Anayasa|Yargıtay/i;
 const stripHtml = h => String(h || "").replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, " ").replace(/<br\s*\/?>|<\/p>|<\/div>/gi, "\n").replace(/<[^>]+>/g, " ")
   .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n\n").trim();
 // Danıştay karar arama (canlı). Erişilemezse sessizce boş döner.
@@ -158,8 +158,8 @@ async function ask(req, env) {
   if (!env.ANTHROPIC_API_KEY) return Response.json({ error: "API anahtarı tanımlı değil" }, { status: 503 });
   const token = (req.headers.get("Authorization") || "").replace(/^Bearer /, "");
   let j; try { j = await req.json(); } catch { return Response.json({ error: "bad json" }, { status: 400 }); }
-  const hist = (Array.isArray(j.messages) ? j.messages : j.q ? [{ role: "user", content: j.q }] : []).slice(-14)
-    .map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content || "").slice(0, 8000) })).filter(m => m.content);
+  const hist = (Array.isArray(j.messages) ? j.messages : j.q ? [{ role: "user", content: j.q }] : []).slice(-10)
+    .map((m, i, a) => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content || "").slice(0, i === a.length - 1 ? 8000 : 3000) })).filter(m => m.content);
   const last = hist[hist.length - 1];
   const files = (Array.isArray(j.files) ? j.files : []).slice(0, 4);
   if (!token || !last || last.role !== "user" || (last.content.length < 2 && !files.length)) return Response.json({ error: "Soru eksik" }, { status: 400 });
@@ -183,12 +183,14 @@ async function ask(req, env) {
     const hit = ws.filter(w => tl.includes(w) || ml.includes(w)).length;
     return ws.reduce((a, w) => a + 6 * (tl.split(w).length - 1) + Math.min(15, ml.split(w).length - 1), 0) + hit * 10 + (KARAR.test(x.tur || "") ? 40 : 0); };
   const local = rows.map(x => ({ x, sc: score(x) })).sort((a, b) => b.sc - a.sc).map(o => o.x);
-  const picked = [...live.slice(0, 3), ...local.filter(x => KARAR.test(x.tur)).slice(0, 3), ...local.filter(x => !KARAR.test(x.tur)).slice(0, 4)].slice(0, 8);
+  const nSrc = files.length ? 5 : 7;  // belge varsa daha az kaynak (maliyet)
+  const picked = [...live.slice(0, 3), ...local.filter(x => KARAR.test(x.tur)).slice(0, 3), ...local.filter(x => !KARAR.test(x.tur)).slice(0, 3)].slice(0, nSrc);
   const sources = picked.map((x, i) => ({ n: i + 1, id: x.id || null, url: x.id ? null : x.url, tur: x.tur, title: x.title, meta: x.meta }));
-  const ctx = picked.map((x, i) => `[${i + 1}] ${x.tur} · ${x.title}${x.meta ? " · " + x.meta : ""}\n${excerpt(x.metin || x.ozet || "", ws, 4500)}`).join("\n\n---\n\n");
+  const ctx = picked.map((x, i) => `[${i + 1}] ${x.tur} · ${x.title}${x.meta ? " · " + x.meta : ""}\n${excerpt(x.metin || x.ozet || "", ws, 3000)}`).join("\n\n---\n\n");
   const system = `Sen Türkiye vergi mevzuatında ve vergi ceza hukukunda uzman, vergi müfettişlerine yardım eden bir asistansın. Kullanıcı bir vergi müfettişidir.
-Öncelik sırası: önce yargı kararları (Danıştay, Anayasa Mahkemesi), sonra kanun, tebliğ, sirküler ve özelgeler. Kararlarda esas/karar numarasını ve kararın sonucunu belirt.
+Öncelik sırası: önce yargı kararları (vergi suçları ve vergi kaçakçılığı/VUK 359 için Yargıtay ceza daireleri; vergi tarhiyatı ve cezalar için Danıştay; Anayasa Mahkemesi), sonra kanun, tebliğ, sirküler ve özelgeler. Kararlarda esas/karar numarasını ve kararın sonucunu belirt.
 Verilen kaynaklara dayan ve her bilginin sonuna kaynağını [1], [2] biçiminde ekle. Kaynaklarda olmayan genel bilgiyi kullanırsan bunu "kaynaklarda yer almıyor, genel bilgi:" diye açıkça ayır; madde numarası, oran veya karar numarası uydurma.
+Gizlilik: Yüklenen belge resmî yazı, inceleme raporu, tutanak, "gizli"/"hizmete özel" ibareli bir belge ise ya da gerçek bir mükellefin ad/unvan, TCKN/VKN, adres gibi kimlik bilgilerini içeriyorsa, yanıtının başına kısa bir uyarı ekle ("Bu belge vergi mahremiyeti kapsamında olabilir; bu tür belgeleri yüklemeyiniz.") ve yanıtında bu kişisel bilgileri asla tekrar etme, yalnızca genel mevzuat değerlendirmesi yap.
 Kullanıcı fotoğraf veya belge yüklerse içeriğini müfettiş gözüyle incele: belge türü, tarih, taraflar, tutarlar, sahte veya muhteviyatı itibarıyla yanıltıcı belge işaretleri, eksik zorunlu bilgiler (VUK 230), tutarsızlıklar.
 Bu bir sohbettir: önceki mesajları dikkate al, kısa ve net yaz, gerektiğinde maddeler kullan. Markdown başlığı ve kalın yazı kullanma.`;
   const lastBlocks = [];
@@ -201,8 +203,10 @@ Bu bir sohbettir: önceki mesajları dikkate al, kısa ve net yaz, gerektiğinde
   lastBlocks.push({ type: "text", text: `${last.content || "Yüklediğim belgeyi incele."}\n\n(Uygulamadaki ilgili kaynaklar:)\n${ctx || "(Eşleşen kaynak bulunamadı.)"}` });
   const messages = [...hist.slice(0, -1), { role: "user", content: lastBlocks }];
   while (messages.length && messages[0].role !== "user") messages.shift();
-  const body = { model: env.ASK_MODEL || "claude-sonnet-5-5", max_tokens: 2000, system, messages };
-  const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify(body) });
+  const body = { model: env.ASK_MODEL || "claude-sonnet-5-5", max_tokens: 1800, cache_control: { type: "ephemeral" }, system, messages };
+  const call = b => fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify(b) });
+  let r = await call(body);
+  if (r.status === 400) { delete body.cache_control; r = await call(body); }  // önbellek desteklenmezse önbelleksiz dene
   if (!r.ok) { let m = ""; try { m = (await r.json())?.error?.message || ""; } catch {} return Response.json({ error: "Yapay zekâ yanıt vermedi (" + r.status + ") " + m.slice(0, 120) }, { status: 502 }); }
   const d = await r.json();
   const answer = (d.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();

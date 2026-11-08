@@ -29,7 +29,7 @@
   --btn:#1d1d1f; --btn-text:#ffffff; --seg-on:#ffffff; --bar:rgba(249,249,249,.82);
   --shadow:0 1px 1px rgba(0,0,0,.02),0 4px 16px rgba(0,0,0,.04);
   --t-ozelge:#007aff; --t-teblig:#5856d6; --t-sirkuler:#30b0c7; --t-kanun:#ff3b30; --t-cb:#ff9500;
-  --t-ic:#8e8e93; --t-rg:#d4a200; --t-danistay:#34c759; --t-aym:#ff2d55;
+  --t-ic:#8e8e93; --t-rg:#d4a200; --t-danistay:#34c759; --t-yargitay:#af52de; --t-aym:#ff2d55;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#000000; --surface:#1c1c1e; --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.16);
@@ -37,7 +37,7 @@
   --accent:#0a84ff; --gold:#e0b44e; --danger:#ff453a; --ok:#30d158;
   --btn:#ffffff; --btn-text:#000000; --seg-on:#636366; --bar:rgba(22,22,24,.8); --shadow:none;
   --t-ozelge:#0a84ff; --t-teblig:#5e5ce6; --t-sirkuler:#40c8e0; --t-kanun:#ff453a; --t-cb:#ff9f0a;
-  --t-ic:#98989d; --t-rg:#ffd60a; --t-danistay:#30d158; --t-aym:#ff375f;
+  --t-ic:#98989d; --t-rg:#ffd60a; --t-danistay:#30d158; --t-yargitay:#bf5af2; --t-aym:#ff375f;
 }}
 :root[data-theme="dark"]{
   --bg:#000000; --surface:#1c1c1e; --fill:rgba(118,118,128,.24); --fill-2:rgba(118,118,128,.16);
@@ -45,7 +45,7 @@
   --accent:#0a84ff; --gold:#e0b44e; --danger:#ff453a; --ok:#30d158;
   --btn:#ffffff; --btn-text:#000000; --seg-on:#636366; --bar:rgba(22,22,24,.8); --shadow:none;
   --t-ozelge:#0a84ff; --t-teblig:#5e5ce6; --t-sirkuler:#40c8e0; --t-kanun:#ff453a; --t-cb:#ff9f0a;
-  --t-ic:#98989d; --t-rg:#ffd60a; --t-danistay:#30d158; --t-aym:#ff375f;
+  --t-ic:#98989d; --t-rg:#ffd60a; --t-danistay:#30d158; --t-yargitay:#bf5af2; --t-aym:#ff375f;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--text)}
@@ -76,6 +76,10 @@ svg{display:block}
 .field input{width:100%;border:0;background:transparent;padding:0 16px;height:50px;font-size:17px;outline:none}
 .field input::placeholder{color:var(--faint)}
 .err{color:var(--danger);font-size:13px;min-height:18px;margin:6px 16px 10px}
+.kchk{display:flex;gap:10px;align-items:flex-start;margin:12px 4px 0;font-size:13.5px;line-height:1.45;color:var(--muted)}
+.kchk input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--accent)}
+.kchk a{color:var(--accent)}
+.kwarn{margin:14px 4px 0;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--danger) 12%,transparent);color:var(--danger);font-size:13.5px;line-height:1.45}
 .note{font-size:13px;color:var(--muted);margin:12px 16px 0;line-height:1.45}
 
 /* bildirim balonu */
@@ -614,7 +618,10 @@ body.home::before{opacity:.85}
     <label class="field"><span>Şifre (En Az 8 Karakter)</span><input placeholder="Şifre (En Az 8 Karakter)" aria-label="Şifre (En Az 8 Karakter)" name="password" type="password" autocomplete="new-password" minlength="8" required></label>
     <label class="field"><span>Ünvan (İsteğe Bağlı)</span><input placeholder="Ünvan (İsteğe Bağlı)" aria-label="Ünvan" name="unvan" list="unvanlar" maxlength="60"></label>
     <label class="field"><span>Telefon (İsteğe Bağlı)</span><input placeholder="Telefon (İsteğe Bağlı)" aria-label="Telefon (İsteğe Bağlı)" name="phone" type="tel" autocomplete="tel"></label>
-    </div><div class="err" id="signupErr"></div>
+    </div>
+    <label class="kchk"><input type="checkbox" name="k1" required><span><a href="hukuki.html#sartlar" target="_blank">Kullanım Şartları</a>, <a href="hukuki.html#satis" target="_blank">Ön Bilgilendirme</a> ve <a href="hukuki.html#aydinlatma" target="_blank">Aydınlatma Metni</a>'ni okudum, kabul ediyorum. Hizmetin ödeme onayıyla hemen başlamasını ve bu nedenle cayma hakkım olmadığını kabul ediyorum.</span></label>
+    <label class="kchk"><input type="checkbox" name="k2" required><span>Kişisel verilerimin <a href="hukuki.html#riza" target="_blank">Açık Rıza Metni</a>'nde belirtilen yurt dışındaki hizmet sağlayıcılara aktarılmasına açık rıza veriyorum.</span></label>
+    <div class="err" id="signupErr"></div>
     <button class="btn" type="submit">Talep Oluştur</button>
     <p class="note">Talebinizden sonra ödeme bilgileri gösterilir. Ödemeniz onaylanınca hesabınız açılır.</p>
   </form>
@@ -647,6 +654,18 @@ body.home::before{opacity:.85}
   <div class="rbar"><button class="rclose" id="wxClose" aria-label="Kapat"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button><span style="flex:1;text-align:center;font-size:12.5px;font-weight:700;letter-spacing:.08em;color:var(--gold)">HAVA DURUMU</span><span style="width:36px"></span></div>
   <div class="rbody" id="wxBody"></div>
 </div>
+<!-- KVKK ONAYI (mevcut üyeler / yeni sürüm) -->
+<section class="auth" id="consentView" hidden><div class="wrap">
+  <div class="mark"><img src="icon-192.png?v=3" alt=""><h1>TMPRO</h1><p>Hukuki Metinler Güncellendi</p></div>
+  <p class="note" style="margin:0 4px 12px;font-size:15px">Uygulamayı kullanmaya devam etmek için güncel metinleri okuyup onaylamanız gerekiyor. <a href="hukuki.html" target="_blank">Tüm metinleri aç</a></p>
+  <form id="consentForm">
+    <label class="kchk"><input type="checkbox" name="k1" required><span><a href="hukuki.html#sartlar" target="_blank">Kullanım Şartları</a>, <a href="hukuki.html#satis" target="_blank">Ön Bilgilendirme</a> ve <a href="hukuki.html#aydinlatma" target="_blank">Aydınlatma Metni</a>'ni okudum, kabul ediyorum.</span></label>
+    <label class="kchk"><input type="checkbox" name="k2" required><span>Kişisel verilerimin <a href="hukuki.html#riza" target="_blank">Açık Rıza Metni</a>'nde belirtilen yurt dışındaki hizmet sağlayıcılara aktarılmasına açık rıza veriyorum.</span></label>
+    <div class="kwarn"><b>Önemli:</b> Asistana resmî belge, inceleme raporu, gizli/hizmete özel yazı veya mükellefe ait kimliği belirleyici bilgi yüklemeyin ve yazmayın (VUK md. 5, vergi mahremiyeti).</div>
+    <button class="btn" type="submit" style="margin-top:12px">Okudum, Onaylıyorum</button>
+    <button class="btn ghost" type="button" id="consentOut" style="margin-top:8px">Çıkış Yap</button>
+  </form>
+</div></section>
 <!-- UYGULAMA -->
 <div id="appView" hidden>
 <header class="appbar" id="appbar"><div class="wrap bar">
@@ -693,7 +712,7 @@ body.home::before{opacity:.85}
 const CFG = window.TMPRO_CONFIG;
 const sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseAnonKey, { auth: { persistSession: true, autoRefreshToken: true } });
 const TYPES = {"Özelge":"--t-ozelge","Tebliğ":"--t-teblig","Sirküler":"--t-sirkuler","Kanun":"--t-kanun","CB Kararı":"--t-cb",
-  "İç Genelge":"--t-ic","Resmî Gazete":"--t-rg","Danıştay (VUK 359)":"--t-danistay","Anayasa Mahkemesi":"--t-aym"};
+  "İç Genelge":"--t-ic","Resmî Gazete":"--t-rg","Yargıtay (Ceza)":"--t-yargitay","Danıştay (VUK 359)":"--t-danistay","Anayasa Mahkemesi":"--t-aym"};
 const ORDER = Object.keys(TYPES);
 const IC = {
   "Tümü":'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',
@@ -705,9 +724,10 @@ const IC = {
   "İç Genelge":'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   "Resmî Gazete":'<path d="M4 5h13v14a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v10a2 2 0 0 1-2 2M8 9h5M8 13h5M8 17h3"/>',
   "Danıştay (VUK 359)":'<path d="m14 13-7.5 7.5a2.1 2.1 0 0 1-3-3L11 10"/><path d="m16 16 6-6M8 8l6-6M9 7l8 8M21 11l-8-8"/>',
+  "Yargıtay (Ceza)":'<path d="M3 21h12M7 17h4"/><path d="m13.5 4.5 6 6M11 7l6 6M8.5 9.5l3 3-3 3-3-3z"/><path d="m10 8 4-4 6 6-4 4"/>',
   "Anayasa Mahkemesi":'<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/>'
 };
-const SHORT = t => ({"Danıştay (VUK 359)":"Danıştay","Anayasa Mahkemesi":"AYM","Resmî Gazete":"R. Gazete"}[t] || t);
+const SHORT = t => ({"Danıştay (VUK 359)":"Danıştay","Yargıtay (Ceza)":"Yargıtay","Anayasa Mahkemesi":"AYM","Resmî Gazete":"R. Gazete"}[t] || t);
 const icon = (t, n = 20) => `<svg width="${n}" height="${n}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${IC[t] || IC["Tümü"]}</svg>`;
 
 const $ = id => document.getElementById(id);
@@ -716,9 +736,17 @@ const norm = s => String(s ?? "").toLocaleLowerCase("tr");
 const fmtDate = d => d ? new Date(d).toLocaleDateString("tr-TR", {day:"numeric", month:"long", year:"numeric"}) : "";
 const toEmail = u => `${u.trim().toLowerCase()}@${CFG.userDomain}`;
 function toast(m, ms = 2000){ const t = $("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), ms); }
-function show(view){ for(const v of ["authView","pendingView","appView"]) $(v).hidden = v !== view; }
+function show(view){ for(const v of ["authView","pendingView","appView","consentView"]) $(v).hidden = v !== view; }
 
 let me = null, items = [], settings = {};
+const KVKK_V = "1";  // hukuki metin sürümü: metinler değişince artırılır, herkesten yeniden onay alınır
+$("consentForm").addEventListener("submit", async e => {
+  e.preventDefault(); const b = e.target.querySelector("button[type=submit]"); b.disabled = true;
+  const { error } = await sb.rpc("accept_terms", { v: KVKK_V, yd: true, ua: navigator.userAgent });
+  b.disabled = false; if(error){ toast("Onay kaydedilemedi, tekrar deneyin", 3000); return; }
+  boot();
+});
+$("consentOut").onclick = async () => { await sb.auth.signOut(); me = null; show("authView"); };
 let sfil = "all";
 let tab = "feed", filter = "Tümü", read = new Set(), stars = new Set(), firstVisit = false;
 const store = {
@@ -752,6 +780,7 @@ $("signupForm").addEventListener("submit", async e => {
     options: { data: { username, full_name: f.get("full_name").trim(), phone: f.get("phone").trim(), unvan: (f.get("unvan") || "").trim() } } });
   btn.disabled = false;
   if(error){ $("signupErr").textContent = error.message.includes("Password") ? "Şifre en az 8 karakter olmalı." : "Talep oluşturulamadı: " + error.message; return; }
+  await sb.rpc("accept_terms", { v: KVKK_V, yd: true, ua: navigator.userAgent }).catch(() => {});
   boot();
 });
 
@@ -767,6 +796,7 @@ async function boot(){
   const { data: p, error } = await sb.from("profiles").select("*").eq("id", session.user.id).single();
   if(error || !p){ await sb.auth.signOut(); show("authView"); return; }
   me = p;
+  if("kvkk_v" in p && p.kvkk_v !== KVKK_V){ show("consentView"); return; }
   if(!isActive(p)){ await loadSettings(); renderPending(); show("pendingView"); return; }
   read = new Set(store.get("read", [])); stars = new Set(store.get("stars", []));
   firstVisit = store.get("read", null) === null;
@@ -908,7 +938,7 @@ function _render(){
         <span class="tb"><em class="num" data-n="${n}">${n}</em><b>${esc(SHORT(t))}</b>${cls ? `<small>${wk ? `Son 7 günde +${wk}` : "Son 7 günde yeni yok"}</small>` : ""}
         ${cls === "xl" && latest[t] ? `<i class="last">${esc(latest[t].title)}</i>` : ""}</span>${spark(series[t], !!cls)}</button>`; };
     $("grid").className = "grid bento";
-    $("grid").innerHTML = ORDER.map(bento).join("") + (unreadCount ? wide("__unread", bell, "Okunmamış", unreadCount, unreadCount).replace('class="tile all"', 'class="tile all pair"') : "")
+    $("grid").innerHTML = ORDER.filter(t => t !== "Yargıtay (Ceza)" || items.some(i => i.tur === t)).map(bento).join("") + (unreadCount ? wide("__unread", bell, "Okunmamış", unreadCount, unreadCount).replace('class="tile all"', 'class="tile all pair"') : "")
       + (stars.size ? wide("__star", ICON_STAR(true), "Kaydedilenler", stars.size, 0).replace('class="tile all"', 'class="tile all pair"') : "")
       + wide("Tümü", icon("Tümü"), "Tüm Kayıtlar", items.length, 0).replace('class="tile all"', unreadCount ? 'class="tile all"' : 'class="tile all pair"');
     if(!window._counted){ window._counted = true; $("grid").querySelectorAll(".num").forEach(el => { const n = +el.dataset.n, t1 = performance.now(); if(!n) return;
@@ -1090,7 +1120,8 @@ async function toolAsk(){
   if(aiCredit){ return renderCredit(); }
   if(aiChat){ return renderAiChat(); }
   $("toolBody").innerHTML = `<div class="tcard"><div class="tt">Mevzuat Asistanı <span>Yapay zekâ</span></div>
-      <div class="thelp" style="margin-top:0">Öncelikle Danıştay ve Anayasa Mahkemesi kararlarına, sonra kanun, tebliğ, sirküler ve özelgelere dayanarak kaynak göstererek yanıtlar. Fotoğraf veya PDF yükleyip inceletebilirsiniz. Sohbetleriniz yalnızca size görünür.</div>
+      <div class="kwarn" style="margin:0 0 10px">Resmî belge, inceleme raporu, gizli/hizmete özel yazı ve mükellefe ait kimlik bilgisi (ad, TCKN/VKN, adres) yüklemeyiniz. Yüklenenler yurt dışındaki yapay zekâ hizmetine iletilir. <a href="hukuki.html#mahremiyet" target="_blank" style="color:inherit;font-weight:700">Ayrıntı</a></div>
+      <div class="thelp" style="margin-top:0">Öncelikle Yargıtay, Danıştay ve Anayasa Mahkemesi kararlarına, sonra kanun, tebliğ, sirküler ve özelgelere dayanarak kaynak göstererek yanıtlar. Fotoğraf veya PDF yükleyip inceletebilirsiniz. Sohbetleriniz yalnızca size görünür.</div>
       ${quotaText() ? `<div class="thelp" style="margin:0 0 8px">${quotaText()}</div>` : ""}<div class="row" style="gap:8px;margin-top:6px"><button class="btn" id="aiNew" style="flex:1">Yeni Sohbet</button>${aiQuota && aiQuota.limit != null ? `<button class="btn ghost" id="aiBuy" style="flex:1">Kredi Yükle</button>` : ""}</div></div>
     ${aiChats.length ? `<div class="sect">Sohbetlerim</div><div class="list">${aiChats.map(c => `<button class="li room" data-chat="${c.id}"><div class="rav" style="--c:var(--t-danistay)"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"/></svg></div><div class="grow"><b class="rn">${esc(c.title)}</b><small>${esc(dayLabel(c.updated_at))}</small></div></button>`).join("")}</div>` : ""}`;
   const buy = $("aiBuy"); if(buy) buy.onclick = () => { aiCredit = true; renderCredit(); };
@@ -1119,7 +1150,8 @@ async function renderCredit(){
       <div class="pr"><dt>IBAN</dt><dd id="cIban">${esc(settings.iban || "—")}</dd><button class="copy" data-c="cIban">Kopyala</button></div>
       <div class="pr"><dt>Açıklama</dt><dd id="cAcik"><b>${esc(acik)}</b></dd><button class="copy" data-c="cAcik">Kopyala</button></div></dl>
       <div class="cwarn">Havale/EFT açıklamasına <b>${esc(acik)}</b> yazmazsanız kredi yüklemeniz gerçekleşmez.</div>
-      <button class="btn" id="cDone" style="margin-top:10px">Ödemeyi Yaptım</button></div>` : ""}
+      <button class="btn" id="cDone" style="margin-top:10px">Ödemeyi Yaptım</button>
+      <p class="thelp" style="margin:8px 2px 0">Ödemeyi Yaptım'a basarak kredinin ödeme onayıyla hemen yüklenmesini ve bu nedenle cayma hakkınız olmadığını kabul edersiniz (<a href="hukuki.html#satis" target="_blank">Satış Koşulları</a>).</p></div>` : ""}
     ${(od || []).length ? `<div class="sect">Kredi Taleplerim</div><div class="list">${od.map(o => `<div class="li"><div class="grow"><b>${esc((P.find(x => x.code === o.code) || {}).ad || o.code)} · ${o.fiyat} TL</b><small>${fmtDate(o.created_at)}</small></div><small>${st[o.status] || o.status}</small></div>`).join("")}</div>` : ""}`;
   $("toolBody").querySelectorAll("[data-pkg]").forEach(b => b.onclick = () => { creditPkg = b.dataset.pkg; renderCredit(); });
   $("toolBody").querySelectorAll("[data-c]").forEach(b => b.onclick = () => navigator.clipboard?.writeText($(b.dataset.c).textContent.replace(b.dataset.c === "cIban" ? /\s/g : /^$/, "")).then(() => toast("Kopyalandı")));
@@ -1150,6 +1182,11 @@ function renderAiChat(){
   ta.onblur = () => setTimeout(() => { if(document.activeElement !== ta){ document.body.classList.remove("typing"); pinAppbar(); } }, 100);
   fitAiThread();
   ta.oninput = () => { ta.style.height = "auto"; ta.style.height = Math.min(140, ta.scrollHeight) + "px"; };
+  $("aiFile").parentElement.onclick = e => {
+    if(sessionStorage.getItem("aiwarn") === "1") return;
+    if(!confirm("Resmî belge, inceleme raporu, gizli/hizmete özel yazı veya mükellefe ait kimlik bilgisi (ad, TCKN/VKN, adres) içeren belge YÜKLEMEYİNİZ.\n\nYüklediğiniz dosya yanıt için yurt dışındaki yapay zekâ hizmetine iletilir. Kişisel/kurgusal örnek veya kimlik bilgileri karartılmış belge yüklediğinizi onaylıyor musunuz?")){ e.preventDefault(); return; }
+    try{ sessionStorage.setItem("aiwarn", "1"); }catch{}
+  };
   $("aiFile").onchange = async e => { for(const f of e.target.files){ const x = await readAiFile(f); if(x) aiFiles.push(x); } renderAiChat(); };
   $("toolBody").querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { aiFiles.splice(+b.dataset.rm, 1); renderAiChat(); });
   $("aiThread").onclick = e => { const a = e.target.closest("[data-open]"); if(a){ e.preventDefault(); openReader(+a.dataset.open); } };
@@ -1802,7 +1839,8 @@ async function renderAccount(){
     <div class="seg" id="themeSeg">${["auto:Otomatik","light:Açık","dark:Koyu"].map(x => { const [k, l] = x.split(":"); return `<button data-th="${k}" class="${getTheme() === k ? "on" : ""}">${l}</button>`; }).join("")}</div>
     <div class="foot" style="margin-top:0">Otomatik, telefonunuzun açık/koyu ayarını izler.</div>
     <div class="sect"></div>
-    <div class="list"><button class="li" id="logout" style="width:100%;border:0;background:none;justify-content:center;color:var(--danger);font-size:17px;cursor:pointer">Çıkış Yap</button></div>
+    <div class="list"><a class="li" href="hukuki.html" style="text-decoration:none;color:inherit"><div class="grow"><b>Hukuki Metinler</b><small>KVKK aydınlatma, açık rıza, kullanım şartları</small></div><span style="color:var(--muted)">›</span></a></div>
+    <div class="list" style="margin-top:12px"><button class="li" id="logout" style="width:100%;border:0;background:none;justify-content:center;color:var(--danger);font-size:17px;cursor:pointer">Çıkış Yap</button></div>
     <p class="small muted" style="text-align:center;margin-top:24px">TMPRO · GİB, Resmî Gazete, Danıştay, Anayasa Mahkemesi</p>`;
   $("titleSave").onclick = async () => {
     const u = $("unvanIn").value.trim(), b = $("birimIn").value.trim(), p = $("promoIn").value.trim();
@@ -1870,6 +1908,9 @@ async function renderAdmin(){
     body = `<form id="setForm" class="panel">
       <label class="field"><span>IBAN</span><input name="iban" value="${esc(settings.iban || "")}" placeholder="TR00 0000 0000 0000 0000 0000 00"></label>
       <label class="field"><span>Alıcı Adı</span><input name="alici" value="${esc(settings.alici || "")}"></label>
+      <label class="field"><span>Veri Sorumlusu / Satıcı (Ad Soyad veya Şirket Unvanı)</span><input name="veri_sorumlusu" value="${esc(settings.veri_sorumlusu || "")}"></label>
+      <label class="field"><span>Veri Sorumlusu Adresi</span><input name="vs_adres" value="${esc(settings.vs_adres || "")}"></label>
+      <label class="field"><span>KVKK / Şikâyet E-postası</span><input name="vs_eposta" type="email" value="${esc(settings.vs_eposta || "")}"></label>
       <div class="row"><label class="field" style="flex:1"><span>Fiyat (TL)</span><input name="fiyat" inputmode="numeric" value="${esc(settings.fiyat || "149")}"></label>
       <label class="field" style="flex:1"><span>Süre (Gün)</span><input name="sure_gun" inputmode="numeric" value="${esc(settings.sure_gun || "30")}"></label></div>
       <label class="field"><span>Aylık Asistan Sorusu</span><input name="ai_kota" inputmode="numeric" value="${esc(settings.ai_kota || "30")}"></label>
@@ -1891,7 +1932,7 @@ async function renderAdmin(){
   const sf = $("setForm");
   if(sf) sf.onsubmit = async e => {
     e.preventDefault(); const f = new FormData(sf);
-    for(const k of ["iban", "alici", "fiyat", "sure_gun", "ai_kota"]) await sb.from("settings").update({ value: String(f.get(k)).trim() }).eq("key", k);
+    for(const k of ["iban", "alici", "fiyat", "sure_gun", "ai_kota", "veri_sorumlusu", "vs_adres", "vs_eposta"]) await sb.from("settings").update({ value: String(f.get(k)).trim() }).eq("key", k);
     toast("Ayarlar kaydedildi");
   };
 }

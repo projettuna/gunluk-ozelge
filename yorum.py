@@ -27,7 +27,7 @@ Kurallar:
 
 
 def ask(item):
-    text = (item.get("metin") or "")[:40000]
+    text = (item.get("metin") or "")[:16000]
     user = f"Tür: {item['tur']}\nBaşlık: {item['title']}\nKünye: {item.get('meta') or '-'}\n\nMetin:\n{text}"
     body = {"model": MODEL, "max_tokens": 900, "system": SYSTEM, "messages": [{"role": "user", "content": user}]}
     req = Request(API, data=json.dumps(body).encode(), method="POST", headers={
