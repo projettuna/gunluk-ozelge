@@ -1,8 +1,9 @@
-name: probe
+name: deneme
 on: workflow_dispatch
 permissions: {contents: read}
 jobs:
   p:
     runs-on: ubuntu-latest
     steps:
-      - run: curl -s -o /dev/null -w "ask %{http_code}\n" -X POST https://tmpro.tmproapp.workers.dev/api/ask -H "Content-Type: application/json" -d '{"q":""}'
+      - run: |
+          curl -s -o /dev/null -w "ask %{http_code}\n" -X POST https://tmpro.tmproapp.workers.dev/api/ask -H 'Content-Type: application/json' -d '{"q":""}'
