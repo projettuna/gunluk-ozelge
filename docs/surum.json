@@ -1,31 +1,44 @@
 {
- "surumler": [
-  {
-   "surum": "2.6",
-   "tarih": "2026-11-08",
-   "baslik": "Arkadaş kodu ve gizlilik",
-   "bildir": false,
-   "yeniden_ekle": false,
-   "notlar": [
-    "Özel mesaj artık yalnızca arkadaşlar arasında: arkadaş kodunuzu paylaşın, karşı taraf onaylayınca yazışın.",
-    "Onaylamadığınız kimse size özel mesaj atamaz; arkadaşlıktan çıkarabilir veya istekleri reddedebilirsiniz.",
-    "Gizlilik için diğer üyelerin adları baş harfleri dışında yıldızlı görünür (M**** Y*****).",
-    "Profil fotoğrafı: Hesap ekranında isminizin yanındaki daireye dokunun. Fotoğrafınızı yalnızca arkadaşlarınız görür."
-   ]
-  },
-  {
-   "surum": "2.5",
-   "tarih": "2026-11-08",
-   "baslik": "Yargıtay kararları, Müfettiş Notları ve daha fazlası",
-   "bildir": false,
-   "yeniden_ekle": false,
-   "notlar": [
-    "Yargıtay ceza dairelerinin vergi suçlarıyla ilgili kararları eklendi.",
-    "Kararlar ve mevzuat için yapay zekâ destekli Müfettiş Notları artık eski kayıtlarda da var.",
-    "Akışta \"Hepsini Oku\" düğmesi: tüm kayıtları ya da bir kategoriyi tek dokunuşla okundu yapın.",
-    "Yeni Yargıtay simgesi ve küçük görsel düzeltmeler.",
-    "Yeni sürüm çıktığında uygulamanın üstünde uyarı ve sürüm notları görünür."
-   ]
-  }
- ]
+  "surumler": [
+    {
+      "surum": "2.7",
+      "tarih": "2026-11-08",
+      "baslik": "Takip listesi ve hesap araçları",
+      "bildir": false,
+      "notlar": [
+        "Takip Listem: ilgilendiğiniz konuları (ör. \"sahte belge\", \"KDV iadesi\") ekleyin; bu kelimelerin geçtiği yeni özelge, karar, tebliğ ve Resmî Gazete kayıtlarında bildirim gelsin.",
+        "Araçlar → Ceza ve Faiz: usulsüzlük (VUK 352) ve belge düzeni özel usulsüzlük (VUK 353/1) cezaları 2026 tutarlarıyla.",
+        "Vergi ziyaı cezasında kendiliğinden beyan (%50), kayıt dışı faaliyet artırımı ve VUK 376 indirimli tutar.",
+        "Gecikme faizi (ay kesirleri hariç) ve gecikme zammı (gün hesabıyla) ayrı hesaplanıyor."
+      ],
+      "yeniden_ekle": false
+    },
+    {
+      "surum": "2.6",
+      "tarih": "2026-11-08",
+      "baslik": "Arkadaş kodu ve gizlilik",
+      "bildir": false,
+      "yeniden_ekle": false,
+      "notlar": [
+        "Özel mesaj artık yalnızca arkadaşlar arasında: arkadaş kodunuzu paylaşın, karşı taraf onaylayınca yazışın.",
+        "Onaylamadığınız kimse size özel mesaj atamaz; arkadaşlıktan çıkarabilir veya istekleri reddedebilirsiniz.",
+        "Gizlilik için diğer üyelerin adları baş harfleri dışında yıldızlı görünür (M**** Y*****).",
+        "Profil fotoğrafı: Hesap ekranında isminizin yanındaki daireye dokunun. Fotoğrafınızı yalnızca arkadaşlarınız görür."
+      ]
+    },
+    {
+      "surum": "2.5",
+      "tarih": "2026-11-08",
+      "baslik": "Yargıtay kararları, Müfettiş Notları ve daha fazlası",
+      "bildir": false,
+      "yeniden_ekle": false,
+      "notlar": [
+        "Yargıtay ceza dairelerinin vergi suçlarıyla ilgili kararları eklendi.",
+        "Kararlar ve mevzuat için yapay zekâ destekli Müfettiş Notları artık eski kayıtlarda da var.",
+        "Akışta \"Hepsini Oku\" düğmesi: tüm kayıtları ya da bir kategoriyi tek dokunuşla okundu yapın.",
+        "Yeni Yargıtay simgesi ve küçük görsel düzeltmeler.",
+        "Yeni sürüm çıktığında uygulamanın üstünde uyarı ve sürüm notları görünür."
+      ]
+    }
+  ]
 }

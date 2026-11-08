@@ -1,10 +1,79 @@
 {
-  "not": "Gecikme zammı / gecikme faizi aylık oranları (6183 s. Kanun md. 51, VUK md. 112). Yeni karar çıkınca bu dosyaya satır eklenir.",
+  "not": "Gecikme zammı / gecikme faizi aylık oranları (6183 s. Kanun md. 51, VUK md. 112) ve VUK ceza tutarları. Yeni karar veya yeniden değerleme oranı çıkınca güncellenir.",
   "gecikme": [
-    { "bas": "2010-03-01", "oran": 1.4 },
-    { "bas": "2019-11-19", "oran": 1.6 },
-    { "bas": "2022-07-21", "oran": 2.5 },
-    { "bas": "2024-05-17", "oran": 4.5 },
-    { "bas": "2025-11-14", "oran": 3.7 }
-  ]
+    {
+      "bas": "2010-03-01",
+      "oran": 1.4
+    },
+    {
+      "bas": "2019-11-19",
+      "oran": 1.6
+    },
+    {
+      "bas": "2022-07-21",
+      "oran": 2.5
+    },
+    {
+      "bas": "2024-05-17",
+      "oran": 4.5
+    },
+    {
+      "bas": "2025-11-14",
+      "oran": 3.7
+    }
+  ],
+  "ceza": {
+    "yil": 2026,
+    "kaynak": "VUK 352, 353, 355 ve 376; 2026 yılı için yeniden değerlenmiş tutarlar (VUK Genel Tebliği)",
+    "u352": [
+      {
+        "g": "Sermaye şirketleri",
+        "d1": 35000,
+        "d2": 17000
+      },
+      {
+        "g": "Birinci sınıf tüccar ve serbest meslek erbabı",
+        "d1": 17000,
+        "d2": 8700
+      },
+      {
+        "g": "İkinci sınıf tüccar",
+        "d1": 8700,
+        "d2": 6000
+      },
+      {
+        "g": "Yukarıdakiler dışında kalan ve beyanname usulüyle gelir vergisine tabi olanlar",
+        "d1": 6000,
+        "d2": 4000
+      },
+      {
+        "g": "Kazancı basit usulde tespit edilenler",
+        "d1": 4000,
+        "d2": 2600
+      },
+      {
+        "g": "Gelir vergisinden muaf esnaf",
+        "d1": 2600,
+        "d2": 1700
+      }
+    ],
+    "o353": {
+      "oran": 10,
+      "asgari": [
+        17000,
+        35000,
+        53000,
+        70000,
+        87000,
+        170000
+      ],
+      "tespit_ust": 1700000,
+      "yil_ust": 17000000
+    },
+    "i376": {
+      "oran": 50,
+      "kucuk_oran": 75,
+      "kucuk_sinir": 40000
+    }
+  }
 }
