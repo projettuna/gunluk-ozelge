@@ -45,10 +45,10 @@ def fill(db, limit=None, budget=None):
     limit = limit or int(os.environ.get("YORUM_LIMIT") or 6)
     budget = budget or max(150, limit * 6)
     sel = "items?select=id,tur,title,meta,metin&yorum=is.null&metin=neq."
-    # Önce son 30 günde eklenenler, sonra geriye kalan (eski/toplu yüklenen) kayıtlar
+    # Yalnızca son 30 günde eklenen kayıtlar (eskiler YORUM_ESKI ile elle)
     since = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
     rows = db("GET", f"{sel}&eklendi=gte.{since}&order=id.desc&limit={limit}") or []
-    if len(rows) < limit:
+    if len(rows) < limit and os.environ.get("YORUM_ESKI"):  # eski kayıtlar yalnızca elle istenirse (maliyet)
         have = {r["id"] for r in rows}
         rows += [r for r in (db("GET", f"{sel}&order=id.desc&limit={limit}") or []) if r["id"] not in have][:limit - len(rows)]
     start, ok, stop = time.time(), 0, False
