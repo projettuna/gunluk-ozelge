@@ -295,7 +295,8 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
 body.typing .tabbar{display:none}
 body.typing .composer{bottom:0;padding-bottom:8px}
 body.typing main{padding-bottom:80px}
-body.typing .aicomp{bottom:calc(8px + env(safe-area-inset-bottom))}
+body.typing .aicomp{bottom:auto;top:var(--kbtop,auto)}
+body.typing.aichat main{padding-bottom:110px}
 body.aichat main{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
 body.aichat #tools>.foot{display:none}
 
@@ -1144,8 +1145,8 @@ function renderAiChat(){
   syncNav();
   const del = $("aiDel"); if(del) del.onclick = async () => { if(!confirm("Bu sohbet silinsin mi?")) return; await sb.from("ai_chats").delete().eq("id", aiChat); aiChat = null; aiChats = null; await toolAsk(); syncNav(); };
   const ta = $("aiQ");
-  ta.onfocus = () => { document.body.classList.add("typing"); setTimeout(() => scrollTo({ top: document.body.scrollHeight }), 350); };
-  ta.onblur = () => setTimeout(() => { if(document.activeElement !== ta) document.body.classList.remove("typing"); }, 100);
+  ta.onfocus = () => { document.body.classList.add("typing"); placeAiComp(); setTimeout(() => { placeAiComp(); if(aiMsgs.length) scrollTo({ top: document.body.scrollHeight }); }, 350); };
+  ta.onblur = () => setTimeout(() => { if(document.activeElement !== ta){ document.body.classList.remove("typing"); document.body.style.removeProperty("--kbtop"); } }, 100);
   ta.oninput = () => { ta.style.height = "auto"; ta.style.height = Math.min(140, ta.scrollHeight) + "px"; };
   $("aiFile").onchange = async e => { for(const f of e.target.files){ const x = await readAiFile(f); if(x) aiFiles.push(x); } renderAiChat(); };
   $("toolBody").querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { aiFiles.splice(+b.dataset.rm, 1); renderAiChat(); });
@@ -1153,6 +1154,13 @@ function renderAiChat(){
   $("aiSend").onclick = sendAi;
   requestAnimationFrame(() => { if(aiMsgs.length) scrollTo({ top: document.body.scrollHeight }); });
 }
+/* klavye açıkken yazma kutusunu tam klavyenin üstüne yerleştir (iOS görünür alan) */
+function placeAiComp(){
+  const c = document.querySelector(".aicomp"), v = window.visualViewport;
+  if(!c || !v || !document.body.classList.contains("typing")) return;
+  document.body.style.setProperty("--kbtop", Math.max(8, v.offsetTop + v.height - c.offsetHeight - 6) + "px");
+}
+if(window.visualViewport){ visualViewport.addEventListener("resize", placeAiComp); visualViewport.addEventListener("scroll", placeAiComp); }
 async function readAiFile(f){
   if(f.type === "application/pdf"){
     if(f.size > 4.5e6){ toast("PDF en fazla 4,5 MB olabilir", 3000); return null; }
