@@ -925,7 +925,9 @@ if __name__ == "__main__":
                 print(f"Takip listesi: {db('POST', 'rpc/run_watch', {})} yeni eşleşme")
             except Exception as e:  # noqa: BLE001
                 print(f"Takip listesi turu atlandı: {type(e).__name__} {getattr(e, 'code', '')}")
-        if datetime.now(TR).minute % 15 < 5 or "--news" in sys.argv or os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch":
+        nt = datetime.now(TR)
+        busy = nt.weekday() < 5 and 8 <= nt.hour < 19  # bu saatlerde tarama 5 dakikada bir, dışında saatlik
+        if not busy or nt.minute % 15 < 5 or "--news" in sys.argv or os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch":
             try:
                 import haber
                 haber.run(db)
