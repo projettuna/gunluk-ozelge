@@ -2,7 +2,10 @@ name: Özelge bildirimi
 
 on:
   schedule:
-    - cron: "7 * * * *"   # her saat başı (+7 dk)
+    # Saatler UTC (Türkiye = UTC+3)
+    - cron: "*/5 5-15 * * 1-5"      # hafta içi 08:00-19:00 TR: 5 dakikada bir
+    - cron: "7 0-4,16-23 * * 1-5"   # hafta içi diğer saatler: saatte bir
+    - cron: "7 * * * 0,6"           # hafta sonu: saatte bir
   workflow_dispatch:
     inputs:
       dry_run:
