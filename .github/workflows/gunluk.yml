@@ -49,6 +49,10 @@ on:
         description: "Günaydın bildirimi: önizleme + yöneticilere deneme"
         type: boolean
         default: false
+      morning_all:
+        description: "Günaydın bildirimini şimdi tüm üyelere gönder"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -86,13 +90,13 @@ jobs:
             echo "relay 0 abone: $(curl -s -w ' %{http_code}' -X POST -H 'Content-Type: application/json' -d '{"vapid":{"private":"x","public":"y"},"subs":[]}' https://tmpro.tmproapp.workers.dev/api/push)"
             exit 0
           fi
-          if [ "${{ inputs.morning_test }}" = "true" ]; then
+          if [ "${{ inputs.morning_test }}" = "true" ] || [ "${{ inputs.morning_all }}" = "true" ]; then
             echo "Önizleme (örnek kullanıcılar):"
             curl -s -X POST -H 'Content-Type: application/json' -d '{"preview":true,"users":[{"name":"Deneme Kullanıcı","lat":39.93,"lon":32.86,"city":"Ankara","events":["Örnek Gün"]},{"name":"Deneme","lat":41.01,"lon":28.98,"city":"İstanbul"},{"name":"Deneme","lat":39.9,"lon":41.27,"city":"Erzurum"}]}' https://tmpro.tmproapp.workers.dev/api/morning
             echo; echo "Yöneticilere deneme (kişi sayısı):"
             AUTH=""; case "$SUPABASE_SERVICE_KEY" in eyJ*) AUTH="Authorization: Bearer $SUPABASE_SERVICE_KEY";; esac
             echo "konumu kayıtlı üye sayısı: $(curl -s "$SUPABASE_URL/rest/v1/profiles?select=id&wx_city=not.is.null" -H "apikey: $SUPABASE_SERVICE_KEY" ${AUTH:+-H "$AUTH"} | python3 -c 'import json,sys;print(len(json.load(sys.stdin)))')"
-            curl -s -w ' %{http_code}' -X POST "$SUPABASE_URL/rest/v1/rpc/send_morning" -H "apikey: $SUPABASE_SERVICE_KEY" ${AUTH:+-H "$AUTH"} -H 'Content-Type: application/json' -d '{"test":true}'
+            curl -s -w ' %{http_code}' -X POST "$SUPABASE_URL/rest/v1/rpc/send_morning" -H "apikey: $SUPABASE_SERVICE_KEY" ${AUTH:+-H "$AUTH"} -H 'Content-Type: application/json' -d '{"test":${{ inputs.morning_all && 'false' || 'true' }}}'
             echo; exit 0
           fi
           if [ "${{ inputs.chat_test }}" = "true" ]; then SUPABASE_PUBLISHABLE_KEY=sb_publishable_tlfwqtscxxv2vdSHe3PstQ_XO1db8p9 python tools/chat_test.py; exit 0; fi

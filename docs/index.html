@@ -117,6 +117,16 @@ svg{display:block}
 .navtitle{position:absolute;left:50%;transform:translateX(-50%);font-size:17px;font-weight:600;opacity:0;transition:opacity .2s;white-space:nowrap}
 .appbar.solid .navtitle{opacity:1}
 .navbtn{width:34px;height:34px;border-radius:50%;border:0;background:var(--fill);display:grid;place-items:center;cursor:pointer;color:var(--accent);margin-left:auto}
+.navbtn+.navbtn{margin-left:10px}
+.navbtn{position:relative}
+.nbadge{position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;border-radius:9px;background:var(--danger);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 4px;border:2px solid var(--bg)}
+.ntf{display:flex;gap:12px;padding:12px 16px;position:relative;cursor:pointer;width:100%;border:0;background:none;text-align:left;color:inherit;font:inherit}
+.ntf+.ntf::before{content:"";position:absolute;top:0;left:62px;right:0;height:.5px;background:var(--line)}
+.ntf .ni{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;color:#fff;background:var(--c);flex:none}
+.ntf .nt{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.ntf .nt b{font-size:16px;font-weight:600}.ntf .nt span{font-size:13px;color:var(--muted);flex:none}
+.ntf p{margin:2px 0 0;font-size:15px;line-height:1.35;color:var(--text2,var(--muted));white-space:pre-line}
+.ntf.new .nt b::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:6px;vertical-align:2px}
 .navbtn.spin svg{animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 main{padding:0 16px calc(96px + env(safe-area-inset-bottom))}
@@ -333,6 +343,7 @@ body.typing main{padding-bottom:80px}
 <div id="appView" hidden>
 <header class="appbar" id="appbar"><div class="wrap bar">
   <div class="brand"><img src="icon-192.png" alt=""><b>TMPRO</b></div><span class="navtitle" id="navTitle">Akış</span>
+  <button class="navbtn" id="bell" aria-label="Bildirimler"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="nbadge" id="bellBadge" hidden></span></button>
   <button class="navbtn" id="refresh" aria-label="Yenile"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>
 </div></header>
 <main><div class="wrap">
@@ -347,6 +358,7 @@ body.typing main{padding-bottom:80px}
   <div id="wx" class="wx" hidden></div>
   <button id="calCard" class="calcard" hidden></button>
   <div id="cal" hidden></div>
+  <div id="inbox" hidden></div>
   <div id="grid" class="grid" hidden></div>
   <div id="list"></div>
   <div id="account" hidden></div>
@@ -451,6 +463,7 @@ async function boot(){
   await loadItems(); render();
   if(p.role === "admin") refreshAdminBadge();
   ensurePushIfGranted();
+  refreshBell();
   syncLocation(wxLoc(), false);
   await startChat();
   const qr = new URLSearchParams(location.search).get("room");
@@ -509,20 +522,21 @@ function render(){
   $("eyebrow").hidden = !home;
 }
 function _render(){
-  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.tab === (tab === "unread" || tab === "cal" ? "feed" : tab)));
+  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.tab === (["unread", "cal", "inbox"].includes(tab) ? "feed" : tab)));
   const unreadCount = items.filter(i => !read.has(i.id)).length;
   $("badge").hidden = !unreadCount; $("badge").textContent = unreadCount > 99 ? "99+" : unreadCount;
   const isFeed = ["feed", "unread", "star"].includes(tab);
   $("grid").hidden = true; $("back").hidden = true;
   $("feedTools").hidden = !isFeed; $("list").hidden = !isFeed; $("account").hidden = tab !== "account"; $("admin").hidden = tab !== "admin";
-  $("chat").hidden = tab !== "chat"; $("composer").hidden = true; $("wx").hidden = true; $("calCard").hidden = true; $("cal").hidden = tab !== "cal";
-  $("heading").textContent = {feed:"Akış", unread:"Okunmamış", star:"Kaydedilenler", account:"Hesap", admin:"Yönetim", chat:"Sohbet", cal:"Takvim"}[tab];
-  if(tab === "unread" || tab === "cal") $("back").hidden = false;
+  $("chat").hidden = tab !== "chat"; $("composer").hidden = true; $("wx").hidden = true; $("calCard").hidden = true; $("cal").hidden = tab !== "cal"; $("inbox").hidden = tab !== "inbox";
+  $("heading").textContent = {feed:"Akış", unread:"Okunmamış", star:"Kaydedilenler", account:"Hesap", admin:"Yönetim", chat:"Sohbet", cal:"Takvim", inbox:"Bildirimler"}[tab];
+  if(tab === "unread" || tab === "cal" || tab === "inbox") $("back").hidden = false;
   if(tab === "chat"){ $("back").firstChild && ($("back").lastChild.textContent = "Sohbet"); return renderChat(); }
   $("back").lastChild.textContent = "Akış";
   $("markAll").hidden = tab !== "unread" || !unreadCount;
   if(tab === "account") return renderAccount();
   if(tab === "cal") return renderCal();
+  if(tab === "inbox") return renderInbox();
   if(tab === "admin") return renderAdmin();
   const q = norm($("q").value.trim()), words = q.split(/\s+/).filter(Boolean);
   const base = items.filter(i => (tab !== "unread" || !read.has(i.id)) && (tab !== "star" || stars.has(i.id))
@@ -586,6 +600,7 @@ $("refresh").addEventListener("click", async () => { await loadItems(true); rend
 $("markAll").addEventListener("click", () => { items.forEach(i => read.add(i.id)); store.set("read", [...read]); toast("Tümü okundu"); render(); });
 document.addEventListener("visibilitychange", async () => { if(document.visibilityState === "visible" && me && !$("appView").hidden){ await loadItems(); render(); } });
 navigator.serviceWorker?.addEventListener("message", async e => {
+  if(e.data?.type === "inbox"){ refreshBell(); if(tab === "inbox") renderInbox(); }
   if(e.data?.type === "refresh"){ await loadItems(); render(); }
   if(e.data?.type === "open"){ const r = new URL(e.data.url).searchParams.get("room"); if(r && me){ await fetchNewMsgs(); tab = "chat"; room = r; render(); } else { await loadItems(); render(); } }
 });
@@ -639,6 +654,35 @@ async function syncLocation(loc, say){
   const { error } = await sb.rpc("set_my_location", { lat: loc.lat, lon: loc.lon, city: loc.city });
   if(!error){ me.wx_lat = loc.lat; me.wx_lon = loc.lon; me.wx_city = loc.city; if(say) toast("Konum kaydedildi: " + loc.city); }
 }
+
+/* ---------------- uygulama içi bildirimler ---------------- */
+function inboxDb(){ return new Promise((ok, no) => { const q = indexedDB.open("tmpro", 1); q.onupgradeneeded = () => q.result.createObjectStore("inbox", { keyPath: "id", autoIncrement: true }); q.onsuccess = () => ok(q.result); q.onerror = () => no(q.error); }); }
+async function inboxAll(){ try{ const db = await inboxDb(); return await new Promise(ok => { const q = db.transaction("inbox").objectStore("inbox").getAll(); q.onsuccess = () => ok(q.result.sort((x, y) => y.at - x.at)); q.onerror = () => ok([]); }); }catch{ return []; } }
+async function inboxWrite(fn){ try{ const db = await inboxDb(); await new Promise(ok => { const tx = db.transaction("inbox", "readwrite"); fn(tx.objectStore("inbox")); tx.oncomplete = ok; tx.onerror = ok; }); }catch{} }
+async function refreshBell(){ const n = (await inboxAll()).filter(x => !x.read).length; $("bellBadge").hidden = !n; $("bellBadge").textContent = n > 99 ? "99+" : n; }
+function ntfKind(n){
+  if(n.tag === "tmpro-gunaydin") return ["--gold", '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'];
+  if(String(n.tag).startsWith("chat-")) return ["--t-ozelge", '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/>'];
+  return ["--t-teblig", '<path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'];
+}
+function agoText(t){ const m = Math.round((Date.now() - t) / 60e3); if(m < 1) return "Şimdi"; if(m < 60) return m + " dk"; const h = Math.round(m / 60); if(h < 24) return h + " sa"; return new Date(t).toLocaleDateString("tr-TR", { day: "numeric", month: "short" }); }
+async function renderInbox(){
+  const list = await inboxAll(); if(tab !== "inbox") return;
+  $("sub").textContent = list.length ? `${list.length} bildirim` : "";
+  $("inbox").innerHTML = list.length ? `<div class="list" style="margin-top:8px">${list.map(n => { const [c, ic] = ntfKind(n); return `<button class="ntf ${n.read ? "" : "new"}" data-url="${esc(n.url || "")}">
+      <span class="ni" style="--c:var(${c})"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${ic}</svg></span>
+      <span class="grow" style="flex:1;min-width:0"><span class="nt"><b>${esc(n.title)}</b><span>${agoText(n.at)}</span></span><p>${esc(n.body || "")}</p></span></button>`; }).join("")}</div>
+      <button class="btn plain" id="inboxClear" style="margin-top:12px;color:var(--danger)">Tümünü Temizle</button>`
+    : `<div class="empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Henüz bildirim yok. Gelen bildirimler burada toplanır.</div>`;
+  if(list.some(n => !n.read)){ await inboxWrite(st => list.forEach(n => { if(!n.read) st.put({ ...n, read: true }); })); refreshBell(); }
+  const clr = $("inboxClear"); if(clr) clr.onclick = async () => { if(!confirm("Tüm bildirimler silinsin mi?")) return; await inboxWrite(st => st.clear()); refreshBell(); renderInbox(); };
+  $("inbox").querySelectorAll(".ntf").forEach(b => b.onclick = async () => {
+    const r = b.dataset.url ? new URL(b.dataset.url, location.href).searchParams.get("room") : null;
+    if(r){ await fetchNewMsgs(); tab = "chat"; room = r; } else { tab = "feed"; filter = "Tümü"; }
+    render(); scrollTo({ top: 0 });
+  });
+}
+$("bell").addEventListener("click", () => { tab = "inbox"; room = null; render(); scrollTo({ top: 0 }); });
 
 /* ---------------- takvim ---------------- */
 const AYLAR = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
