@@ -579,6 +579,9 @@ def notify_users():
         print(f"Bildirim: {uid[:8]} -> {len(new)} kayıt")
 
 
+RELEASE_HOUR = 13  # yeni özellik duyuruları yalnızca bu saatte, günde en fazla bir kez
+
+
 def release_push(state):
     """docs/surum.json'daki en yeni sürüm "bildir": true ise tüm aktif üyelere bir kez anlık bildirim yollar."""
     try:
@@ -592,8 +595,8 @@ def release_push(state):
     if state.get("release_notified") == r["surum"]:
         return
     now = datetime.now(TR)
-    if now.hour >= QUIET[0] or now.hour < QUIET[1]:
-        print("Sürüm bildirimi sessiz saatler bitince gönderilecek")
+    if now.hour != RELEASE_HOUR:
+        print(f"Sürüm {r['surum']} bildirimi saat {RELEASE_HOUR}:00'te gönderilecek")
         return
     from pywebpush import webpush, WebPushException
     vapid = db("GET", "private_settings?key=eq.vapid_private&select=value")[0]["value"]
