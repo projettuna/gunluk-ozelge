@@ -1,0 +1,10 @@
+{
+  "not": "Gecikme zammı / gecikme faizi aylık oranları (6183 s. Kanun md. 51, VUK md. 112). Yeni karar çıkınca bu dosyaya satır eklenir.",
+  "gecikme": [
+    { "bas": "2010-03-01", "oran": 1.4 },
+    { "bas": "2019-11-19", "oran": 1.6 },
+    { "bas": "2022-07-21", "oran": 2.5 },
+    { "bas": "2024-05-17", "oran": 4.5 },
+    { "bas": "2025-11-14", "oran": 3.7 }
+  ]
+}

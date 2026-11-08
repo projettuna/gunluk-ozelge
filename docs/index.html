@@ -341,6 +341,31 @@ body.typing main{padding-bottom:80px}
 .wxin{width:100%;box-sizing:border-box;height:42px;border-radius:12px;border:.5px solid var(--glass-line);background:var(--fill);padding:0 12px;font:inherit;font-size:16px;color:var(--ink);outline:none}
 .wxpick{display:flex;flex-direction:column;align-items:flex-start;width:100%;border:0;background:none;padding:10px 4px;border-bottom:.5px solid var(--line);font:inherit;font-size:16px;font-weight:600;color:var(--ink);cursor:pointer;text-align:left}
 .wxpick small{font-size:12.5px;color:var(--muted);font-weight:500}
+/* ---- araçlar ---- */
+.tcard{margin-top:12px;padding:14px 16px;border-radius:22px;background:var(--surface);border:.5px solid var(--glass-line);box-shadow:var(--glass-shadow);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+.tt{font-size:17px;font-weight:700;letter-spacing:-.01em;margin-bottom:10px;display:flex;align-items:baseline;gap:8px}
+.tt span{font-size:11.5px;font-weight:700;letter-spacing:.06em;color:var(--gold);text-transform:uppercase}
+.tf{margin-bottom:10px}.tf.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tf label{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:12.5px;font-weight:600;color:var(--muted)}
+.tf input,.tf select,#askQ{height:42px;border-radius:12px;border:.5px solid var(--glass-line);background:var(--fill);padding:0 12px;font:inherit;font-size:16px;color:var(--ink);outline:none;width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none;min-width:0}
+#askQ{height:auto;padding:10px 12px;resize:none;line-height:1.4}
+.thelp{font-size:12.5px;color:var(--muted);line-height:1.45;margin:2px 0 6px}
+.tchk{display:flex;align-items:center;gap:8px;font-size:14.5px;font-weight:550;margin:2px 0 8px}
+.tres{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-top:8px;border-radius:16px;background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.tres small{display:block;font-size:12px;color:var(--muted);font-weight:600}.tres b{display:block;font-size:17px;font-weight:700}.tres em{display:block;font-style:normal;font-size:12px;color:var(--muted)}
+.tside{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none}
+.tleft{font-size:12px;font-weight:700;color:var(--ok,#34c759)}.tleft.soon{color:#ff9500}.tleft.over{color:var(--danger)}
+.tadd{border:0;border-radius:999px;padding:5px 10px;font:inherit;font-size:12px;font-weight:650;background:var(--brand);color:#fff;cursor:pointer}.tadd[disabled]{opacity:.6}
+.tsum{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.tsum>div{padding:10px 12px;border-radius:14px;background:var(--fill)}.tsum small{display:block;font-size:12px;color:var(--muted);font-weight:600}.tsum b{font-size:17px;font-variant-numeric:tabular-nums}
+.tsum .tot{background:var(--brand);color:#fff}.tsum .tot small{color:rgba(255,255,255,.8)}
+.tbl{margin-top:8px;border-radius:14px;overflow:hidden;border:.5px solid var(--line)}
+.trow{display:grid;grid-template-columns:1.6fr 1fr auto;gap:6px;padding:8px 10px;font-size:12.5px;border-top:.5px solid var(--line);font-variant-numeric:tabular-nums}.trow:first-child{border-top:0}.trow span:nth-child(2){color:var(--muted)}
+.aq{font-weight:700;font-size:15.5px;margin-bottom:8px}
+.aa p{margin:0 0 10px;font-size:15.5px;line-height:1.55}
+.cite{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--brand);color:#fff!important;font-size:11px;font-weight:700;text-decoration:none;vertical-align:2px;margin:0 2px}
+.asrc{border-top:.5px solid var(--line);padding-top:8px;margin-top:4px}.asrc small{display:block;font-size:11.5px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.asrc a{display:flex;align-items:center;gap:6px;padding:6px 0;font-size:13.5px;color:var(--ink);text-decoration:none}
 /* ---- sohbet ekleri ---- */
 .head h2.small{font-size:24px!important;line-height:1.15;letter-spacing:-.02em}
 .msg .tm{display:flex;align-items:center;gap:4px}
@@ -378,6 +403,7 @@ body.typing main{padding-bottom:80px}
 /* ---- tam metin okuyucu ---- */
 button.title{display:block;width:100%;text-align:left;border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer}
 .open{border:0;cursor:pointer;font-family:inherit}
+[hidden]{display:none!important}
 body.noscroll{overflow:hidden}
 .reader{position:fixed;inset:0;z-index:60;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg);opacity:0;transform:translateY(24px);transition:opacity .22s,transform .22s}
 .reader.on{opacity:1;transform:none}
@@ -617,6 +643,7 @@ body.home::before{opacity:.85}
   <div id="cal" hidden></div>
   <div id="inbox" hidden></div>
   <div id="news" hidden></div>
+  <div id="tools" hidden></div>
   <div id="grid" class="grid" hidden></div>
   <div id="list"></div>
   <div id="account" hidden></div>
@@ -627,7 +654,7 @@ body.home::before{opacity:.85}
   <button class="tab" data-tab="feed"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Akış<span class="badge" id="badge" hidden></span></button>
   <button class="tab" data-tab="news"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h12v14H6a2 2 0 0 1-2-2z"/><path d="M16 9h3a1 1 0 0 1 1 1v7a2 2 0 0 1-4 0"/><path d="M7 9h6M7 13h6M7 16h4"/></svg>Haberler</button>
   <button class="tab" data-tab="chat"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></svg>Sohbet<span class="badge" id="chatBadge" hidden></span></button>
-  <button class="tab" data-tab="star"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"/></svg>Kaydedilen</button>
+  <button class="tab" data-tab="tools"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/></svg>Araçlar</button>
   <button class="tab" data-tab="account"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/></svg>Hesap</button>
   <button class="tab" data-tab="admin" hidden id="adminTab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg>Yönetim<span class="badge" id="adminBadge" hidden></span></button>
 </div></nav>
@@ -777,6 +804,7 @@ const ICON_DOC = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" st
 const ICON_OPEN = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>';
 
 function render(){
+  if($("reader").hidden && $("wxView").hidden) document.body.classList.remove("noscroll");  // kaydırma kilidi asılı kalmasın
   _render();
   $("navTitle").textContent = $("heading").textContent;
   const home = tab === "feed" && filter === "Tümü" && !$("q").value.trim();
@@ -797,15 +825,15 @@ function render(){
   }
 }
 function _render(){
-  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.tab === (["unread", "cal", "inbox"].includes(tab) ? "feed" : tab)));
+  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.tab === (["unread", "star", "cal", "inbox"].includes(tab) ? "feed" : tab)));
   const unreadCount = items.filter(i => !read.has(i.id)).length;
   $("badge").hidden = !unreadCount; $("badge").textContent = unreadCount > 99 ? "99+" : unreadCount;
   const isFeed = ["feed", "unread", "star"].includes(tab);
   $("grid").hidden = true; $("back").hidden = true;
   $("feedTools").hidden = !isFeed; $("list").hidden = !isFeed; $("account").hidden = tab !== "account"; $("admin").hidden = tab !== "admin";
-  $("chat").hidden = tab !== "chat"; $("composer").hidden = true; $("wx").hidden = true; $("calCard").hidden = true; $("cal").hidden = tab !== "cal"; $("inbox").hidden = tab !== "inbox"; $("news").hidden = tab !== "news"; $("heading").classList.remove("small");
-  $("heading").textContent = {news:"Haberler", feed:"Akış", unread:"Okunmamış", star:"Kaydedilenler", account:"Hesap", admin:"Yönetim", chat:"Sohbet", cal:"Takvim", inbox:"Bildirimler"}[tab];
-  if(tab === "unread" || tab === "cal" || tab === "inbox") $("back").hidden = false;
+  $("chat").hidden = tab !== "chat"; $("composer").hidden = true; $("wx").hidden = true; $("calCard").hidden = true; $("cal").hidden = tab !== "cal"; $("inbox").hidden = tab !== "inbox"; $("news").hidden = tab !== "news"; $("tools").hidden = tab !== "tools"; $("heading").classList.remove("small");
+  $("heading").textContent = {tools:"Araçlar", news:"Haberler", feed:"Akış", unread:"Okunmamış", star:"Kaydedilenler", account:"Hesap", admin:"Yönetim", chat:"Sohbet", cal:"Takvim", inbox:"Bildirimler"}[tab];
+  if(tab === "unread" || tab === "star" || tab === "cal" || tab === "inbox") $("back").hidden = false;
   if(tab === "chat"){ $("back").firstChild && ($("back").lastChild.textContent = "Sohbet"); return renderChat(); }
   $("back").lastChild.textContent = "Akış";
   $("markAll").hidden = tab !== "unread" || !unreadCount;
@@ -813,6 +841,7 @@ function _render(){
   if(tab === "cal") return renderCal();
   if(tab === "inbox") return renderInbox();
   if(tab === "news") return renderNews();
+  if(tab === "tools") return renderTools();
   if(tab === "admin") return renderAdmin();
   const q = norm($("q").value.trim()), words = q.split(/\s+/).filter(Boolean);
   const pre = items.filter(i => (tab !== "unread" || !read.has(i.id)) && (tab !== "star" || stars.has(i.id))
@@ -855,6 +884,7 @@ function _render(){
         ${cls === "xl" && latest[t] ? `<i class="last">${esc(latest[t].title)}</i>` : ""}</span>${spark(series[t], !!cls)}</button>`; };
     $("grid").className = "grid bento";
     $("grid").innerHTML = ORDER.map(bento).join("") + (unreadCount ? wide("__unread", bell, "Okunmamış", unreadCount, unreadCount).replace('class="tile all"', 'class="tile all pair"') : "")
+      + (stars.size ? wide("__star", ICON_STAR(true), "Kaydedilenler", stars.size, 0).replace('class="tile all"', 'class="tile all pair"') : "")
       + wide("Tümü", icon("Tümü"), "Tüm Kayıtlar", items.length, 0).replace('class="tile all"', unreadCount ? 'class="tile all"' : 'class="tile all pair"');
     if(!window._counted){ window._counted = true; $("grid").querySelectorAll(".num").forEach(el => { const n = +el.dataset.n, t1 = performance.now(); if(!n) return;
       const step = now => { const k = Math.min(1, (now - t1) / 900), e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(n * e); if(k < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); }); }
@@ -886,7 +916,7 @@ function _render(){
   if(list.length > 300) html += `<div class="empty">İlk 300 kayıt gösteriliyor. Aramayı daraltın.</div>`;
   $("list").innerHTML = html;
 }
-$("grid").addEventListener("click", e => { const b = e.target.closest(".tile"); if(!b) return; if(b.dataset.t === "__unread"){ tab = "unread"; store.set("tab", tab); render(); scrollTo({top:0}); return; } filter = b.dataset.t; if(filter === "Tümü"){ filter = "__all"; } store.set("filter", filter); render(); scrollTo({top:0}); });
+$("grid").addEventListener("click", e => { const b = e.target.closest(".tile"); if(!b) return; if(b.dataset.t === "__unread"){ tab = "unread"; store.set("tab", tab); render(); scrollTo({top:0}); return; } if(b.dataset.t === "__star"){ tab = "star"; render(); scrollTo({top:0}); return; } filter = b.dataset.t; if(filter === "Tümü"){ filter = "__all"; } store.set("filter", filter); render(); scrollTo({top:0}); });
 $("back").addEventListener("click", () => { sfil = "all"; if(tab === "chat"){ room = null; render(); scrollTo({top:0}); return; } tab = "feed"; filter = "Tümü"; store.set("filter", filter); render(); scrollTo({top:0}); });
 $("sfil").addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; sfil = b.dataset.s; render(); scrollTo({top:0, behavior:"smooth"}); });
 $("chips").addEventListener("click", e => { const b = e.target.closest(".chip"); if(!b) return; filter = b.dataset.t; if(filter === "Tümü" && tab === "feed") filter = "__all"; store.set("filter", filter); render(); scrollTo({top:0, behavior:"smooth"}); });
@@ -909,6 +939,109 @@ navigator.serviceWorker?.addEventListener("message", async e => {
   if(e.data?.type === "open"){ const r = new URL(e.data.url).searchParams.get("room"); if(r && me){ await fetchNewMsgs(); tab = "chat"; room = r; render(); } else { await loadItems(); render(); } }
 });
 
+
+/* ---------------- müfettiş araçları ---------------- */
+let toolSeg = "sure", ORAN = null, askLog = [];
+const fmtTL = n => (Math.round(n * 100) / 100).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " TL";
+const isoD = d => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
+const trD = iso => iso ? new Date(iso + "T12:00").toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" }) : "";
+const addM = (iso, m) => { const d = new Date(iso + "T12:00"); const day = d.getDate(); d.setDate(1); d.setMonth(d.getMonth() + m); d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate())); return isoD(d); };
+const addD = (iso, n) => { const d = new Date(iso + "T12:00"); d.setDate(d.getDate() + n); return isoD(d); };
+const daysTo = iso => Math.round((new Date(iso + "T12:00") - new Date(todayIso() + "T12:00")) / 864e5);
+const left = iso => { const n = daysTo(iso); return n < 0 ? `<span class="tleft over">${-n} gün önce doldu</span>` : `<span class="tleft ${n < 90 ? "soon" : ""}">${n} gün kaldı</span>`; };
+const resRow = (lbl, iso, sub, evTitle) => `<div class="tres"><div class="grow"><small>${lbl}</small><b>${trD(iso)}</b>${sub ? `<em>${sub}</em>` : ""}</div><div class="tside">${left(iso)}${evTitle ? `<button class="tadd" data-t="${esc(evTitle)}" data-d="${iso}">Takvime Ekle</button>` : ""}</div></div>`;
+function renderTools(){
+  $("sub").textContent = "Süre, ceza ve mevzuat yardımcıları";
+  const segs = [["sure", "Süreler"], ["ceza", "Ceza ve Faiz"], ["asistan", "Asistan"]];
+  $("tools").innerHTML = `<div class="sfil" id="toolSeg">${segs.map(([k, l]) => `<button data-s="${k}" class="${toolSeg === k ? "on" : ""}">${l}</button>`).join("")}</div><div id="toolBody"></div>
+    <div class="foot" style="margin-top:14px">Hesaplamalar yardımcı amaçlıdır; sonuçları mevzuat ve güncel içtihatla teyit edin.</div>`;
+  $("toolSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; toolSeg = b.dataset.s; renderTools(); };
+  if(toolSeg === "sure") toolSure(); else if(toolSeg === "ceza") toolCeza(); else toolAsk();
+}
+function toolSure(){
+  const y = new Date().getFullYear() - 1;
+  $("toolBody").innerHTML = `
+  <div class="tcard"><div class="tt">Tarh Zamanaşımı <span>VUK 114</span></div>
+    <div class="tf"><label>Verginin ait olduğu yıl<input id="zy" type="number" inputmode="numeric" value="${y}" min="2000" max="2100"></label></div>
+    <div class="tf two"><label>Takdire sevk tarihi<input id="zs" type="date"></label><label>Takdir kararının tebliği<input id="zt" type="date"></label></div>
+    <div class="thelp">Alacağın doğduğu yılı izleyen yılın başından itibaren 5 yıl. Takdire sevk zamanaşımını durdurur; durma en fazla 1 yıldır.</div><div id="zr"></div></div>
+  <div class="tcard"><div class="tt">Dava Zamanaşımı <span>VUK 359 · TCK 66-67</span></div>
+    <div class="tf"><label>Fiil<select id="df"><option value="a">359/a: Defter ve kayıtlarda hile (18 ay-3 yıl)</option><option value="b" selected>359/b: Sahte belge düzenleme/kullanma (3-8 yıl)</option><option value="c">359/c: İzinsiz belge basma ve kullanma (2-5 yıl)</option></select></label></div>
+    <div class="tf"><label>Suç tarihi<input id="dt" type="date" value="${y + 1}-01-01"></label></div>
+    <div class="thelp">Üst sınırı 5 yılı geçmeyen suçlarda 8 yıl, 5-20 yıl arasında 15 yıl (TCK 66). Kesme sebebiyle en fazla yarısı kadar uzar (TCK 67/4). Suç tarihi için VUK 359 ve Yargıtay kabulünü esas alın.</div><div id="dr"></div></div>
+  <div class="tcard"><div class="tt">İnceleme Süresi <span>VUK 140</span></div>
+    <div class="tf two"><label>İncelemeye başlama<input id="it" type="date" value="${todayIso()}"></label><label>İnceleme türü<select id="ik"><option value="12">Tam inceleme (1 yıl)</option><option value="6">Diğer (6 ay)</option></select></label></div>
+    <div class="tf"><label>Dosya / mükellef adı (takvim için)<input id="in" maxlength="40" placeholder="İsteğe bağlı"></label></div>
+    <div class="thelp">Tam incelemede en fazla 1 yıl, diğerlerinde 6 ay; gerekirse 6 ay ek süre verilebilir.</div><div id="ir"></div></div>`;
+  const calc = () => {
+    const yy = +$("zy").value, s0 = $("zs").value, t0 = $("zt").value;
+    if(yy > 1990){ let end = `${yy + 5}-12-31`, sub = `${yy + 1} yılı başından itibaren 5 yıl`;
+      if(s0 && t0 && t0 > s0){ const stop = Math.min(365, Math.round((new Date(t0) - new Date(s0)) / 864e5)); end = addD(end, stop); sub += ` + ${stop} gün durma`; }
+      $("zr").innerHTML = resRow("Zamanaşımı sonu", end, sub, `${yy} yılı tarh zamanaşımı`); }
+    const f = $("df").value, dt = $("dt").value, yrs = f === "b" ? 15 : 8;
+    if(dt){ $("dr").innerHTML = resRow(`Olağan zamanaşımı (${yrs} yıl)`, addM(dt, yrs * 12), "") + resRow(`Uzamış zamanaşımı (${yrs * 1.5} yıl)`, addM(dt, yrs * 18), "Kesme hâlinde üst sınır"); }
+    const it = $("it").value, km = +$("ik").value, nm = $("in").value.trim();
+    if(it){ $("ir").innerHTML = resRow("Süre sonu", addM(it, km), km === 12 ? "Tam inceleme" : "Diğer inceleme", `İnceleme süresi${nm ? ": " + nm : ""}`) + resRow("Ek süreyle", addM(it, km + 6), "+6 ay ek süre", `İnceleme ek süre${nm ? ": " + nm : ""}`); }
+  };
+  $("toolBody").oninput = calc; calc();
+  $("toolBody").onclick = async e => { const b = e.target.closest(".tadd"); if(!b) return;
+    const { error } = await sb.from("user_events").insert({ title: b.dataset.t.slice(0, 80), day: b.dataset.d, yearly: false });
+    if(error){ toast("Takvime eklenemedi"); return; } evLoaded = false; b.textContent = "Eklendi ✓"; b.disabled = true; toast("Takvime eklendi"); };
+}
+async function toolCeza(){
+  if(!ORAN){ try{ ORAN = await (await fetch("oranlar.json?v=" + Math.floor(Date.now() / 36e5))).json(); }catch{ ORAN = { gecikme: [] }; } }
+  $("toolBody").innerHTML = `
+  <div class="tcard"><div class="tt">Vergi Ziyaı Cezası <span>VUK 344 · 339</span></div>
+    <div class="tf"><label>Ziyaa uğratılan vergi (TL)<input id="cv" inputmode="decimal" placeholder="0,00"></label></div>
+    <div class="tf"><label>Fiil<select id="ck"><option value="1">Genel (1 kat)</option><option value="3">VUK 359'daki fiillerle (3 kat)</option></select></label></div>
+    <label class="tchk"><input type="checkbox" id="ct"> Tekerrür (VUK 339, %50 artırım)</label>
+    <div id="cr"></div></div>
+  <div class="tcard"><div class="tt">Gecikme Faizi <span>VUK 112 · 6183 md. 51</span></div>
+    <div class="tf"><label>Vergi aslı (TL)<input id="gv" inputmode="decimal" placeholder="0,00"></label></div>
+    <div class="tf two"><label>Vade tarihi<input id="g1" type="date"></label><label>Hesap tarihi<input id="g2" type="date" value="${todayIso()}"></label></div>
+    <div class="thelp">Aylık oranlar dönem dönem uygulanır, ay kesirleri gün olarak hesaba katılır. Oran tablosu: ${(ORAN.gecikme || []).map(o => `${trD(o.bas)}'ten %${String(o.oran).replace(".", ",")}`).join(" · ")}.</div>
+    <div id="gr"></div></div>`;
+  const num = v => +String(v || "").replace(/\./g, "").replace(",", ".") || 0;
+  const calc = () => {
+    const v = num($("cv").value), k = +$("ck").value, t = $("ct").checked;
+    if(v){ const base = v * k, tek = t ? base * .5 : 0;
+      $("cr").innerHTML = `<div class="tsum"><div><small>Ceza (${k} kat)</small><b>${fmtTL(base)}</b></div>${t ? `<div><small>Tekerrür artırımı</small><b>${fmtTL(tek)}</b></div>` : ""}<div class="tot"><small>Toplam ceza</small><b>${fmtTL(base + tek)}</b></div></div>`; } else $("cr").innerHTML = "";
+    const g = num($("gv").value), d1 = $("g1").value, d2 = $("g2").value, R = (ORAN.gecikme || []).slice().sort((a, b) => a.bas < b.bas ? -1 : 1);
+    if(!(g && d1 && d2 && d2 > d1 && R.length)){ $("gr").innerHTML = ""; return; }
+    let total = 0, rows = [], cur = d1;
+    while(cur < d2){
+      const r = [...R].reverse().find(x => x.bas <= cur) || R[0], nx = R.find(x => x.bas > cur)?.bas, end = nx && nx < d2 ? nx : d2;
+      const days = Math.round((new Date(end) - new Date(cur)) / 864e5), amt = g * r.oran / 100 * days / 30;
+      rows.push(`<div class="trow"><span>${trD(cur)} – ${trD(end)}</span><span>${days} gün × %${String(r.oran).replace(".", ",")}</span><b>${fmtTL(amt)}</b></div>`); total += amt; cur = end;
+    }
+    $("gr").innerHTML = `<div class="tbl">${rows.join("")}</div><div class="tsum"><div class="tot"><small>Toplam gecikme faizi</small><b>${fmtTL(total)}</b></div><div><small>Vergi + faiz</small><b>${fmtTL(g + total)}</b></div></div>`;
+  };
+  $("toolBody").oninput = calc; $("toolBody").onchange = calc;
+}
+function toolAsk(){
+  $("toolBody").innerHTML = `<div class="tcard"><div class="tt">Mevzuat Asistanı <span>Yapay zekâ</span></div>
+    <div class="thelp" style="margin-top:0">Sorunuzu yazın; uygulamadaki özelge, tebliğ, sirküler, kanun ve Danıştay metinlerinden kaynak göstererek yanıtlar.</div>
+    <textarea id="askQ" rows="3" maxlength="600" placeholder="Örn. Sahte fatura kullanımında KDV indirimi reddedilirken nelere dikkat edilmeli?"></textarea>
+    <button class="btn" id="askBtn" style="margin-top:10px">Sor</button></div><div id="askOut">${askLog.map(askHtml).join("")}</div>`;
+  $("askBtn").onclick = async () => {
+    const q = $("askQ").value.trim(); if(q.length < 5) return;
+    const btn = $("askBtn"); btn.disabled = true; btn.textContent = "Kaynaklar taranıyor…";
+    $("askOut").insertAdjacentHTML("afterbegin", `<div class="tcard" id="askWait"><div class="rload"><i></i><i></i><i></i></div></div>`);
+    let r; try{
+      const { data: { session } } = await sb.auth.getSession();
+      const res = await fetch("/api/ask", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session?.access_token }, body: JSON.stringify({ q }) });
+      r = await res.json(); if(!res.ok) throw new Error(r.error || res.status);
+    }catch(e){ r = { q, error: String(e.message || e) }; }
+    $("askWait")?.remove(); btn.disabled = false; btn.textContent = "Sor";
+    askLog.unshift({ q, ...r }); $("askQ").value = ""; $("askOut").innerHTML = askLog.map(askHtml).join("");
+  };
+  $("askOut").onclick = e => { const a = e.target.closest("[data-open]"); if(a){ e.preventDefault(); openReader(+a.dataset.open); } };
+}
+function askHtml(r){
+  if(r.error) return `<div class="tcard"><div class="aq">${esc(r.q)}</div><div class="thelp">${r.error.includes("anahtar") ? "Asistan henüz etkin değil." : "Yanıt alınamadı: " + esc(r.error)}</div></div>`;
+  const body = esc(r.answer || "").replace(/\[(\d+)\]/g, (m, n) => { const s = (r.sources || [])[+n - 1]; return s ? `<a href="#" class="cite" data-open="${s.id}">${n}</a>` : m; }).split(/\n{2,}/).map(p => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("");
+  return `<div class="tcard"><div class="aq">${esc(r.q)}</div><div class="aa">${body}</div>${(r.sources || []).length ? `<div class="asrc"><small>Kaynaklar</small>${r.sources.map((s, i) => `<a href="#" data-open="${s.id}"><span class="cite">${i + 1}</span>${esc(s.tur)} · ${esc(s.title.slice(0, 90))}</a>`).join("")}</div>` : ""}</div>`;
+}
 
 /* ---------------- haberler ---------------- */
 let news = null, newsAt = 0, newsFil = "Tümü";
@@ -1053,6 +1186,7 @@ async function openWxView(){
 function closeWx(fromPop){ const R = $("wxView"); if(R.hidden) return; R.classList.remove("on"); document.body.classList.remove("noscroll"); setTimeout(() => { R.hidden = true; }, 220); if(!fromPop && history.state?.wxv) history.back(); }
 $("wxClose").addEventListener("click", () => closeWx());
 addEventListener("popstate", () => closeWx(true));
+addEventListener("pageshow", () => { if($("reader").hidden && $("wxView").hidden) document.body.classList.remove("noscroll"); });
 // Günaydın bildirimindeki hava durumu için konum profile de yazılır
 async function syncLocation(loc, say){
   if(!me || !loc) return;

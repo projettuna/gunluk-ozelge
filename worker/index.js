@@ -118,6 +118,53 @@ async function morning(j, env) {
   return j.preview ? { today, preview: out } : { today, users: (j.users || []).length, sent };
 }
 
+// ---- Mevzuat asistanı: üyenin oturumuyla kayıtları arar, Claude ile kaynaklı yanıt üretir ----
+const SB_URL = "https://hnolhapzcisavhkwyzhs.supabase.co";
+const SB_KEY = "sb_publishable_tlfwqtscxxv2vdSHe3PstQ_XO1db8p9";
+const STOP = new Set("ve veya ile için gibi bir bu şu o da de mi mı mu mü ne nasıl hangi neler nedir olan olarak ise ki ama fakat yani daha en çok az her kadar sonra önce üzerine göre dair ilgili hakkında var yok mıdır midir edilir edilmesi yapılır".split(" "));
+const stems = q => [...new Set(q.toLocaleLowerCase("tr").replace(/[^a-zçğıöşü0-9 ]/g, " ").split(/\s+/).filter(w => w.length >= 3 && !STOP.has(w)).map(w => w.length > 6 ? w.slice(0, 6) : w))].slice(0, 8);
+function excerpt(text, ws, max) {
+  const t = text || "", low = t.toLocaleLowerCase("tr");
+  if (t.length <= max) return t;
+  let best = 0, bestScore = -1;
+  for (let i = 0; i < low.length; i += 800) { const win = low.slice(i, i + max); const sc = ws.reduce((a, w) => a + (win.split(w).length - 1), 0); if (sc > bestScore) { bestScore = sc; best = i; } }
+  return (best ? "… " : "") + t.slice(best, best + max) + "…";
+}
+async function ask(req, env) {
+  if (!env.ANTHROPIC_API_KEY) return Response.json({ error: "API anahtarı tanımlı değil" }, { status: 503 });
+  const token = (req.headers.get("Authorization") || "").replace(/^Bearer /, "");
+  let j; try { j = await req.json(); } catch { return Response.json({ error: "bad json" }, { status: 400 }); }
+  const q = String(j.q || "").trim().slice(0, 600);
+  if (!token || q.length < 5) return Response.json({ error: "Soru eksik" }, { status: 400 });
+  const H = { apikey: SB_KEY, Authorization: "Bearer " + token };
+  const me = await fetch(SB_URL + "/rest/v1/rpc/is_active", { method: "POST", headers: { ...H, "Content-Type": "application/json" }, body: "{}" });
+  if (!me.ok || (await me.json()) !== true) return Response.json({ error: "Yetkisiz" }, { status: 401 });
+  const ws = stems(q);
+  let rows = [];
+  if (ws.length) {
+    const or = ws.flatMap(w => [`title.ilike.*${w}*`, `metin.ilike.*${w}*`]).join(",");
+    const r = await fetch(`${SB_URL}/rest/v1/items?select=id,tur,title,meta,url,metin,ozet&or=(${encodeURIComponent(or)})&order=id.desc&limit=60`, { headers: H });
+    rows = r.ok ? await r.json() : [];
+  }
+  const scored = rows.map(x => { const tl = (x.title || "").toLocaleLowerCase("tr"), ml = (x.metin || x.ozet || "").toLocaleLowerCase("tr");
+    const hit = ws.filter(w => tl.includes(w) || ml.includes(w)).length;
+    const sc = ws.reduce((a, w) => a + 6 * (tl.split(w).length - 1) + Math.min(15, ml.split(w).length - 1), 0) + hit * 10;
+    return { x, sc }; }).sort((a, b) => b.sc - a.sc).slice(0, 6).map(o => o.x);
+  const sources = scored.map((x, i) => ({ n: i + 1, id: x.id, tur: x.tur, title: x.title, meta: x.meta }));
+  const ctx = scored.map((x, i) => `[${i + 1}] ${x.tur} · ${x.title}${x.meta ? " · " + x.meta : ""}\n${excerpt(x.metin || x.ozet || "", ws, 5000)}`).join("\n\n---\n\n");
+  const system = `Sen Türkiye vergi mevzuatında uzman, vergi müfettişlerine yardım eden bir asistansın. Yalnızca verilen kaynaklara dayan.
+Kurallar: Türkçe, açık ve kısa yaz (en fazla 6 kısa paragraf ya da madde). Her bilginin sonuna dayandığı kaynağı [1], [2] biçiminde ekle.
+Kaynaklarda cevap yoksa bunu açıkça söyle ve hangi tür mevzuata bakılması gerektiğini belirt; tahmin yürütme, madde numarası veya oran uydurma.
+Markdown başlığı ve kalın yazı kullanma. Son satırda tek cümleyle müfettiş açısından dikkat edilecek noktayı yaz.`;
+  const body = { model: env.ASK_MODEL || "claude-sonnet-5-5", max_tokens: 1400, system,
+    messages: [{ role: "user", content: `Soru: ${q}\n\nKaynaklar:\n${ctx || "(Uygulamada eşleşen kayıt bulunamadı.)"}` }] };
+  const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify(body) });
+  if (!r.ok) return Response.json({ error: "Yapay zekâ yanıt vermedi (" + r.status + ")" }, { status: 502 });
+  const d = await r.json();
+  const answer = (d.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();
+  return Response.json({ answer, sources });
+}
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -133,6 +180,7 @@ export default {
       if (!Array.isArray(j?.users) || (!j.preview && (!j?.vapid?.private || !j?.vapid?.public))) return new Response("bad request", { status: 400 });
       return Response.json(await morning(j, env));
     }
+    if (url.pathname === "/api/ask" && req.method === "POST") return ask(req, env);
     return env.ASSETS.fetch(req);
   }
 };
