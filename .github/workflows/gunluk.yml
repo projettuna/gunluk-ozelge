@@ -70,7 +70,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -q pywebpush==2.0.3
+      - run: pip install -q pywebpush==2.0.3 pypdf==5.1.0
       - name: Özelgeleri ve kararları kontrol et
         env:
           MAIL_TO: ${{ secrets.MAIL_TO }}

@@ -785,3 +785,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+    if SUPABASE_URL and not DRY and not (SEED or MIGRATE or TEST_PUSH or DIAG or RESEND or RESEND_KARAR):
+        try:
+            import metin
+            metin.fill(db, limit=int(os.environ.get("METIN_LIMIT") or 15))
+        except Exception as e:  # noqa: BLE001
+            print(f"Tam metin turu atlandı: {type(e).__name__} {getattr(e, 'code', '')}")
