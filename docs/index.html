@@ -228,6 +228,32 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
 .wx .days{display:flex;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:.5px solid rgba(255,255,255,.3);font-size:13px;text-align:center}
 .wx .days div{display:flex;flex-direction:column;gap:3px;align-items:center;flex:1}
 .wx .days span{font-size:17px}
+.calcard{display:flex;align-items:center;gap:12px;width:100%;margin:12px 0 0;padding:12px 14px;background:var(--surface);border:0;border-radius:20px;text-align:left;cursor:pointer;color:inherit;font:inherit}
+.calcard:active{transform:scale(.98)}
+.calcard .cd{width:42px;height:46px;border-radius:10px;background:var(--fill);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;overflow:hidden}
+.calcard .cd i{font-style:normal;font-size:10px;font-weight:700;color:#fff;background:var(--danger);width:100%;text-align:center;padding:2px 0;letter-spacing:.3px}
+.calcard .cd b{font-size:20px;font-weight:600;line-height:1.3}
+.calcard .grow{flex:1;min-width:0}.calcard .grow b{display:block;font-size:15px;font-weight:600}
+.calcard .grow small{display:block;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.calcard::after{content:"";width:8px;height:8px;border-top:2px solid var(--faint);border-right:2px solid var(--faint);transform:rotate(45deg);margin-right:4px;flex:none}
+.cal{background:var(--surface);border-radius:20px;padding:12px 10px 10px;margin-top:8px}
+.cal .mh{display:flex;align-items:center;justify-content:space-between;padding:0 6px 8px}
+.cal .mh b{font-size:17px;font-weight:600}
+.cal .mh button{border:0;background:none;color:var(--accent);font-size:26px;line-height:1;width:36px;height:32px;cursor:pointer}
+.cal .wd,.cal .dg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));text-align:center}
+.cal .wd span{font-size:12px;color:var(--muted);font-weight:600;padding-bottom:4px}
+.cal .dg button{border:0;background:none;color:inherit;font:inherit;font-size:16px;height:42px;border-radius:50%;position:relative;cursor:pointer;display:grid;place-items:center;aspect-ratio:1/1;max-width:42px;margin:1px auto;width:100%}
+.cal .dg button.out{visibility:hidden}
+.cal .dg button.we{color:var(--muted)}
+.cal .dg button.hol{color:var(--danger);font-weight:600}
+.cal .dg button.today{background:var(--danger);color:#fff;font-weight:600}
+.cal .dg button.sel:not(.today){background:var(--fill)}
+.cal .dg button em{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);display:flex;gap:2px}
+.cal .dg button em i{width:4px;height:4px;border-radius:50%;background:var(--c)}
+.cal .dg button.today em i{background:#fff}
+.evtag{font-size:12px;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--fill);color:var(--muted);flex:none}
+.evtag.tatil{color:var(--danger)}.evtag.kisisel{color:var(--accent)}
+.li .x{border:0;background:none;color:var(--faint);font-size:22px;cursor:pointer;padding:0 0 0 6px;line-height:1}
 .wx .locbtn{border:0;background:rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:5px 11px;font-size:13px;font-weight:600;cursor:pointer}
 
 /* sohbet */
@@ -319,6 +345,8 @@ body.typing main{padding-bottom:80px}
     <div class="chips" id="chips"></div>
   </div>
   <div id="wx" class="wx" hidden></div>
+  <button id="calCard" class="calcard" hidden></button>
+  <div id="cal" hidden></div>
   <div id="grid" class="grid" hidden></div>
   <div id="list"></div>
   <div id="account" hidden></div>
@@ -423,6 +451,7 @@ async function boot(){
   await loadItems(); render();
   if(p.role === "admin") refreshAdminBadge();
   ensurePushIfGranted();
+  syncLocation(wxLoc(), false);
   await startChat();
   const qr = new URLSearchParams(location.search).get("room");
   if(qr){ history.replaceState(null, "", location.pathname); tab = "chat"; room = qr; }
@@ -480,19 +509,20 @@ function render(){
   $("eyebrow").hidden = !home;
 }
 function _render(){
-  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.tab === (tab === "unread" ? "feed" : tab)));
+  document.querySelectorAll(".tab").forEach(b => b.classList.toggle("on", b.dataset.tab === (tab === "unread" || tab === "cal" ? "feed" : tab)));
   const unreadCount = items.filter(i => !read.has(i.id)).length;
   $("badge").hidden = !unreadCount; $("badge").textContent = unreadCount > 99 ? "99+" : unreadCount;
   const isFeed = ["feed", "unread", "star"].includes(tab);
   $("grid").hidden = true; $("back").hidden = true;
   $("feedTools").hidden = !isFeed; $("list").hidden = !isFeed; $("account").hidden = tab !== "account"; $("admin").hidden = tab !== "admin";
-  $("chat").hidden = tab !== "chat"; $("composer").hidden = true; $("wx").hidden = true;
-  $("heading").textContent = {feed:"Akış", unread:"Okunmamış", star:"Kaydedilenler", account:"Hesap", admin:"Yönetim", chat:"Sohbet"}[tab];
-  if(tab === "unread") $("back").hidden = false;
+  $("chat").hidden = tab !== "chat"; $("composer").hidden = true; $("wx").hidden = true; $("calCard").hidden = true; $("cal").hidden = tab !== "cal";
+  $("heading").textContent = {feed:"Akış", unread:"Okunmamış", star:"Kaydedilenler", account:"Hesap", admin:"Yönetim", chat:"Sohbet", cal:"Takvim"}[tab];
+  if(tab === "unread" || tab === "cal") $("back").hidden = false;
   if(tab === "chat"){ $("back").firstChild && ($("back").lastChild.textContent = "Sohbet"); return renderChat(); }
   $("back").lastChild.textContent = "Akış";
   $("markAll").hidden = tab !== "unread" || !unreadCount;
   if(tab === "account") return renderAccount();
+  if(tab === "cal") return renderCal();
   if(tab === "admin") return renderAdmin();
   const q = norm($("q").value.trim()), words = q.split(/\s+/).filter(Boolean);
   const base = items.filter(i => (tab !== "unread" || !read.has(i.id)) && (tab !== "star" || stars.has(i.id))
@@ -504,7 +534,7 @@ function _render(){
   const home = tab === "feed" && filter === "Tümü" && !q;
   $("grid").hidden = !home; $("chips").hidden = tab === "feed"; $("back").hidden = !(tab === "feed" && filter !== "Tümü");
   if(tab === "feed" && filter !== "Tümü") $("heading").textContent = filter === "__all" ? "Tüm Kayıtlar" : filter;
-  $("wx").hidden = !home; if(home) renderWeather();
+  $("wx").hidden = !home; $("calCard").hidden = !home; if(home){ renderWeather(); renderCalCard(); }
   if(home){
     const all = {}, un = {}; items.forEach(i => { all[i.tur] = (all[i.tur] || 0) + 1; if(!read.has(i.id)) un[i.tur] = (un[i.tur] || 0) + 1; });
     const tile = (t, cls) => `<button class="tile ${cls || ""}" data-t="${esc(t)}" style="--c:var(${TYPES[t] || "--gold"})">
@@ -597,10 +627,110 @@ function askLocation(){
     const lat = +pos.coords.latitude.toFixed(3), lon = +pos.coords.longitude.toFixed(3); let city = "Konumum";
     try{ const g = await (await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=tr`)).json(); city = g.city || g.locality || g.principalSubdivision || city; }catch{}
     try{ localStorage.setItem("tmpro:wxloc", JSON.stringify({ lat, lon, city })) }catch{}
-    wxData = null; renderWeather();
+    syncLocation({ lat, lon, city }, true);
+    wxData = null; if(tab === "account") renderAccount(); else renderWeather();
   }, () => toast("Konum izni verilmedi"), { timeout: 10000, maximumAge: 3600e3 });
 }
 $("wx").addEventListener("click", () => loadWeather(true));
+// Günaydın bildirimindeki hava durumu için konum profile de yazılır
+async function syncLocation(loc, say){
+  if(!me || !loc) return;
+  if(!say && me.wx_city === loc.city && Math.abs((me.wx_lat || 0) - loc.lat) < .01 && Math.abs((me.wx_lon || 0) - loc.lon) < .01) return;
+  const { error } = await sb.rpc("set_my_location", { lat: loc.lat, lon: loc.lon, city: loc.city });
+  if(!error){ me.wx_lat = loc.lat; me.wx_lon = loc.lon; me.wx_city = loc.city; if(say) toast("Konum kaydedildi: " + loc.city); }
+}
+
+/* ---------------- takvim ---------------- */
+const AYLAR = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+let HOL = null, myEvents = [], evLoaded = false, calMonth = null, calSel = null, calSeg = "ay";
+const isoOf = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const todayIso = () => isoOf(new Date());
+const parseIso = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+async function loadHolidays(){ if(HOL) return HOL; try{ HOL = await (await fetch("tatiller.json", { cache: "no-cache" })).json(); }catch{ HOL = { sabit: [], degisken: [] }; } return HOL; }
+async function loadEvents(force){
+  if(evLoaded && !force) return; const { data, error } = await sb.from("user_events").select("*").order("day");
+  if(!error){ myEvents = data || []; evLoaded = true; }
+}
+function eventsOn(iso){
+  const out = [];
+  if(HOL){ for(const h of HOL.sabit) if(h.g === iso.slice(5)) out.push({ ad: h.ad, tur: h.tur }); for(const h of HOL.degisken) if(h.t === iso) out.push({ ad: h.ad, tur: h.tur }); }
+  for(const e of myEvents) if(e.day === iso || (e.yearly && e.day.slice(5) === iso.slice(5) && e.day <= iso)) out.push({ ad: e.title, tur: "kisisel", id: e.id, yearly: e.yearly });
+  return out;
+}
+const TURAD = { tatil: "Resmî Tatil", yarim: "Yarım Gün", anma: "Anma Günü", kisisel: "Kişisel" };
+const longDate = iso => parseIso(iso).toLocaleDateString("tr-TR", { day: "numeric", month: "long", weekday: "long" });
+function relDay(iso){ const n = Math.round((parseIso(iso) - parseIso(todayIso())) / 864e5); return n === 0 ? "Bugün" : n === 1 ? "Yarın" : `${n} Gün Sonra`; }
+function nextEvents(limit){
+  const out = [], d = new Date(); d.setHours(0, 0, 0, 0);
+  for(let k = 0; k < 400 && out.length < limit; k++){ const iso = isoOf(d); for(const e of eventsOn(iso)) out.push({ ...e, iso }); d.setDate(d.getDate() + 1); }
+  return out.slice(0, limit);
+}
+async function renderCalCard(){
+  const c = $("calCard"), t = new Date();
+  const draw = () => {
+    const n = nextEvents(1)[0];
+    c.innerHTML = `<span class="cd"><i>${AYLAR[t.getMonth()].slice(0, 3).toLocaleUpperCase("tr")}</i><b>${t.getDate()}</b></span>
+      <span class="grow"><b>Takvim</b><small>${n ? `${relDay(n.iso)} · ${esc(n.ad)}` : "Resmî tatiller ve kişisel günleriniz"}</small></span>`;
+  };
+  draw(); if(!HOL || !evLoaded){ await Promise.all([loadHolidays(), loadEvents()]); draw(); }
+}
+$("calCard").addEventListener("click", () => { tab = "cal"; calMonth = null; calSel = todayIso(); render(); scrollTo({ top: 0 }); });
+async function renderCal(){
+  $("sub").textContent = "";
+  if(!HOL || !evLoaded){ $("cal").innerHTML = `<div class="empty">Yükleniyor…</div>`; await Promise.all([loadHolidays(), loadEvents()]); if(tab !== "cal") return; }
+  const now = new Date(); if(!calMonth) calMonth = new Date(now.getFullYear(), now.getMonth(), 1); if(!calSel) calSel = todayIso();
+  const y = calMonth.getFullYear(), m = calMonth.getMonth(), first = (new Date(y, m, 1).getDay() + 6) % 7, days = new Date(y, m + 1, 0).getDate();
+  const seg = `<div class="seg" id="calSeg" style="margin:4px 0 12px">${[["ay","Takvim"],["liste","Resmî Tatiller"],["benim","Günlerim"]].map(([k, l]) => `<button data-s="${k}" class="${calSeg === k ? "on" : ""}">${l}</button>`).join("")}</div>`;
+  const row = (e, iso) => `<div class="li"><div class="grow"><b>${esc(e.ad)}</b><small>${esc(longDate(iso))}${e.tur === "kisisel" && e.yearly ? " · Her Yıl" : ""}</small></div><span class="evtag ${e.tur === "yarim" ? "tatil" : e.tur}">${TURAD[e.tur]}</span>${e.id ? `<button class="x" data-del="${e.id}" aria-label="Sil">×</button>` : ""}</div>`;
+  let html = seg;
+  if(calSeg === "ay"){
+    let cells = "";
+    for(let k = 0; k < first; k++) cells += `<button class="out" disabled></button>`;
+    for(let d = 1; d <= days; d++){
+      const iso = isoOf(new Date(y, m, d)), ev = eventsOn(iso), wd = (first + d - 1) % 7;
+      const hol = ev.some(e => e.tur === "tatil" || e.tur === "yarim");
+      const dots = ev.slice(0, 3).map(e => `<i style="--c:${e.tur === "kisisel" ? "var(--accent)" : e.tur === "anma" ? "var(--gold)" : "var(--danger)"}"></i>`).join("");
+      cells += `<button data-d="${iso}" class="${iso === todayIso() ? "today " : ""}${iso === calSel ? "sel " : ""}${hol ? "hol " : wd > 4 ? "we" : ""}">${d}${dots ? `<em>${dots}</em>` : ""}</button>`;
+    }
+    html += `<div class="cal"><div class="mh"><button id="calPrev" aria-label="Önceki ay">‹</button><b>${AYLAR[m]} ${y}</b><button id="calNext" aria-label="Sonraki ay">›</button></div>
+      <div class="wd">${["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"].map(w => `<span>${w}</span>`).join("")}</div><div class="dg" id="calGrid">${cells}</div></div>`;
+    const sel = eventsOn(calSel);
+    html += `<div class="sect">${esc(longDate(calSel))}</div><div class="list">${sel.length ? sel.map(e => row(e, calSel)).join("") : `<div class="li"><div class="grow"><small>Bu gün için kayıt yok.</small></div></div>`}</div>`;
+    const month = []; for(let d = 1; d <= days; d++){ const iso = isoOf(new Date(y, m, d)); for(const e of eventsOn(iso)) month.push([e, iso]); }
+    if(month.length) html += `<div class="sect">${AYLAR[m]} Ayında</div><div class="list">${month.map(([e, iso]) => row(e, iso)).join("")}</div>`;
+  }else if(calSeg === "liste"){
+    const yy = now.getFullYear(), all = [];
+    for(const yr of [yy, yy + 1]){ for(const h of HOL.sabit) all.push([{ ad: h.ad, tur: h.tur }, `${yr}-${h.g}`]); for(const h of HOL.degisken) if(h.t.startsWith(String(yr))) all.push([{ ad: h.ad, tur: h.tur }, h.t]); }
+    all.sort((a, b) => a[1] < b[1] ? -1 : 1);
+    const up = all.filter(([, iso]) => iso >= todayIso()).slice(0, 30);
+    html += `<div class="list">${up.map(([e, iso]) => row(e, iso).replace("</small>", ` · ${relDay(iso)}</small>`)).join("")}</div>
+      <div class="foot">Dini bayram tarihleri Diyanet takvimine göredir. Arife günleri öğleden sonra tatildir.</div>`;
+  }else{
+    html += myEvents.length ? `<div class="list">${myEvents.map(e => row({ ad: e.title, tur: "kisisel", id: e.id, yearly: e.yearly }, e.day)).join("")}</div>`
+      : `<div class="empty">Doğum günü, yıl dönümü veya hatırlamak istediğiniz günleri ekleyin. O sabah Günaydın bildiriminde hatırlatılır.</div>`;
+  }
+  html += `<form id="evForm"><div class="sect">Gün Ekle</div><div class="group">
+      <label class="field"><input name="title" placeholder="Örn. Annemin Doğum Günü" maxlength="80" required></label>
+      <label class="field"><input name="day" type="date" value="${calSel}" required></label>
+      <div class="li"><div class="grow"><b>Her Yıl Tekrarla</b></div><label class="switch"><input type="checkbox" name="yearly" checked><span></span></label></div></div>
+      <div class="foot">Eklediğiniz günleri yalnızca siz görürsünüz; o sabah 08:30 bildiriminde hatırlatılır.</div>
+      <button class="btn" style="margin-top:16px">Ekle</button></form>`;
+  $("cal").innerHTML = html;
+  $("calSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; calSeg = b.dataset.s; renderCal(); };
+  if($("calPrev")){ $("calPrev").onclick = () => { calMonth = new Date(y, m - 1, 1); renderCal(); }; $("calNext").onclick = () => { calMonth = new Date(y, m + 1, 1); renderCal(); };
+    $("calGrid").onclick = e => { const b = e.target.closest("button[data-d]"); if(!b) return; calSel = b.dataset.d; renderCal(); }; }
+  $("cal").querySelectorAll("[data-del]").forEach(b => b.onclick = async () => {
+    if(!confirm("Bu gün silinsin mi?")) return;
+    const { error } = await sb.from("user_events").delete().eq("id", +b.dataset.del); if(error){ toast("Silinemedi"); return; }
+    await loadEvents(true); toast("Silindi"); renderCal();
+  });
+  $("evForm").onsubmit = async e => {
+    e.preventDefault(); const f = new FormData(e.target), btn = e.target.querySelector("button.btn"); btn.disabled = true;
+    const { error } = await sb.from("user_events").insert({ title: f.get("title").trim(), day: f.get("day"), yearly: !!f.get("yearly") });
+    btn.disabled = false; if(error){ toast("Eklenemedi"); return; }
+    await loadEvents(true); calSel = f.get("day"); const d = parseIso(calSel); calMonth = new Date(d.getFullYear(), d.getMonth(), 1); toast("Eklendi"); renderCal();
+  };
+}
 
 /* ---------------- sohbet ---------------- */
 const ROOMS = [
@@ -840,6 +970,10 @@ async function renderAccount(){
     <div class="list" style="margin-top:16px"><div class="li"><div class="tdot" style="--c:var(--t-ozelge)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></svg></div><div class="grow"><b>Sohbet Bildirimleri</b></div>
       <label class="switch"><input type="checkbox" id="chatNotify" ${me.chat_notify !== false ? "checked" : ""}><span></span></label></div></div>
     <div class="foot">Tek tek sohbetleri, sohbetin içindeki <b>Sessize Al</b> ile kapatabilirsiniz.</div>
+    <div class="list" style="margin-top:16px"><div class="li"><div class="tdot" style="--c:#ff9500"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></div><div class="grow"><b>Günaydın Bildirimi</b><small>Her sabah 08:30</small></div>
+      <label class="switch"><input type="checkbox" id="morningOn" ${me.morning_on !== false ? "checked" : ""}><span></span></label></div>
+      <button class="li" id="locSet" style="width:100%;border:0;background:none;text-align:left;cursor:pointer;color:inherit;font:inherit"><div class="tdot" style="--c:var(--ok)"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M21 3 3 10.5l7.5 3L14 21z"/></svg></div><div class="grow"><b>Hava Durumu Konumu</b><small>${esc(me.wx_city || "Ankara (Varsayılan)")}</small></div><span class="linkbtn" style="color:var(--accent);font-size:15px">Konumumu Kullan</span></button></div>
+    <div class="foot">Sabah bildiriminde bulunduğunuz yerin hava durumu, buzlanma ve yağış uyarıları, resmî tatiller ve takviminize eklediğiniz günler yer alır.</div>
     <div class="sect">Bildirim Gelecek Türler</div>
     <div class="list" id="typeList">${ORDER.map(t => `<div class="li"><div class="tdot" style="--c:var(${TYPES[t]})">${icon(t, 17)}</div><div class="grow"><b>${esc(t)}</b></div><label class="switch"><input type="checkbox" data-type="${esc(t)}" ${types.includes(t) ? "checked" : ""}><span></span></label></div>`).join("")}</div>
     <div class="sect">Görünüm</div>
@@ -850,6 +984,8 @@ async function renderAccount(){
     <p class="small muted" style="text-align:center;margin-top:24px">TMPRO · GİB, Resmî Gazete, Danıştay, Anayasa Mahkemesi</p>`;
   $("unvanIn").onchange = async e => { const v = e.target.value.trim(); const { error } = await sb.rpc("set_my_unvan", { u: v }); if(error){ toast("Kaydedilemedi"); return; } me.unvan = v || null; toast("Ünvan kaydedildi"); renderAccount(); };
   $("chatNotify").onchange = async e => { const on = e.target.checked; const { error } = await sb.rpc("set_chat_notify", { enabled: on }); if(error){ e.target.checked = !on; toast("Kaydedilemedi"); return; } me.chat_notify = on; toast(on ? "Sohbet Bildirimleri açık" : "Sohbet Bildirimleri kapalı"); };
+  $("morningOn").onchange = async e => { const on = e.target.checked; const { error } = await sb.rpc("set_morning", { enabled: on }); if(error){ e.target.checked = !on; toast("Kaydedilemedi"); return; } me.morning_on = on; toast(on ? "Günaydın bildirimi açık" : "Günaydın bildirimi kapalı"); };
+  $("locSet").onclick = () => askLocation();
   $("themeSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; setTheme(b.dataset.th); renderAccount(); };
   $("logout").onclick = async () => { await sb.auth.signOut(); me = null; show("authView"); };
   $("pushToggle").onchange = async e => {

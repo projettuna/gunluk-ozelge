@@ -1,0 +1,35 @@
+{
+  "not": "tur: tatil (tam gün resmî tatil), yarim (öğleden sonra tatil), anma (tatil değil). Dini bayram tarihleri Diyanet takvimine göredir.",
+  "sabit": [
+    {"g": "01-01", "ad": "Yılbaşı", "tur": "tatil", "mesaj": "Yeni yılınız kutlu olsun! Sağlık, huzur ve başarı dolu bir yıl dileriz. 🎉"},
+    {"g": "03-18", "ad": "Çanakkale Zaferi ve Şehitleri Anma Günü", "tur": "anma", "mesaj": "Çanakkale Zaferi'nin yıl dönümünde aziz şehitlerimizi rahmet ve minnetle anıyoruz. 🇹🇷"},
+    {"g": "04-23", "ad": "Ulusal Egemenlik ve Çocuk Bayramı", "tur": "tatil", "mesaj": "23 Nisan Ulusal Egemenlik ve Çocuk Bayramımız kutlu olsun! 🇹🇷"},
+    {"g": "05-01", "ad": "Emek ve Dayanışma Günü", "tur": "tatil", "mesaj": "1 Mayıs Emek ve Dayanışma Günü kutlu olsun."},
+    {"g": "05-19", "ad": "Atatürk'ü Anma, Gençlik ve Spor Bayramı", "tur": "tatil", "mesaj": "19 Mayıs Atatürk'ü Anma, Gençlik ve Spor Bayramımız kutlu olsun! 🇹🇷"},
+    {"g": "07-15", "ad": "Demokrasi ve Millî Birlik Günü", "tur": "tatil", "mesaj": "15 Temmuz Demokrasi ve Millî Birlik Günü'nde şehitlerimizi rahmetle, gazilerimizi minnetle anıyoruz. 🇹🇷"},
+    {"g": "08-30", "ad": "Zafer Bayramı", "tur": "tatil", "mesaj": "30 Ağustos Zafer Bayramımız kutlu olsun! 🇹🇷"},
+    {"g": "10-28", "ad": "Cumhuriyet Bayramı Arifesi", "tur": "yarim", "mesaj": "Bugün Cumhuriyet Bayramı arifesi; öğleden sonra resmî tatil."},
+    {"g": "10-29", "ad": "Cumhuriyet Bayramı", "tur": "tatil", "mesaj": "29 Ekim Cumhuriyet Bayramımız kutlu olsun! 🇹🇷"},
+    {"g": "11-10", "ad": "Atatürk'ü Anma Günü", "tur": "anma", "mesaj": "Cumhuriyetimizin kurucusu Gazi Mustafa Kemal Atatürk'ü saygı, rahmet ve minnetle anıyoruz. Saat 09.05'te saygı duruşu. 🇹🇷"}
+  ],
+  "degisken": [
+    {"t": "2026-03-19", "ad": "Ramazan Bayramı Arifesi", "tur": "yarim", "mesaj": "Bugün Ramazan Bayramı arifesi; öğleden sonra resmî tatil."},
+    {"t": "2026-03-20", "ad": "Ramazan Bayramı (1. Gün)", "tur": "tatil", "mesaj": "Ramazan Bayramınız mübarek olsun. Sevdiklerinizle sağlıklı ve huzurlu bir bayram dileriz."},
+    {"t": "2026-03-21", "ad": "Ramazan Bayramı (2. Gün)", "tur": "tatil"},
+    {"t": "2026-03-22", "ad": "Ramazan Bayramı (3. Gün)", "tur": "tatil"},
+    {"t": "2026-05-26", "ad": "Kurban Bayramı Arifesi", "tur": "yarim", "mesaj": "Bugün Kurban Bayramı arifesi; öğleden sonra resmî tatil."},
+    {"t": "2026-05-27", "ad": "Kurban Bayramı (1. Gün)", "tur": "tatil", "mesaj": "Kurban Bayramınız mübarek olsun. Sevdiklerinizle sağlıklı ve huzurlu bir bayram dileriz."},
+    {"t": "2026-05-28", "ad": "Kurban Bayramı (2. Gün)", "tur": "tatil"},
+    {"t": "2026-05-29", "ad": "Kurban Bayramı (3. Gün)", "tur": "tatil"},
+    {"t": "2026-05-30", "ad": "Kurban Bayramı (4. Gün)", "tur": "tatil"},
+    {"t": "2027-03-08", "ad": "Ramazan Bayramı Arifesi", "tur": "yarim", "mesaj": "Bugün Ramazan Bayramı arifesi; öğleden sonra resmî tatil."},
+    {"t": "2027-03-09", "ad": "Ramazan Bayramı (1. Gün)", "tur": "tatil", "mesaj": "Ramazan Bayramınız mübarek olsun. Sevdiklerinizle sağlıklı ve huzurlu bir bayram dileriz."},
+    {"t": "2027-03-10", "ad": "Ramazan Bayramı (2. Gün)", "tur": "tatil"},
+    {"t": "2027-03-11", "ad": "Ramazan Bayramı (3. Gün)", "tur": "tatil"},
+    {"t": "2027-05-15", "ad": "Kurban Bayramı Arifesi", "tur": "yarim", "mesaj": "Bugün Kurban Bayramı arifesi; öğleden sonra resmî tatil."},
+    {"t": "2027-05-16", "ad": "Kurban Bayramı (1. Gün)", "tur": "tatil", "mesaj": "Kurban Bayramınız mübarek olsun. Sevdiklerinizle sağlıklı ve huzurlu bir bayram dileriz."},
+    {"t": "2027-05-17", "ad": "Kurban Bayramı (2. Gün)", "tur": "tatil"},
+    {"t": "2027-05-18", "ad": "Kurban Bayramı (3. Gün)", "tur": "tatil"},
+    {"t": "2027-05-19", "ad": "Kurban Bayramı (4. Gün)", "tur": "tatil"}
+  ]
+}

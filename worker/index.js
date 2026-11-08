@@ -48,6 +48,77 @@ async function sendOne(sub, payload, vapid) {
   return r.status;
 }
 
+// ---------------------------------------------------------------- günaydın bildirimi (/api/morning)
+const WMO = c => c === 0 ? "Açık" : c <= 2 ? "Az bulutlu" : c === 3 ? "Kapalı" : c <= 48 ? "Sisli" : c <= 57 ? "Çisentili"
+  : c <= 67 ? "Yağmurlu" : c <= 77 ? "Karlı" : c <= 82 ? "Sağanak yağışlı" : c <= 86 ? "Kar sağanaklı" : "Gök gürültülü";
+
+export function holidaysOn(hol, iso) {
+  return [...hol.sabit.filter(h => h.g === iso.slice(5)), ...hol.degisken.filter(h => h.t === iso)];
+}
+
+async function fetchWx(lat, lon) {
+  const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m`
+    + `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,snowfall_sum`
+    + `&timezone=Europe%2FIstanbul&forecast_days=1`);
+  if (!r.ok) throw new Error("wx " + r.status);
+  const j = await r.json(), d = j.daily;
+  return { cur: j.current?.temperature_2m, code: d.weather_code[0], max: d.temperature_2m_max[0], min: d.temperature_2m_min[0],
+           pop: d.precipitation_probability_max?.[0] ?? 0, rain: d.precipitation_sum?.[0] ?? 0, snow: d.snowfall_sum?.[0] ?? 0 };
+}
+
+export function weatherAdvice(w) {
+  const out = [], c = w.code;
+  const snow = w.snow > 0 || (c >= 71 && c <= 77) || c === 85 || c === 86;
+  const storm = c >= 95;
+  const rain = !snow && (storm || (c >= 51 && c <= 67) || (c >= 80 && c <= 82) || (w.pop >= 50 && w.rain >= 0.5));
+  if (w.min <= 0) out.push("🧊 Buzlanma ve don riski var; yollar ve kaldırımlar kaygan olabilir. Araçla çıkacaklar lütfen dikkatli olsun.");
+  else if (w.min < 3) out.push(`❄️ Hava soğuk (en düşük ${Math.round(w.min)}°); yerler kaygan olabilir, araçla lütfen dikkatli olun.`);
+  if (snow) out.push("🌨️ Kar yağışı bekleniyor; yollar kaygan olabilir, araçla çıkmadan önce hazırlıklı olun.");
+  else if (storm) out.push("⛈️ Gök gürültülü sağanak bekleniyor; araçla gidenler lütfen dikkatli olsun, şemsiyenizi almayı unutmayın.");
+  else if (rain) out.push("☂️ Yağış bekleniyor; araçla gidenler lütfen dikkatli olsun, şemsiyenizi almayı unutmayın.");
+  if (c === 45 || c === 48) out.push("🌫️ Sis bekleniyor; araçla gidenler görüş mesafesine dikkat etsin.");
+  if (w.max >= 35) out.push("🥵 Hava çok sıcak; bol su için, öğle saatlerinde güneşten korunun.");
+  return out;
+}
+
+export function composeMorning(u, w, hol, today, tomorrow) {
+  const city = u.city || "Ankara", first = String(u.name || "").trim().split(/\s+/)[0];
+  const th = holidaysOn(hol, today), tm = holidaysOn(hol, tomorrow);
+  const special = th.find(h => h.mesaj);
+  const lines = [];
+  if (special) lines.push(special.mesaj);
+  else if (th.length) lines.push(`Bugün ${th[0].ad}.`);
+  if (w) {
+    lines.push(`${city}: ${WMO(w.code)}${w.cur != null ? `, şu an ${Math.round(w.cur)}°` : ""}; gün içinde ${Math.round(w.min)}° ile ${Math.round(w.max)}° arası.`);
+    lines.push(...weatherAdvice(w));
+  }
+  const nt = tm.find(h => h.tur !== "anma");
+  if (nt && !th.some(h => h.tur === "tatil")) lines.push(nt.tur === "yarim" ? `📅 Yarın ${nt.ad}; öğleden sonra resmî tatil.` : `📅 Yarın ${nt.ad}, resmî tatil.`);
+  if (u.events?.length) lines.push("📌 Bugün: " + u.events.join(", ") + ".");
+  if (!special && !w) lines.push("İyi çalışmalar dileriz.");
+  const title = special ? th.find(h => h.mesaj).ad : `Günaydın${first ? " " + first : ""} ☀️`;
+  return { title, body: lines.join("\n").slice(0, 600), url: "/", tag: "tmpro-gunaydin" };
+}
+
+async function morning(j, env) {
+  const hol = await (await env.ASSETS.fetch(new Request("https://assets.local/tatiller.json"))).json();
+  const now = new Date(Date.now() + 3 * 3600e3), today = now.toISOString().slice(0, 10);
+  const tomorrow = new Date(now.getTime() + 864e5).toISOString().slice(0, 10);
+  const wx = {}, out = [];
+  let sent = 0;
+  for (const u of (j.users || []).slice(0, 1000)) {
+    const lat = Number.isFinite(u.lat) ? u.lat : 39.93, lon = Number.isFinite(u.lon) ? u.lon : 32.86;
+    if (!Number.isFinite(u.lat)) u.city = "Ankara";
+    const k = lat.toFixed(2) + "," + lon.toFixed(2);
+    wx[k] ||= fetchWx(lat, lon).catch(() => null);
+    const msg = composeMorning(u, await wx[k], hol, today, tomorrow);
+    if (j.preview) { out.push(msg); continue; }
+    const res = await Promise.all((u.subs || []).map(s => sendOne(s, JSON.stringify(msg), j.vapid).catch(() => 0)));
+    sent += res.filter(x => x >= 200 && x < 300).length;
+  }
+  return j.preview ? { today, preview: out } : { today, users: (j.users || []).length, sent };
+}
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -57,6 +128,11 @@ export default {
       const payload = JSON.stringify(j.payload || {});
       const res = await Promise.all(j.subs.slice(0, 500).map(s => sendOne(s, payload, j.vapid).catch(() => 0)));
       return Response.json({ sent: res.filter(x => x >= 200 && x < 300).length, statuses: res });
+    }
+    if (url.pathname === "/api/morning" && req.method === "POST") {
+      let j; try { j = await req.json(); } catch { return new Response("bad json", { status: 400 }); }
+      if (!Array.isArray(j?.users) || (!j.preview && (!j?.vapid?.private || !j?.vapid?.public))) return new Response("bad request", { status: 400 });
+      return Response.json(await morning(j, env));
     }
     return env.ASSETS.fetch(req);
   }
