@@ -104,32 +104,21 @@ def send(rows):
 
 
 def diag():
-    from datetime import date, timedelta
-    bas, bit = (date.today() - timedelta(days=365)).strftime("%d.%m.%Y"), date.today().strftime("%d.%m.%Y")
-    bos = {"birimYrgKurulDaire": "ALL", "esasYil": "", "esasIlkSiraNo": "", "esasSonSiraNo": "", "kararYil": "",
-           "kararIlkSiraNo": "", "kararSonSiraNo": "", "baslangicTarihi": "", "bitisTarihi": "", "pageSize": 10, "pageNumber": 1}
-    denemeler = [
-        ("A detay, düz", "/aramadetaylist", dict(bos, arananKelime="sahte fatura")),
-        ("B detay, düz+tarih", "/aramadetaylist", dict(bos, arananKelime="sahte fatura", baslangicTarihi=bas, bitisTarihi=bit)),
-        ("C detay, tırnak", "/aramadetaylist", dict(bos, arananKelime='"sahte fatura"')),
-        ("D detay, düz+sıralı", "/aramadetaylist", dict(bos, arananKelime="sahte fatura", siralama="3", siralamaDirection="desc")),
-        ("E detay, yıl 2025", "/aramadetaylist", dict(bos, arananKelime="sahte fatura", kararYil="2025")),
-        ("F liste, sıralı", "/aramalist", {"aranan": "sahte fatura", "arananKelime": "sahte fatura", "siralama": "3",
-                                          "siralamaDirection": "desc", "pageSize": 10, "pageNumber": 1}),
-    ]
-    for ad, yol, d in denemeler:
-        try:
-            raw = http(BASE + yol, {"data": d}, timeout=90)
-            j = json.loads(raw)
-            inner = j.get("data") or {}
-            rows = inner.get("data") or []
-            tarihler = ", ".join((r.get("kararTarihi") or "?") for r in rows[:4])
-            print(f"{ad}: {len(rows)} sonuç, toplam {inner.get('recordsTotal')} | {tarihler}")
-            if not rows:
-                print("   yanıt: " + raw[:160])
-        except Exception as e:  # noqa: BLE001
-            print(f"{ad}: HATA {e}")
-        time.sleep(PAUSE)
+    """Adalet Bakanlığı Mevzuat sitesinin karar arama servisini (tarih sıralı) dener; veritabanına yazmaz."""
+    body = {"data": {"pageSize": 10, "pageNumber": 1, "itemTypeList": ["YARGITAYKARARI"], "phrase": '"sahte fatura"',
+                     "sortFields": ["KARAR_TARIHI"], "sortDirection": "desc"}, "applicationName": "UyapMevzuat", "paging": True}
+    req = Request("https://bedesten.adalet.gov.tr/emsal-karar/searchDocuments", data=json.dumps(body).encode(), method="POST",
+                  headers={"Content-Type": "application/json; charset=utf-8", "AdaletApplicationName": "UyapMevzuat",
+                           "User-Agent": "TMPRO-karar-takip/1.0"})
+    try:
+        with urlopen(req, timeout=60) as r:
+            j = json.loads(r.read().decode("utf-8", "replace"))
+        rows = ((j.get("data") or {}).get("emsalKararList")) or []
+        print(f"Mevzuat servisi: {len(rows)} sonuç, toplam {(j.get('data') or {}).get('total')}")
+        for x in rows[:6]:
+            print(f"  {x.get('birimAdi')} E.{x.get('esasNo')} K.{x.get('kararNo')} ({x.get('kararTarihiStr')})")
+    except Exception as e:  # noqa: BLE001
+        print(f"Mevzuat servisi: HATA {e}")
 
 
 def main():
