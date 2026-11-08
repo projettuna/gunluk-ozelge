@@ -39,7 +39,8 @@ def html_to_text(s):
     s = re.sub(r"<!--.*?-->", " ", s, flags=re.S)
     s = re.sub(r"\s+", " ", s)  # kaynaktaki satır sonları anlam taşımaz
     # Tablo satırını tek satıra indir: "Sayı : E-123" gibi alanlar bölünmesin
-    s = re.sub(r"<tr[^>]*>.*?</tr>", lambda m: re.sub(r"</?(p|div|br|span)[^>]*>", " ", m.group(0), flags=re.I), s, flags=re.S | re.I)
+    # (Resmî Gazete gibi tüm sayfayı tabloya koyan kaynaklarda uzun satırlara dokunulmaz)
+    s = re.sub(r"<tr[^>]*>(?:(?!<tr|<table).)*?</tr>", lambda m: m.group(0) if len(m.group(0)) > 1500 else re.sub(r"</?(p|div|br|span)[^>]*>", " ", m.group(0), flags=re.I), s, flags=re.S | re.I)
     s = re.sub(r"</t[dh]>", "  ", s, flags=re.I)
     s = re.sub(r"</tr>", "\n", s, flags=re.I)
     s = re.sub(r"<br\s*/?>", "\n", s, flags=re.I)
