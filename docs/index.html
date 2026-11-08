@@ -295,6 +295,33 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
 body.typing .tabbar{display:none}
 body.typing .composer{bottom:0;padding-bottom:8px}
 body.typing main{padding-bottom:80px}
+
+/* ---- premium katman (2026-11-08) ---- */
+:root{--accent:#5145e5;--t-ozelge:#4a5bdc;--t-teblig:#7a4fe0;--t-sirkuler:#1597b0;--t-kanun:#d9443f;--t-cb:#e3891b;--t-ic:#69748a;--t-rg:#c49a3c;--t-danistay:#18a06a;--t-aym:#d8426f;
+  --card-shadow:0 1px 2px rgba(16,24,64,.04),0 10px 28px rgba(16,24,64,.07);--card-line:rgba(255,255,255,0)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--card-shadow:0 10px 30px rgba(0,0,0,.45);--card-line:rgba(255,255,255,.07);--surface:#141418;--accent:#8a82ff;--t-ozelge:#5b6cf0;--t-teblig:#8b62f0;--t-sirkuler:#22a9c2;--t-kanun:#e8554f;--t-cb:#f0982c;--t-ic:#7d889e;--t-rg:#d4ab4c;--t-danistay:#26b37a;--t-aym:#e65580;}}
+:root[data-theme="dark"]{--card-shadow:0 10px 30px rgba(0,0,0,.45);--card-line:rgba(255,255,255,.07);--surface:#141418;--accent:#8a82ff;--t-ozelge:#5b6cf0;--t-teblig:#8b62f0;--t-sirkuler:#22a9c2;--t-kanun:#e8554f;--t-cb:#f0982c;--t-ic:#7d889e;--t-rg:#d4ab4c;--t-danistay:#26b37a;--t-aym:#e65580;}
+.grid{gap:12px}
+.tile{border-radius:24px;padding:14px;box-shadow:var(--card-shadow);border:.5px solid var(--card-line);overflow:hidden;isolation:isolate;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 7%,var(--surface)) 0%,var(--surface) 55%)}
+.tile::before{content:"";position:absolute;right:-30%;top:-30%;width:90%;height:90%;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--c) 16%,transparent),transparent 70%);z-index:-1}
+.tile .ic{width:40px;height:40px;border-radius:12px;
+  background:linear-gradient(155deg,color-mix(in srgb,var(--c) 62%,#fff) 0%,var(--c) 52%,color-mix(in srgb,var(--c) 72%,#000) 100%);
+  box-shadow:0 6px 14px color-mix(in srgb,var(--c) 38%,transparent),inset 0 1px 0 rgba(255,255,255,.45),inset 0 -1px 0 rgba(0,0,0,.12)}
+.tile .ic svg{filter:drop-shadow(0 1px 1px rgba(0,0,0,.18))}
+.tile b{font-size:15.5px;letter-spacing:-.02em}
+.tile small{font-variant-numeric:tabular-nums}
+.tile .nb{top:13px;right:13px;height:24px;min-width:24px;border-radius:12px;background:linear-gradient(180deg,#ff5a52,#e5322b);box-shadow:0 4px 10px rgba(229,50,43,.35);font-variant-numeric:tabular-nums}
+.tile.all{border-radius:20px;background:var(--surface)}
+.tile.all::before{display:none}
+.tile.all .ic{background:linear-gradient(155deg,#6d63ff 0%,#4a3ad8 55%,#2a1f8f 100%);color:#fff;box-shadow:0 6px 14px rgba(74,58,216,.35),inset 0 1px 0 rgba(255,255,255,.4)}
+.calcard{border-radius:22px;box-shadow:var(--card-shadow);border:.5px solid var(--card-line)}
+.calcard .cd{box-shadow:0 4px 10px rgba(0,0,0,.08);background:var(--surface);border:.5px solid var(--line)}
+.calcard .cd i{background:linear-gradient(180deg,#ff5a52,#e5322b)}
+.wx{border-radius:26px}
+.list,.group,.cal{box-shadow:var(--card-shadow);border:.5px solid var(--card-line)}
+.card{box-shadow:var(--card-shadow);border:.5px solid var(--card-line)}
+.brand img{border-radius:11px;box-shadow:0 4px 14px rgba(74,58,216,.35)}
 </style>
 </head>
 <body>
