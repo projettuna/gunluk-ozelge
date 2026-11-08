@@ -220,6 +220,18 @@ def e2e():
         bad("tatil_yili", "uyari", "Takvimde gelecek yılın resmî tatilleri yok; tatiller.json güncellenmeli")
 
 
+def backup():
+    if not GH or not REPO:
+        return
+    code, body, _ = http(f"https://api.github.com/repos/{REPO}/actions/workflows/yedek.yml/runs?per_page=5&status=success",
+                         headers={"Authorization": f"Bearer {GH}", "Accept": "application/vnd.github+json"})
+    if code != 200:
+        return
+    runs = json.loads(body).get("workflow_runs", [])
+    if not runs or NOW - ts(runs[0]["created_at"]) > timedelta(hours=30):
+        bad("yedek", "uyari", "Gece yedeği 30 saattir alınamadı")
+
+
 def mails():
     since = (NOW - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
     rows, _ = db(f"mail_queue?select=id&error=not.is.null&created_at=gte.{since}")
@@ -286,7 +298,7 @@ def main():
         print("Supabase ayarı yok")
         return
     for name, fn in (("site", site), ("aktarıcı", relay), ("veritabanı", database), ("kurulum", setup),
-                     ("tarama", main_job), ("kaynaklar", sources), ("üye girişi ve ekranlar", e2e), ("e-posta", mails), ("yapay zekâ", ai), ("telefon", phone)):
+                     ("tarama", main_job), ("kaynaklar", sources), ("üye girişi ve ekranlar", e2e), ("e-posta", mails), ("yedek", backup), ("yapay zekâ", ai), ("telefon", phone)):
         check(name, fn)
     if TEST:
         bad("deneme", "kritik", "Bu bir deneme uyarısıdır, nöbetçi çalışıyor")
