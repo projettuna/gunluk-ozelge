@@ -66,7 +66,7 @@ def fill(db, limit=None, budget=None):
             except Exception:  # noqa: BLE001
                 pass
             print(f"Müfettiş notu yazılamadı (#{r['id']}): {type(e).__name__} {getattr(e, 'code', '')} {detail}")
-            if getattr(e, "code", 0) in (401, 403):
+            if getattr(e, "code", 0) in (401, 403) or "credit balance" in detail:
                 stop = True
             return
         if note:
