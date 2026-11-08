@@ -572,6 +572,48 @@ def notify_users():
         print(f"Bildirim: {uid[:8]} -> {len(new)} kayıt")
 
 
+def release_push(state):
+    """docs/surum.json'daki en yeni sürüm "bildir": true ise tüm aktif üyelere bir kez anlık bildirim yollar."""
+    try:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "surum.json"), encoding="utf-8") as f:
+            rel = [r for r in json.load(f).get("surumler", []) if r.get("bildir")]
+    except (FileNotFoundError, ValueError):
+        return
+    if not rel:
+        return
+    r = max(rel, key=lambda x: [int(n) if n.isdigit() else 0 for n in str(x["surum"]).split(".")])
+    if state.get("release_notified") == r["surum"]:
+        return
+    now = datetime.now(TR)
+    if now.hour >= QUIET[0] or now.hour < QUIET[1]:
+        print("Sürüm bildirimi sessiz saatler bitince gönderilecek")
+        return
+    from pywebpush import webpush, WebPushException
+    vapid = db("GET", "private_settings?key=eq.vapid_private&select=value")[0]["value"]
+    users = {u["id"]: u for u in db("GET", "profiles?select=id,role,status,expires_at")}
+    utc_now = datetime.now(timezone.utc)
+    body = r.get("baslik") or "Yeni özellikler eklendi."
+    if r.get("yeniden_ekle"):
+        body += " Bu sürüm için uygulamayı ana ekrana yeniden eklemeniz gerekiyor; dokunun, adımları gösterelim."
+    payload = json.dumps({"title": f"TMPRO güncellendi · Sürüm {r['surum']}", "body": body[:220],
+                          "url": APP_URL + "?yenilikler=1", "tag": "tmpro-surum"})
+    sent = 0
+    for s in db("GET", "push_subs?select=id,user_id,endpoint,p256dh,auth") or []:
+        u = users.get(s["user_id"])
+        exp = (u or {}).get("expires_at")
+        if not u or not (u["role"] == "admin" or (u["status"] == "active" and (not exp or datetime.fromisoformat(exp) > utc_now))):
+            continue
+        try:
+            webpush({"endpoint": s["endpoint"], "keys": {"p256dh": s["p256dh"], "auth": s["auth"]}}, payload,
+                    vapid_private_key=vapid, vapid_claims={"sub": "mailto:bildirim@tmpro.app"}, ttl=86400)
+            sent += 1
+        except WebPushException as e:
+            if getattr(e.response, "status_code", None) in (404, 410):
+                db("DELETE", f"push_subs?id=eq.{s['id']}")
+    state["release_notified"] = r["surum"]
+    print(f"Sürüm {r['surum']} bildirimi: {sent} cihaz")
+
+
 # ---------------------------------------------------------------- ana akış
 
 def load_state():
@@ -847,6 +889,11 @@ def main():
             notify_users()
         except Exception as e:  # noqa: BLE001
             print(f"Bildirim gönderilemedi: {e}")
+        try:
+            release_push(state)
+            save_state(state)
+        except Exception as e:  # noqa: BLE001
+            print(f"Sürüm bildirimi gönderilemedi: {type(e).__name__}")
         try:
             send_member_mails()
         except Exception as e:  # noqa: BLE001

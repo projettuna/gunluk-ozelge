@@ -1,0 +1,18 @@
+{
+ "surumler": [
+  {
+   "surum": "2.5",
+   "tarih": "2026-11-08",
+   "baslik": "Yargıtay kararları, Müfettiş Notları ve daha fazlası",
+   "bildir": false,
+   "yeniden_ekle": false,
+   "notlar": [
+    "Yargıtay ceza dairelerinin vergi suçlarıyla ilgili kararları eklendi.",
+    "Kararlar ve mevzuat için yapay zekâ destekli Müfettiş Notları artık eski kayıtlarda da var.",
+    "Akışta \"Hepsini Oku\" düğmesi: tüm kayıtları ya da bir kategoriyi tek dokunuşla okundu yapın.",
+    "Yeni Yargıtay simgesi ve küçük görsel düzeltmeler.",
+    "Yeni sürüm çıktığında uygulamanın üstünde uyarı ve sürüm notları görünür."
+   ]
+  }
+ ]
+}

@@ -421,6 +421,15 @@ body.aichat #tools>.foot{display:none}
 .stitle{font-weight:700;font-size:16px;padding:6px 8px 10px}
 .sheet textarea{width:100%;box-sizing:border-box;border:.5px solid var(--glass-line);background:var(--surface);color:var(--ink);border-radius:16px;padding:10px 12px;font:inherit;font-size:16px;line-height:1.4;resize:none;outline:none}
 .srow{display:flex;gap:8px;margin-top:10px}.srow button{justify-content:center;margin:0}
+.verbar{margin:8px 0 4px;padding:12px 14px;border-radius:18px;background:linear-gradient(135deg,rgba(255,159,10,.18),rgba(91,75,255,.16));border:.5px solid var(--glass-line);font-size:14.5px;line-height:1.4;color:var(--ink)}
+.verbar b{display:block;font-size:15.5px;margin-bottom:2px}
+.verbar .vrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.verbar .vrow button{border:0;border-radius:12px;padding:8px 12px;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer;background:var(--fill);color:var(--accent)}
+.verbar .vrow .go{background:var(--brand);color:#fff}
+.sheet .vnotes{padding:4px 12px 8px;font-size:15px;line-height:1.5;color:var(--ink);max-height:60vh;overflow:auto}
+.sheet .vnotes ul{margin:6px 0 12px;padding-left:20px}
+.sheet .vnotes h4{margin:10px 0 2px;font-size:15.5px}
+.sheet .vnotes small{color:var(--muted)}
 .sheet .primary{background:var(--brand);color:#fff}
 /* ---- haberler ---- */
 .ncard{display:block;text-decoration:none;color:inherit;margin:10px 0;padding:14px 16px;border-radius:20px;background:var(--surface);border:.5px solid var(--glass-line);box-shadow:var(--glass-shadow);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
@@ -687,6 +696,7 @@ body.home::before{opacity:.85}
   <button class="navbtn" id="refresh" aria-label="Yenile"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></button>
 </div></header>
 <main><div class="wrap">
+<div id="verBar" class="verbar" hidden></div>
   <button class="back" id="back" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>Akış</button>
   <div class="eyebrow" id="eyebrow"></div>
   <div class="head" id="headRow"><div><h2 id="heading">Akış</h2><div class="sub" id="sub"></div></div><button class="linkbtn" id="markAll" hidden>Tümünü Oku</button></div>
@@ -825,6 +835,55 @@ async function fillSignupPrice(){
   }catch{}
 }
 function isActive(p){ return p.role === "admin" || (p.status === "active" && (!p.expires_at || new Date(p.expires_at) > new Date())); }
+/* ---------------- sürüm ---------------- */
+const APP_VERSION = "2.5";
+const verNum = v => String(v || "0").split(".").map(n => +n || 0);
+const verGt = (a, b) => { const x = verNum(a), y = verNum(b); for(let k = 0; k < Math.max(x.length, y.length); k++){ if((x[k] || 0) !== (y[k] || 0)) return (x[k] || 0) > (y[k] || 0); } return false; };
+let releases = [];
+const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+function reinstallSteps(){
+  return isIOS
+    ? `<ol style="margin:6px 0 12px;padding-left:20px"><li>Ana ekrandaki eski TMPRO simgesine basılı tutun ve <b>Uygulamayı Sil</b> deyin.</li><li><b>Safari</b>'yi açın ve <b>${esc(location.host)}</b> adresine girin.</li><li>Alttaki <b>Paylaş</b> düğmesine (yukarı ok olan kare) dokunun.</li><li><b>Ana Ekrana Ekle</b>'yi seçin ve <b>Ekle</b>'ye dokunun.</li><li>Ana ekrandaki yeni TMPRO simgesinden açıp giriş yapın.</li></ol>`
+    : `<ol style="margin:6px 0 12px;padding-left:20px"><li>Ana ekrandaki eski TMPRO simgesine basılı tutun ve <b>Kaldır</b> deyin.</li><li><b>Chrome</b>'u açın ve <b>${esc(location.host)}</b> adresine girin.</li><li>Sağ üstteki <b>⋮</b> menüsüne dokunun.</li><li><b>Ana ekrana ekle</b> ya da <b>Uygulamayı yükle</b>'yi seçin.</li><li>Ana ekrandaki yeni TMPRO simgesinden açıp giriş yapın.</li></ol>`;
+}
+async function hardUpdate(){
+  try{ const r = await navigator.serviceWorker?.getRegistration(); await r?.update(); }catch{}
+  try{ for(const k of await caches.keys()) await caches.delete(k); }catch{}
+  location.replace(location.pathname + "?v=" + Date.now());
+}
+function openVersionSheet(mode){
+  closeSheet();
+  const list = mode === "new" ? releases.filter(r => !verGt(r.surum, APP_VERSION) && verGt(r.surum, store.get("seenVersion", "0"))) : releases;
+  const re = mode === "reinstall";
+  const el = document.createElement("div"); el.className = "sheetwrap"; el.id = "sheet";
+  el.innerHTML = `<div class="sheet"><div class="stitle">${re ? "Uygulamayı Yeniden Ekleme" : mode === "new" ? "Yenilikler" : "Sürüm Notları"}</div><div class="vnotes">
+    ${re ? reinstallSteps() : (list.length ? list : releases).map(r => `<h4>Sürüm ${esc(r.surum)}${r.baslik ? " · " + esc(r.baslik) : ""}</h4><small>${esc(fmtDate(r.tarih))}</small><ul>${(r.notlar || []).map(n => `<li>${esc(n)}</li>`).join("")}</ul>${r.yeniden_ekle ? `<p><b>Bu sürüm için uygulamayı ana ekrana yeniden eklemeniz gerekiyor:</b></p>${reinstallSteps()}` : ""}`).join("")}
+    <small>Kullandığınız sürüm: ${APP_VERSION}</small></div>
+    <button data-a="x" class="cancel">Tamam</button></div>`;
+  document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
+  el.onclick = e => { if(e.target === el || e.target.closest("button")?.dataset.a === "x") closeSheet(); };
+}
+async function checkVersion(){
+  try{
+    const r = await fetch("surum.json?t=" + Date.now(), { cache: "no-store" }); if(!r.ok) return;
+    releases = ((await r.json()).surumler || []).sort((a, b) => verGt(a.surum, b.surum) ? -1 : 1);
+  }catch{ return; }
+  const latest = releases[0], bar = $("verBar"); if(!latest || !bar) return;
+  if(verGt(latest.surum, APP_VERSION)){
+    const re = releases.some(x => verGt(x.surum, APP_VERSION) && x.yeniden_ekle);
+    bar.innerHTML = `<b>Eski bir sürümü kullanıyorsunuz (${APP_VERSION})</b>Yeni sürüm ${esc(latest.surum)} hazır${latest.baslik ? ": " + esc(latest.baslik) : ""}. ${re ? "Bu güncelleme için uygulamayı ana ekrana yeniden eklemeniz gerekiyor." : "Güncelle'ye dokunun; olmazsa uygulamayı kapatıp yeniden açın."}
+      <div class="vrow">${re ? `<button class="go" data-v="re">Nasıl Yapılır?</button><button data-v="up">Yine de Güncelle</button>` : `<button class="go" data-v="up">Güncelle</button><button data-v="re">Olmadıysa</button>`}<button data-v="notes">Neler Yeni?</button></div>`;
+    bar.hidden = false;
+    bar.onclick = e => { const v = e.target.closest("button")?.dataset.v; if(v === "up") hardUpdate(); if(v === "re") openVersionSheet("reinstall"); if(v === "notes") openVersionSheet("all"); };
+    return;
+  }
+  bar.hidden = true;
+  const seen = store.get("seenVersion", null);
+  if(seen === null){ store.set("seenVersion", APP_VERSION); return; }  // ilk kurulumda gösterme
+  if(verGt(APP_VERSION, seen)){ openVersionSheet("new"); store.set("seenVersion", APP_VERSION); }
+}
+document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && me && isActive(me)) checkVersion(); });
+
 async function boot(){
   const { data: { session } } = await sb.auth.getSession();
   if(!session){ show("authView"); fillSignupPrice(); return; }
@@ -845,6 +904,8 @@ async function boot(){
   if(p.role === "admin") refreshAdminBadge();
   ensurePushIfGranted();
   refreshBell();
+  checkVersion();
+  if(new URLSearchParams(location.search).has("yenilikler")){ history.replaceState(null, "", location.pathname); setTimeout(() => openVersionSheet("all"), 400); }
   syncLocation(wxLoc(), false);
   await startChat();
   const qr = new URLSearchParams(location.search).get("room");
@@ -1917,9 +1978,13 @@ async function renderAccount(){
     <div class="seg" id="themeSeg">${["auto:Otomatik","light:Açık","dark:Koyu"].map(x => { const [k, l] = x.split(":"); return `<button data-th="${k}" class="${getTheme() === k ? "on" : ""}">${l}</button>`; }).join("")}</div>
     <div class="foot" style="margin-top:0">Otomatik, telefonunuzun açık/koyu ayarını izler.</div>
     <div class="sect"></div>
-    <div class="list"><a class="li" href="hukuki.html" style="text-decoration:none;color:inherit"><div class="grow"><b>Hukuki Metinler</b><small>KVKK aydınlatma, açık rıza, kullanım şartları</small></div><span style="color:var(--muted)">›</span></a></div>
+    <div class="list"><button class="li" id="verNotes" style="width:100%;border:0;background:none;font:inherit;text-align:left;cursor:pointer;color:inherit"><div class="grow"><b>Sürüm Notları</b><small>Sürüm ${APP_VERSION} · neler değişti</small></div><span style="color:var(--muted)">›</span></button>
+      <button class="li" id="verRe" style="width:100%;border:0;background:none;font:inherit;text-align:left;cursor:pointer;color:inherit"><div class="grow"><b>Ana Ekrana Yeniden Ekleme</b><small>Uygulama güncellenmezse adım adım</small></div><span style="color:var(--muted)">›</span></button></div>
+    <div class="list" style="margin-top:12px"><a class="li" href="hukuki.html" style="text-decoration:none;color:inherit"><div class="grow"><b>Hukuki Metinler</b><small>KVKK aydınlatma, açık rıza, kullanım şartları</small></div><span style="color:var(--muted)">›</span></a></div>
     <div class="list" style="margin-top:12px"><button class="li" id="logout" style="width:100%;border:0;background:none;justify-content:center;color:var(--danger);font-size:17px;cursor:pointer">Çıkış Yap</button></div>
     <p class="small muted" style="text-align:center;margin-top:24px">TMPRO · GİB, Resmî Gazete, Danıştay, Anayasa Mahkemesi</p>`;
+  $("verNotes").onclick = async () => { if(!releases.length) await checkVersion(); openVersionSheet("all"); };
+  $("verRe").onclick = () => openVersionSheet("reinstall");
   $("avaIn").onchange = async e => {
     const f = e.target.files[0]; if(!f) return;
     try{ const a = await shrinkImage(f); const { error } = await sb.rpc("set_my_avatar", { a }); if(error) throw error; me.avatar = a; toast("Profil fotoğrafı kaydedildi"); renderAccount(); }
