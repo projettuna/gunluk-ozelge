@@ -377,6 +377,12 @@ body.typing main{padding-bottom:80px}
 .afiles svg{width:13px;height:13px}
 .afiles.pend span{background:var(--fill);color:var(--ink)}.afiles.pend button{border:0;background:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 0 0 2px}
 .aicomp{position:sticky;bottom:calc(64px + env(safe-area-inset-bottom));padding:8px;border-radius:24px;background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border:.5px solid var(--glass-line);box-shadow:var(--glass-shadow)}
+.pkgs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.pkg{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px;border-radius:16px;border:1.5px solid var(--glass-line);background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.pkg b{font-size:15px}.pkg span{font-size:20px;font-weight:700;color:var(--accent)}.pkg small{font-size:12px;color:var(--muted)}
+.pkg.on{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}
+.cwarn{margin-top:10px;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--danger) 12%,transparent);color:var(--danger);font-size:13.5px;line-height:1.45}
+.aiq{font-size:12.5px;color:var(--muted);margin:0 6px 6px}
 .airow{display:flex;align-items:flex-end;gap:8px}
 .aiclip{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--accent);background:var(--fill);cursor:pointer;flex:none}
 #aiQ{flex:1;resize:none;border:.5px solid var(--glass-line);background:var(--surface);color:var(--ink);border-radius:18px;padding:8px 14px;font:inherit;font-size:16px;line-height:1.35;max-height:140px;outline:none}
@@ -780,7 +786,7 @@ function renderPending(){
     : me.status === "rejected" ? "Talebiniz onaylanmadı. Bir hata olduğunu düşünüyorsanız ödeme bilgileriyle tekrar iletişime geçin."
     : "Talebiniz alındı. Aşağıdaki hesaba ödemeyi yapın; ödeme onaylanınca uygulama otomatik açılır.";
   $("pendUser").textContent = "@" + me.username;
-  $("payAmount").textContent = (settings.fiyat || "99") + " TL / " + (settings.sure_gun || "30") + " gün";
+  $("payAmount").textContent = (settings.fiyat || "149") + " TL / " + (settings.sure_gun || "30") + " gün";
   $("payName").textContent = settings.alici || "—";
   $("payIban").textContent = settings.iban || "—";
   $("payCode").textContent = me.pay_code || me.username;
@@ -935,13 +941,13 @@ $("grid").addEventListener("click", e => { const b = e.target.closest(".tile"); 
 let navDepth = 0, skipPop = 0;
 function navLevel(){
   if(tab === "chat") return room ? 2 : 1;
-  if(tab === "tools" && toolSeg === "asistan" && aiChat) return 2;
+  if(tab === "tools" && toolSeg === "asistan" && (aiChat || aiCredit)) return 2;
   return (tab === "feed" && filter === "Tümü") ? 0 : 1;
 }
 function syncNav(){
   const lv = navLevel();
   $("back").hidden = lv === 0;
-  $("back").lastChild.textContent = lv === 2 ? (tab === "chat" ? "Sohbet" : "Sohbetler") : "Ana Sayfa";
+  $("back").lastChild.textContent = lv === 2 ? (tab === "chat" ? "Sohbet" : "Asistan") : "Ana Sayfa";
   if(lv > navDepth){ for(let i = navDepth; i < lv; i++) history.pushState({ nav: i + 1 }, ""); navDepth = lv; }
   else if(lv < navDepth){ const d = navDepth - lv; navDepth = lv; if($("reader").hidden && $("wxView").hidden){ skipPop++; history.go(-d); } }
 }
@@ -949,7 +955,7 @@ function goBack(){
   if($("sheet")){ closeSheet(); return; }
   sfil = "all";
   if(tab === "chat" && room){ room = null; }
-  else if(tab === "tools" && toolSeg === "asistan" && aiChat){ aiChat = null; aiMsgs = []; aiChats = null; }
+  else if(tab === "tools" && toolSeg === "asistan" && (aiChat || aiCredit)){ aiChat = null; aiCredit = false; creditPkg = null; aiMsgs = []; aiChats = null; }
   else { tab = "feed"; filter = "Tümü"; room = null; store.set("filter", filter); store.set("tab", tab); }
   render(); scrollTo({ top: 0 });
 }
@@ -1060,7 +1066,12 @@ async function toolCeza(){
   };
   $("toolBody").oninput = calc; $("toolBody").onchange = calc;
 }
-let aiChats = null, aiChat = null, aiMsgs = [], aiFiles = [], aiBusy = false;
+let aiChats = null, aiChat = null, aiMsgs = [], aiFiles = [], aiBusy = false, aiQuota = null;
+let aiCredit = false;
+const quotaText = () => { if(!aiQuota || aiQuota.limit == null) return "";
+  const sz = aiQuota.sinirsiz_until && new Date(aiQuota.sinirsiz_until) > new Date();
+  return (sz ? `Sınırsız paket · ${fmtDate(aiQuota.sinirsiz_until)} tarihine kadar` : `Bu ay kalan soru: <b>${Math.max(0, aiQuota.limit - aiQuota.used)}</b> / ${aiQuota.limit}`)
+    + (aiQuota.credits ? ` · Kredi: <b>${aiQuota.credits}</b>` : ""); };
 const ICON_CLIP = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.4 11.1-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg>';
 async function toolAsk(){
   if(aiChats === null){
@@ -1068,18 +1079,47 @@ async function toolAsk(){
     const { data, error } = await sb.from("ai_chats").select("id,title,updated_at").order("updated_at", { ascending: false }).limit(50);
     if(error){ $("toolBody").innerHTML = `<div class="tcard"><div class="thelp">Asistan sohbetleri için kurulum bekleniyor.</div></div>`; return; }
     aiChats = data || [];
+    const q = await sb.rpc("ai_quota"); aiQuota = q.error ? null : q.data;
   }
+  if(aiCredit){ return renderCredit(); }
   if(aiChat){ return renderAiChat(); }
   $("toolBody").innerHTML = `<div class="tcard"><div class="tt">Mevzuat Asistanı <span>Yapay zekâ</span></div>
       <div class="thelp" style="margin-top:0">Öncelikle Danıştay ve Anayasa Mahkemesi kararlarına, sonra kanun, tebliğ, sirküler ve özelgelere dayanarak kaynak göstererek yanıtlar. Fotoğraf veya PDF yükleyip inceletebilirsiniz. Sohbetleriniz yalnızca size görünür.</div>
-      <button class="btn" id="aiNew" style="margin-top:6px">Yeni Sohbet</button></div>
+      ${quotaText() ? `<div class="thelp" style="margin:0 0 8px">${quotaText()}</div>` : ""}<div class="row" style="gap:8px;margin-top:6px"><button class="btn" id="aiNew" style="flex:1">Yeni Sohbet</button>${aiQuota && aiQuota.limit != null ? `<button class="btn ghost" id="aiBuy" style="flex:1">Kredi Yükle</button>` : ""}</div></div>
     ${aiChats.length ? `<div class="sect">Sohbetlerim</div><div class="list">${aiChats.map(c => `<button class="li room" data-chat="${c.id}"><div class="rav" style="--c:var(--t-danistay)"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"/></svg></div><div class="grow"><b class="rn">${esc(c.title)}</b><small>${esc(dayLabel(c.updated_at))}</small></div></button>`).join("")}</div>` : ""}`;
+  const buy = $("aiBuy"); if(buy) buy.onclick = () => { aiCredit = true; renderCredit(); };
   $("aiNew").onclick = () => { aiChat = "new"; aiMsgs = []; aiFiles = []; renderAiChat(); };
   $("toolBody").querySelectorAll("[data-chat]").forEach(b => b.onclick = async () => {
     aiChat = +b.dataset.chat; aiFiles = [];
     const { data } = await sb.from("ai_messages").select("id,role,content,sources,files,created_at").eq("chat_id", aiChat).order("id");
     aiMsgs = data || []; renderAiChat();
   });
+}
+let creditPkg = null;
+async function renderCredit(){
+  syncNav();
+  const [{ data: pk }, { data: od }] = await Promise.all([sb.from("ai_packages").select("*").order("sira"), sb.from("credit_orders").select("id,code,fiyat,status,created_at").eq("user_id", me.id).order("id", { ascending: false }).limit(10)]);
+  if(!settings.iban) await loadSettings();
+  const P = pk || [], sel = P.find(x => x.code === creditPkg);
+  const nm = String(me.full_name || me.username || "").trim();
+  const acik = sel ? `${sel.code} ${nm}`.toLocaleUpperCase("tr") : "";
+  const st = { pending: "Onay bekliyor", approved: "Yüklendi", rejected: "Reddedildi" };
+  $("toolBody").innerHTML = `<div class="tcard"><div class="tt">Kredi Yükle <span>Asistan</span></div>
+      <div class="thelp" style="margin-top:0">Aboneliğinizde her ay ${esc(settings.ai_kota || "30")} soru hakkı vardır. Hakkınız bitince satın aldığınız kredilerden düşülür; krediler süresizdir.${quotaText() ? "<br>" + quotaText() : ""}</div>
+      <div class="pkgs">${P.map(x => `<button class="pkg${x.code === creditPkg ? " on" : ""}" data-pkg="${esc(x.code)}"><b>${esc(x.ad)}</b><span>${x.fiyat} TL</span><small>${x.gun ? `${x.gun} gün sınırsız soru` : `soru başı ${(x.fiyat / x.adet).toFixed(2).replace(".", ",")} TL`}</small></button>`).join("")}</div></div>
+    ${sel ? `<div class="tcard"><div class="tt">Ödeme Bilgileri</div>
+      <dl class="pay"><div class="pr"><dt>Tutar</dt><dd>${sel.fiyat} TL</dd></div>
+      <div class="pr"><dt>Alıcı</dt><dd>${esc(settings.alici || "—")}</dd></div>
+      <div class="pr"><dt>IBAN</dt><dd id="cIban">${esc(settings.iban || "—")}</dd><button class="copy" data-c="cIban">Kopyala</button></div>
+      <div class="pr"><dt>Açıklama</dt><dd id="cAcik"><b>${esc(acik)}</b></dd><button class="copy" data-c="cAcik">Kopyala</button></div></dl>
+      <div class="cwarn">Havale/EFT açıklamasına <b>${esc(acik)}</b> yazmazsanız kredi yüklemeniz gerçekleşmez.</div>
+      <button class="btn" id="cDone" style="margin-top:10px">Ödemeyi Yaptım</button></div>` : ""}
+    ${(od || []).length ? `<div class="sect">Kredi Taleplerim</div><div class="list">${od.map(o => `<div class="li"><div class="grow"><b>${esc((P.find(x => x.code === o.code) || {}).ad || o.code)} · ${o.fiyat} TL</b><small>${fmtDate(o.created_at)}</small></div><small>${st[o.status] || o.status}</small></div>`).join("")}</div>` : ""}`;
+  $("toolBody").querySelectorAll("[data-pkg]").forEach(b => b.onclick = () => { creditPkg = b.dataset.pkg; renderCredit(); });
+  $("toolBody").querySelectorAll("[data-c]").forEach(b => b.onclick = () => navigator.clipboard?.writeText($(b.dataset.c).textContent.replace(b.dataset.c === "cIban" ? /\s/g : /^$/, "")).then(() => toast("Kopyalandı")));
+  const d = $("cDone"); if(d) d.onclick = async () => { d.disabled = true; const { error } = await sb.rpc("request_credit", { pkg: creditPkg });
+    if(error){ d.disabled = false; return toast(/bekleyen/.test(error.message) ? "Bekleyen talepleriniz onaylanınca yeni talep açabilirsiniz" : "Talep gönderilemedi", 3200); }
+    toast("Talebiniz alındı. Ödeme onaylanınca krediniz yüklenecek.", 3500); creditPkg = null; renderCredit(); };
 }
 function aiBubble(m){
   if(m.role === "user") return `<div class="msg me"><div class="bub">${esc(m.content)}${(m.files || []).length ? `<div class="afiles">${m.files.map(f => `<span>${ICON_CLIP}${esc(f)}</span>`).join("")}</div>` : ""}</div></div>`;
@@ -1095,7 +1135,7 @@ function renderAiChat(){
   $("toolBody").innerHTML = `<div class="aihead"><span></span><b>${esc(title)}</b>${aiChat !== "new" ? `<button class="linkbtn" id="aiDel" style="color:var(--danger)">Sil</button>` : "<span></span>"}</div>
     <div class="thread aithread" id="aiThread">${aiMsgs.length ? aiMsgs.map(aiBubble).join("") : `<div class="empty" style="padding:24px 8px">Sorunuzu yazın ya da bir fotoğraf/PDF ekleyin.<br><small>Örn. "Sahte fatura kullanan mükellefin KDV indirimlerinin reddinde Danıştay hangi kriterlere bakıyor?"</small></div>`}${aiBusy ? `<div class="msg ai"><div class="bub"><div class="rload" style="padding:8px 0"><i></i><i></i><i></i></div></div></div>` : ""}</div>
     <div class="aicomp">${aiFiles.length ? `<div class="afiles pend">${aiFiles.map((f, i) => `<span>${ICON_CLIP}${esc(f.name)}<button data-rm="${i}" aria-label="Kaldır">×</button></span>`).join("")}</div>` : ""}
-      <div class="airow"><label class="aiclip" aria-label="Dosya ekle">${ICON_CLIP}<input type="file" id="aiFile" accept="image/*,application/pdf" multiple hidden></label>
+      ${quotaText() ? `<div class="aiq">${quotaText()}</div>` : ""}<div class="airow"><label class="aiclip" aria-label="Dosya ekle">${ICON_CLIP}<input type="file" id="aiFile" accept="image/*,application/pdf" multiple hidden></label>
       <textarea id="aiQ" rows="1" maxlength="4000" placeholder="Mesaj yazın…"></textarea><button class="send" id="aiSend" aria-label="Gönder" ${aiBusy ? "disabled" : ""}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div></div>`;
   syncNav();
   const del = $("aiDel"); if(del) del.onclick = async () => { if(!confirm("Bu sohbet silinsin mi?")) return; await sb.from("ai_chats").delete().eq("id", aiChat); aiChat = null; aiChats = null; await toolAsk(); syncNav(); };
@@ -1136,12 +1176,14 @@ async function sendAi(){
     const res = await fetch("/api/ask", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session?.access_token },
       body: JSON.stringify({ messages: aiMsgs.map(m => ({ role: m.role, content: m.content })), files }) });
     const r = await res.json().catch(() => ({ error: "Yanıt okunamadı" }));
+    if(r.quota) aiQuota = r.quota;
     if(!res.ok || r.error) throw new Error(r.error || res.status);
+    if(r.quota) aiQuota = r.quota;
     const am = { role: "assistant", content: r.answer || "(boş yanıt)", sources: r.sources || [] };
     aiMsgs.push(am);
     await sb.from("ai_messages").insert({ chat_id: aiChat, ...am });
     sb.from("ai_chats").update({ updated_at: new Date().toISOString() }).eq("id", aiChat).then(() => {});
-  }catch(e){ aiMsgs.push({ role: "assistant", content: "Yanıt alınamadı: " + (e.message || e) + ". Lütfen tekrar deneyin.", sources: [] }); }
+  }catch(e){ aiMsgs.push({ role: "assistant", content: /hakkınız doldu/.test(e.message) ? e.message + ". Geri dönüp Kredi Yükle ile ek soru paketi alabilirsiniz." : "Yanıt alınamadı: " + (e.message || e) + ". Lütfen tekrar deneyin.", sources: [] }); }
   aiBusy = false; if(tab === "tools" && toolSeg === "asistan") renderAiChat();
 }
 
@@ -1767,12 +1809,14 @@ async function renderAccount(){
 /* ---------------- yönetim ---------------- */
 let adminSeg = "pending";
 async function refreshAdminBadge(){
-  const { count } = await sb.from("profiles").select("id", { count: "exact", head: true }).eq("status", "pending");
+  const [{ count: c1 }, { count: c2 }] = await Promise.all([sb.from("profiles").select("id", { count: "exact", head: true }).eq("status", "pending"), sb.from("credit_orders").select("id", { count: "exact", head: true }).eq("status", "pending")]);
+  const count = (c1 || 0) + (c2 || 0);
   $("adminBadge").hidden = !count; $("adminBadge").textContent = count;
 }
 async function renderAdmin(){
   $("sub").textContent = "";
-  const [{ data: users }] = await Promise.all([sb.from("profiles").select("*").order("created_at", { ascending: false }), loadSettings()]);
+  const [{ data: users }, { data: corders }] = await Promise.all([sb.from("profiles").select("*").order("created_at", { ascending: false }), sb.from("credit_orders").select("*").eq("status", "pending").order("id"), loadSettings()]);
+  const co = corders || [];
   const now = new Date();
   const pending = users.filter(u => u.status === "pending");
   const active = users.filter(u => u.role === "admin" || (u.status === "active" && (!u.expires_at || new Date(u.expires_at) > now)));
@@ -1785,25 +1829,32 @@ async function renderAdmin(){
   let body = "";
   if(adminSeg === "pending"){
     body = pending.length ? `<div class="list">${pending.map(u => person(u, u => `<button class="btn small ok" data-act="approve" data-id="${u.id}">Onayla (${settings.sure_gun || 30} Gün)</button><button class="btn small danger" data-act="reject" data-id="${u.id}">Reddet</button>`)).join("")}</div>`
-      : `<div class="empty">Bekleyen talep yok.</div>`;
+      : (co.length ? "" : `<div class="empty">Bekleyen talep yok.</div>`);
+    if(co.length) body += `<div class="sect">Kredi Talepleri</div><div class="list">${co.map(o => { const u = users.find(x => x.id === o.user_id) || {};
+      const acik = `${o.code} ${String(u.full_name || u.username || "").trim()}`.toLocaleUpperCase("tr");
+      return `<div class="li" style="display:block"><div class="grow"><b>${esc(u.full_name || u.username || "?")} · ${esc(o.code)} · ${o.fiyat} TL</b><small>Açıklama: ${esc(acik)} · ${fmtDate(o.created_at)}</small></div>
+      <div class="acts2"><button class="btn small ok" data-act="cok" data-id="${o.id}">Onayla</button><button class="btn small danger" data-act="cno" data-id="${o.id}">Reddet</button></div></div>`; }).join("")}</div>`;
   }else if(adminSeg === "active"){
-    body = `<div class="list">${active.map(u => person(u, u => u.role === "admin" ? "" : `<button class="btn small ghost" data-act="approve" data-id="${u.id}">+${settings.sure_gun || 30} Gün</button><button class="btn small ghost" data-act="forever" data-id="${u.id}">Süresiz Yap</button><button class="btn small danger" data-act="cancel" data-id="${u.id}">Aboneliği Kapat</button>`)).join("")}</div>`
+    body = `<div class="list">${active.map(u => person(u, u => u.role === "admin" ? "" : `<button class="btn small ghost" data-act="approve" data-id="${u.id}">+${settings.sure_gun || 30} Gün</button><button class="btn small ghost" data-act="forever" data-id="${u.id}">Süresiz Yap</button><button class="btn small ghost" data-act="ai" data-val="${u.ai_unlimited ? "0" : "1"}" data-id="${u.id}">${u.ai_unlimited ? "Asistanı Sınırla" : "Asistan Sınırsız"}</button><button class="btn small danger" data-act="cancel" data-id="${u.id}">Aboneliği Kapat</button>`)).join("")}</div>`
       + (other.length ? `<div class="sect">Süresi Dolan / Reddedilen</div><div class="list">${other.map(u => person(u, u => `<button class="btn small ghost" data-act="approve" data-id="${u.id}">Aç (${settings.sure_gun || 30} Gün)</button>`)).join("")}</div>` : "");
   }else{
     body = `<form id="setForm" class="panel">
       <label class="field"><span>IBAN</span><input name="iban" value="${esc(settings.iban || "")}" placeholder="TR00 0000 0000 0000 0000 0000 00"></label>
       <label class="field"><span>Alıcı Adı</span><input name="alici" value="${esc(settings.alici || "")}"></label>
-      <div class="row"><label class="field" style="flex:1"><span>Fiyat (TL)</span><input name="fiyat" inputmode="numeric" value="${esc(settings.fiyat || "99")}"></label>
+      <div class="row"><label class="field" style="flex:1"><span>Fiyat (TL)</span><input name="fiyat" inputmode="numeric" value="${esc(settings.fiyat || "149")}"></label>
       <label class="field" style="flex:1"><span>Süre (Gün)</span><input name="sure_gun" inputmode="numeric" value="${esc(settings.sure_gun || "30")}"></label></div>
+      <label class="field"><span>Aylık Asistan Sorusu</span><input name="ai_kota" inputmode="numeric" value="${esc(settings.ai_kota || "30")}"></label>
       <button class="btn" type="submit">Kaydet</button></form>
       <p class="small muted" style="margin:12px 4px">Bu bilgiler abonelik talebi yapan kişilere ödeme ekranında gösterilir.</p>`;
   }
-  $("admin").innerHTML = `<div class="seg" id="adminSeg">${seg("pending", "Talepler", pending.length)}${seg("active", "Aboneler", active.length)}${seg("settings", "Ayarlar")}</div>${body}`;
+  $("admin").innerHTML = `<div class="seg" id="adminSeg">${seg("pending", "Talepler", pending.length + co.length)}${seg("active", "Aboneler", active.length)}${seg("settings", "Ayarlar")}</div>${body}`;
   $("adminSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; adminSeg = b.dataset.seg; renderAdmin(); };
   $("admin").querySelectorAll("[data-act]").forEach(b => b.onclick = async () => {
     b.disabled = true; const id = b.dataset.id, act = b.dataset.act; let r;
     if(act === "approve") r = await sb.rpc("admin_approve", { uid: id, days: null });
     if(act === "forever") r = await sb.rpc("admin_approve", { uid: id, days: 0 });
+    if(act === "cok" || act === "cno") r = await sb.rpc("decide_credit", { oid: +id, ok: act === "cok" });
+    if(act === "ai") r = await sb.rpc("set_ai_unlimited", { uid: id, val: b.dataset.val === "1" });
     if(act === "reject") r = await sb.rpc("admin_set_status", { uid: id, new_status: "rejected" });
     if(act === "cancel"){ if(!confirm("Bu kullanıcının aboneliği kapatılsın mı?")){ b.disabled = false; return; } r = await sb.rpc("admin_set_status", { uid: id, new_status: "cancelled" }); }
     toast(r?.error ? "İşlem başarısız" : "Güncellendi"); refreshAdminBadge(); renderAdmin();
@@ -1811,7 +1862,7 @@ async function renderAdmin(){
   const sf = $("setForm");
   if(sf) sf.onsubmit = async e => {
     e.preventDefault(); const f = new FormData(sf);
-    for(const k of ["iban", "alici", "fiyat", "sure_gun"]) await sb.from("settings").update({ value: String(f.get(k)).trim() }).eq("key", k);
+    for(const k of ["iban", "alici", "fiyat", "sure_gun", "ai_kota"]) await sb.from("settings").update({ value: String(f.get(k)).trim() }).eq("key", k);
     toast("Ayarlar kaydedildi");
   };
 }

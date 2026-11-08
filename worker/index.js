@@ -166,6 +166,10 @@ async function ask(req, env) {
   const H = { apikey: SB_KEY, Authorization: "Bearer " + token };
   const me = await fetch(SB_URL + "/rest/v1/rpc/is_active", { method: "POST", headers: { ...H, "Content-Type": "application/json" }, body: "{}" });
   if (!me.ok || (await me.json()) !== true) return Response.json({ error: "Yetkisiz" }, { status: 401 });
+  const qr = await fetch(SB_URL + "/rest/v1/rpc/ai_quota", { method: "POST", headers: { ...H, "Content-Type": "application/json" }, body: "{}" });
+  const quota = qr.ok ? await qr.json() : null;
+  if (quota && quota.limit != null && quota.used >= quota.limit)
+    return Response.json({ error: `Bu ayki ${quota.limit} soru hakkınız doldu. Hakkınız ay başında yenilenir`, quota }, { status: 429 });
   const qText = hist.filter(m => m.role === "user").slice(-2).map(m => m.content).join(" ");
   const ws = stems(qText);
   let rows = [];
@@ -202,7 +206,9 @@ Bu bir sohbettir: önceki mesajları dikkate al, kısa ve net yaz, gerektiğinde
   if (!r.ok) { let m = ""; try { m = (await r.json())?.error?.message || ""; } catch {} return Response.json({ error: "Yapay zekâ yanıt vermedi (" + r.status + ") " + m.slice(0, 120) }, { status: 502 }); }
   const d = await r.json();
   const answer = (d.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();
-  return Response.json({ answer, sources, live: live.length });
+  const used = await fetch(SB_URL + "/rest/v1/rpc/use_ai_quota", { method: "POST", headers: { ...H, "Content-Type": "application/json" }, body: "{}" }).catch(() => null);
+  if (quota && quota.limit != null && used?.ok) quota.used += 1;
+  return Response.json({ answer, sources, live: live.length, quota });
 }
 
 export default {
