@@ -295,9 +295,8 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
 body.typing .tabbar{display:none}
 body.typing .composer{bottom:0;padding-bottom:8px}
 body.typing main{padding-bottom:80px}
-body.typing .aicomp{bottom:auto;top:var(--kbtop,auto)}
-body.typing.aichat main{padding-bottom:110px}
-body.aichat main{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
+body.typing .aicomp{bottom:8px}
+body.typing.aichat main{padding-bottom:12px}
 body.aichat #tools>.foot{display:none}
 
 /* tür çipleri marka rengiyle */
@@ -380,7 +379,7 @@ body.aichat #tools>.foot{display:none}
 .afiles{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.afiles span{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.2)}
 .afiles svg{width:13px;height:13px}
 .afiles.pend span{background:var(--fill);color:var(--ink)}.afiles.pend button{border:0;background:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 0 0 2px}
-.aicomp{position:fixed;z-index:9;left:max(12px,calc(50% - 328px));right:max(12px,calc(50% - 328px));bottom:calc(64px + env(safe-area-inset-bottom));padding:8px;border-radius:24px;background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border:.5px solid var(--glass-line);box-shadow:var(--glass-shadow)}
+.aicomp{position:sticky;z-index:9;bottom:calc(64px + env(safe-area-inset-bottom));padding:8px;border-radius:24px;background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border:.5px solid var(--glass-line);box-shadow:var(--glass-shadow)}
 .pkgs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
 .pkg{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px;border-radius:16px;border:1.5px solid var(--glass-line);background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
 .pkg b{font-size:15px}.pkg span{font-size:20px;font-weight:700;color:var(--accent)}.pkg small{font-size:12px;color:var(--muted)}
@@ -994,7 +993,7 @@ navigator.serviceWorker?.addEventListener("message", async e => {
 
 
 /* ---------------- müfettiş araçları ---------------- */
-let toolSeg = "sure", ORAN = null;
+let toolSeg = "asistan", ORAN = null;
 const fmtTL = n => (Math.round(n * 100) / 100).toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " TL";
 const isoD = d => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
 const trD = iso => iso ? new Date(iso + "T12:00").toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" }) : "";
@@ -1005,7 +1004,7 @@ const left = iso => { const n = daysTo(iso); return n < 0 ? `<span class="tleft 
 const resRow = (lbl, iso, sub, evTitle) => `<div class="tres"><div class="grow"><small>${lbl}</small><b>${trD(iso)}</b>${sub ? `<em>${sub}</em>` : ""}</div><div class="tside">${left(iso)}${evTitle ? `<button class="tadd" data-t="${esc(evTitle)}" data-d="${iso}">Takvime Ekle</button>` : ""}</div></div>`;
 function renderTools(){
   $("sub").textContent = "Süre, ceza ve mevzuat yardımcıları";
-  const segs = [["sure", "Süreler"], ["ceza", "Ceza ve Faiz"], ["asistan", "Asistan"]];
+  const segs = [["asistan", "Asistan"], ["sure", "Süreler"], ["ceza", "Ceza ve Faiz"]];
   $("tools").innerHTML = `<div class="sfil" id="toolSeg">${segs.map(([k, l]) => `<button data-s="${k}" class="${toolSeg === k ? "on" : ""}">${l}</button>`).join("")}</div><div id="toolBody"></div>
     <div class="foot" style="margin-top:14px">Hesaplamalar yardımcı amaçlıdır; sonuçları mevzuat ve güncel içtihatla teyit edin.</div>`;
   $("toolSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; toolSeg = b.dataset.s; renderTools(); syncNav(); };
@@ -1145,8 +1144,9 @@ function renderAiChat(){
   syncNav();
   const del = $("aiDel"); if(del) del.onclick = async () => { if(!confirm("Bu sohbet silinsin mi?")) return; await sb.from("ai_chats").delete().eq("id", aiChat); aiChat = null; aiChats = null; await toolAsk(); syncNav(); };
   const ta = $("aiQ");
-  ta.onfocus = () => { document.body.classList.add("typing"); placeAiComp(); setTimeout(() => { placeAiComp(); if(aiMsgs.length) scrollTo({ top: document.body.scrollHeight }); }, 350); };
-  ta.onblur = () => setTimeout(() => { if(document.activeElement !== ta){ document.body.classList.remove("typing"); document.body.style.removeProperty("--kbtop"); } }, 100);
+  ta.onfocus = () => document.body.classList.add("typing");
+  ta.onblur = () => setTimeout(() => { if(document.activeElement !== ta) document.body.classList.remove("typing"); }, 100);
+  fitAiThread();
   ta.oninput = () => { ta.style.height = "auto"; ta.style.height = Math.min(140, ta.scrollHeight) + "px"; };
   $("aiFile").onchange = async e => { for(const f of e.target.files){ const x = await readAiFile(f); if(x) aiFiles.push(x); } renderAiChat(); };
   $("toolBody").querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { aiFiles.splice(+b.dataset.rm, 1); renderAiChat(); });
@@ -1154,13 +1154,14 @@ function renderAiChat(){
   $("aiSend").onclick = sendAi;
   requestAnimationFrame(() => { if(aiMsgs.length) scrollTo({ top: document.body.scrollHeight }); });
 }
-/* klavye açıkken yazma kutusunu tam klavyenin üstüne yerleştir (iOS görünür alan) */
-function placeAiComp(){
-  const c = document.querySelector(".aicomp"), v = window.visualViewport;
-  if(!c || !v || !document.body.classList.contains("typing")) return;
-  document.body.style.setProperty("--kbtop", Math.max(8, v.offsetTop + v.height - c.offsetHeight - 6) + "px");
+/* sohbet alanı ekranı doldursun: yazma kutusu boş sohbette de en altta dursun (akış içinde; iPhone klavyesi kendisi kaydırır) */
+function fitAiThread(){
+  const t = $("aiThread"), c = document.querySelector(".aicomp"); if(!t || !c) return;
+  t.style.minHeight = "";
+  const top = t.getBoundingClientRect().top + scrollY, tb = document.querySelector(".tabbar")?.offsetHeight || 64;
+  t.style.minHeight = Math.max(0, innerHeight - top - c.offsetHeight - tb - 20) + "px";
 }
-if(window.visualViewport){ visualViewport.addEventListener("resize", placeAiComp); visualViewport.addEventListener("scroll", placeAiComp); }
+addEventListener("resize", () => { if(!document.body.classList.contains("typing")) fitAiThread(); });
 async function readAiFile(f){
   if(f.type === "application/pdf"){
     if(f.size > 4.5e6){ toast("PDF en fazla 4,5 MB olabilir", 3000); return null; }
