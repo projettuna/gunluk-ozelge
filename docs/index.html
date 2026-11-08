@@ -1612,6 +1612,14 @@ const dmRoom = uid => "dm:" + [me.id, uid].sort().join(":");
 const dmOther = r => r.slice(3).split(":").find(x => x !== me.id);
 const roomName = r => r.startsWith("dm:") ? (memberName(dmOther(r)) || "Özel Mesaj") : r.startsWith("g:") ? (groups.find(g => g.id === r.slice(2))?.name || "Grup") : (ROOMS.find(x => x.id === r)?.name || r);
 function memberName(uid){ const m = members?.find(x => x.id === uid); if(m) return m.full_name || m.username; const msg = msgs.find(x => x.user_id === uid); return msg?.username || null; }
+const avaUrl = u => /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(u || "") ? u : "";
+const avaOf = (uid, name) => { const u = avaUrl(members?.find(x => x.id === uid)?.avatar); return u ? `<div class="rav ava2" style="background:url(${u}) center/cover"></div>` : `<div class="rav ava2">${esc(initialsOf(name))}</div>`; };
+function shrinkImage(file, size = 256){
+  return new Promise((ok, no) => { const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => { const c = document.createElement("canvas"); c.width = c.height = size; const s = Math.min(img.naturalWidth, img.naturalHeight);
+      c.getContext("2d").drawImage(img, (img.naturalWidth - s) / 2, (img.naturalHeight - s) / 2, s, s, 0, 0, size, size); URL.revokeObjectURL(url); ok(c.toDataURL("image/jpeg", .82)); };
+    img.onerror = () => { URL.revokeObjectURL(url); no(new Error("Fotoğraf okunamadı")); }; img.src = url; });
+}
 const initialsOf = n => String(n || "?").split(/\s+/).map(w => w[0]).slice(0, 2).join("").toLocaleUpperCase("tr");
 async function startChat(){
   if(chatStarted) return; chatStarted = true;
@@ -1619,6 +1627,7 @@ async function startChat(){
   if(error){ chatStarted = false; toast("Mesajlar yüklenemedi: " + error.message, 6000); return; }
   msgs = (data || []).reverse();
   await loadGroups();
+  if(!members) sb.rpc("list_members").then(({ data }) => { if(data){ members = data; if(tab === "chat") renderChat(); } });
   if(store.get("chatSeenRooms", null) === null){ const m = {}; msgs.forEach(x => m[x.room] = x.id); store.set("chatSeenRooms", m); }
   updateChatBadge();
   sb.channel("sohbet").on("postgres_changes", { event: "*", schema: "public", table: "messages" }, p => {
@@ -1672,7 +1681,7 @@ function renderChat(){
     <div class="list">${groups.filter(g => g.is_member).map(g => roomRow("g:" + g.id, g.name, roomIcon(gcolor(g.id), GROUP_IC))).join("")}
       <button class="li room" id="newGroup"><div class="rav" style="--c:var(--fill);color:var(--accent)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div><div class="grow"><b class="rn" style="color:var(--accent)">Grup Oluştur</b><small>İsterseniz şifre koyabilirsiniz</small></div></button></div>
     <div class="sect row" style="margin-right:4px"><span>Özel Mesajlar</span><span class="spacer"></span><button class="linkbtn" id="newDm" style="font-size:15px;text-transform:none;padding:0">Yeni Mesaj</button></div>
-    ${dms.length ? `<div class="list">${dms.map(r => roomRow(r, roomName(r), `<div class="rav ava2">${esc(initialsOf(roomName(r)))}</div>`)).join("")}</div>`
+    ${dms.length ? `<div class="list">${dms.map(r => roomRow(r, roomName(r), avaOf(dmOther(r), roomName(r)))).join("")}</div>`
       : `<div class="hint" style="text-align:center">Bir üyeye özel mesaj atmak için <b>Yeni Mesaj</b>'a dokunun.</div>`}`;
   updateChatBadge();
 }
@@ -1798,7 +1807,7 @@ function openJoin(g){
 async function openMembers(){
   if(!members){ const { data } = await sb.rpc("list_members"); members = data || []; }
   $("msgs").innerHTML = `<div class="sect" style="margin-top:8px">Kime Yazmak İstiyorsunuz?</div><div class="list">${members.length ? members.map(m =>
-    `<button class="li room" data-room="${esc(dmRoom(m.id))}"><div class="rav ava2">${esc(initialsOf(m.full_name || m.username))}</div><div class="grow"><b class="rn">${esc(m.full_name || m.username)}</b><small>${m.unvan ? esc(m.unvan) + " · " : ""}@${esc(m.username)}</small></div></button>`).join("")
+    `<button class="li room" data-room="${esc(dmRoom(m.id))}">${avaOf(m.id, m.full_name || m.username)}<div class="grow"><b class="rn">${esc(m.full_name || m.username)}</b><small>${m.unvan ? esc(m.unvan) + " · " : ""}@${esc(m.username)}</small></div></button>`).join("")
     : `<div class="li"><small>Henüz başka aktif üye yok.</small></div>`}</div>`;
   $("heading").textContent = "Yeni Mesaj"; room = "__pick"; syncNav();
 }
@@ -1876,7 +1885,7 @@ async function renderAccount(){
   const initials = (me.full_name || me.username).split(/\s+/).map(w => w[0]).slice(0, 2).join("").toLocaleUpperCase("tr");
   const showHint = !pushSupported || !standalone;
   $("account").innerHTML = `
-    <div class="list"><div class="li" style="padding:14px 16px"><div class="ava">${esc(initials)}</div><div class="grow"><b style="font-weight:600;font-size:20px">${esc(me.full_name || me.username)}</b><small>${me.unvan ? esc(me.unvan) + " · " : ""}@${esc(me.username)}</small></div><span class="pill ${me.role === "admin" ? "ok" : "ok"}">${esc(sub)}</span></div></div>
+    <div class="list"><div class="li" style="padding:14px 16px"><label class="ava" style="cursor:pointer;position:relative;${avaUrl(me.avatar) ? `background:url(${avaUrl(me.avatar)}) center/cover;` : ""}" title="Fotoğraf yükle">${avaUrl(me.avatar) ? "" : esc(initials)}<input type="file" id="avaIn" accept="image/*" hidden><span style="position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:15px;line-height:1;border:2px solid var(--bg, #000)">+</span></label><div class="grow"><b style="font-weight:600;font-size:20px">${esc(me.full_name || me.username)}</b><small>${me.unvan ? esc(me.unvan) + " · " : ""}@${esc(me.username)}</small>${avaUrl(me.avatar) ? `<button class="linkbtn" id="avaDel" style="font-size:14px;padding:4px 0 0">Fotoğrafı Kaldır</button>` : `<small style="color:var(--accent)">Fotoğraf eklemek için daireye dokunun</small>`}</div><span class="pill ${me.role === "admin" ? "ok" : "ok"}">${esc(sub)}</span></div></div>
     <div class="sect">Ünvan ve Birim</div>
     <div class="group" id="titleGrp">
       <label class="field"><input id="unvanIn" list="unvanlar" maxlength="60" placeholder="Ünvan (örn. Vergi Müfettişi)" value="${esc(myTitles().u)}"></label>
@@ -1911,6 +1920,12 @@ async function renderAccount(){
     <div class="list"><a class="li" href="hukuki.html" style="text-decoration:none;color:inherit"><div class="grow"><b>Hukuki Metinler</b><small>KVKK aydınlatma, açık rıza, kullanım şartları</small></div><span style="color:var(--muted)">›</span></a></div>
     <div class="list" style="margin-top:12px"><button class="li" id="logout" style="width:100%;border:0;background:none;justify-content:center;color:var(--danger);font-size:17px;cursor:pointer">Çıkış Yap</button></div>
     <p class="small muted" style="text-align:center;margin-top:24px">TMPRO · GİB, Resmî Gazete, Danıştay, Anayasa Mahkemesi</p>`;
+  $("avaIn").onchange = async e => {
+    const f = e.target.files[0]; if(!f) return;
+    try{ const a = await shrinkImage(f); const { error } = await sb.rpc("set_my_avatar", { a }); if(error) throw error; me.avatar = a; toast("Profil fotoğrafı kaydedildi"); renderAccount(); }
+    catch(err){ toast("Fotoğraf kaydedilemedi: " + (err.message || err)); }
+  };
+  if($("avaDel")) $("avaDel").onclick = async () => { const { error } = await sb.rpc("set_my_avatar", { a: null }); if(error){ toast("Kaldırılamadı"); return; } me.avatar = null; toast("Fotoğraf kaldırıldı"); renderAccount(); };
   $("mailSave").onclick = async () => {
     const v = $("mailIn").value.trim();
     const { error } = await sb.rpc("set_my_email", { addr: v });
