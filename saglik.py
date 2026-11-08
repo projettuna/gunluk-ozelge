@@ -265,6 +265,13 @@ def ai():
         bad("yapay_zeka_gecici", "uyari", f"Yapay zekâ servisi yanıt vermiyor (HTTP {code})")
 
 
+def news_fresh():
+    rows, _ = db("news?select=published&order=published.desc.nullslast&limit=1")
+    last = ts(rows[0]["published"]) if rows and rows[0].get("published") else None
+    if not last or NOW - last > timedelta(hours=24):
+        bad("haberler", "uyari", "24 saattir yeni haber gelmedi; haber kaynağı değişmiş olabilir")
+
+
 def phone():
     # arşive giden eski kararlar da telefonun çalıştığını gösterir, bu yüzden created_at
     rows, _ = db("items?select=created_at&tur=eq.Yarg%C4%B1tay%20(Ceza)&order=created_at.desc&limit=1")
@@ -299,7 +306,7 @@ def main():
         print("Supabase ayarı yok")
         return
     for name, fn in (("site", site), ("aktarıcı", relay), ("veritabanı", database), ("kurulum", setup),
-                     ("tarama", main_job), ("kaynaklar", sources), ("üye girişi ve ekranlar", e2e), ("e-posta", mails), ("yedek", backup), ("yapay zekâ", ai), ("telefon", phone)):
+                     ("tarama", main_job), ("kaynaklar", sources), ("üye girişi ve ekranlar", e2e), ("e-posta", mails), ("yedek", backup), ("yapay zekâ", ai), ("haberler", news_fresh), ("telefon", phone)):
         check(name, fn)
     if TEST:
         bad("deneme", "kritik", "Bu bir deneme uyarısıdır, nöbetçi çalışıyor")
