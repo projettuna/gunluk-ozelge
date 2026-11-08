@@ -6,6 +6,7 @@ on:
     - cron: "*/5 5-15 * * 1-5"      # hafta içi 08:00-19:00 TR: 5 dakikada bir
     - cron: "7 0-4,16-23 * * 1-5"   # hafta içi diğer saatler: saatte bir
     - cron: "7 * * * 0,6"           # hafta sonu: saatte bir
+    - cron: "*/5 21 * * *"          # her gece 00:00-01:00 TR: yalnızca Resmî Gazete, 5 dakikada bir
   workflow_dispatch:
     inputs:
       dry_run:
@@ -82,7 +83,7 @@ jobs:
             exit 0
           fi
           if [ "${{ inputs.chat_test }}" = "true" ]; then SUPABASE_PUBLISHABLE_KEY=sb_publishable_tlfwqtscxxv2vdSHe3PstQ_XO1db8p9 python tools/chat_test.py; exit 0; fi
-          python ozelge.py ${{ inputs.seed && '--seed' || '' }} ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.resend && '--resend' || '' }} ${{ inputs.resend_karar && '--resend-karar' || '' }} ${{ inputs.migrate && '--migrate' || '' }} ${{ inputs.test_push && '--test-push' || '' }} ${{ inputs.diag && '--diag' || '' }}
+          python ozelge.py ${{ inputs.seed && '--seed' || '' }} ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.resend && '--resend' || '' }} ${{ inputs.resend_karar && '--resend-karar' || '' }} ${{ inputs.migrate && '--migrate' || '' }} ${{ inputs.test_push && '--test-push' || '' }} ${{ inputs.diag && '--diag' || '' }} ${{ github.event.schedule == '*/5 21 * * *' && '--only-rg' || '' }}
       - name: Durumu kaydet
         run: |
           [ -f seen.json ] || [ -f docs/feed.json ] || exit 0

@@ -46,6 +46,7 @@ DRY = "--dry-run" in sys.argv
 MIGRATE = "--migrate" in sys.argv
 TEST_PUSH = "--test-push" in sys.argv
 DIAG = "--diag" in sys.argv
+ONLY_RG = "--only-rg" in sys.argv  # gece yarısı: yalnızca Resmî Gazete
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY") or ""
 # Gizli anahtar yoksa Supabase devre dışı (eski e-posta düzeni sürer)
 SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").rstrip("/") if SUPABASE_KEY else ""
@@ -649,7 +650,7 @@ def main():
         return
 
     # Özelgeler
-    ozelgeler = get_ozelgeler()
+    ozelgeler = [] if ONLY_RG else get_ozelgeler()
     if RESEND_KARAR:
         send(*build_mail([], enrich_kararlar(get_kararlar()[:5]), today, None, "VUK 359. maddeye değinen son Danıştay kararları:"))
         return
@@ -669,6 +670,8 @@ def main():
     # Danıştay VUK 359 kararları (hata olursa özelgeleri engellemesin)
     new_k, karar_ids, karar_intro = [], None, None
     try:
+        if ONLY_RG:
+            raise LookupError("yalnızca Resmî Gazete turu")
         kararlar = get_kararlar()
         karar_ids = [k["id"] for k in kararlar]
         if "karar_seen" not in state:
@@ -684,6 +687,8 @@ def main():
     # Tebliğler: her saat "son eklenenler", günde bir kez tam tarama
     new_t, teblig_max, teblig_intro = [], None, None
     try:
+        if ONLY_RG:
+            raise LookupError("yalnızca Resmî Gazete turu")
         last_t = state.get("last_teblig_id")
         full = last_t is None or (now.hour >= TEBLIG_FULL_HOUR and state.get("teblig_full_scan") != today)
         tebligler = get_tebligler_full() if full else get_tebligler_last_added()
@@ -706,7 +711,7 @@ def main():
     # Kanun, sirküler, Cumhurbaşkanı kararı, iç genelge
     SHORT = {"kanun": "kanun", "sirkuler": "sirküler", "cbk": "CB kararı", "icgenelge": "iç genelge"}
     extra, extra_max = [], {}
-    for key, path, title, date_key, no_key, link_tpl in GIB_LISTS:
+    for key, path, title, date_key, no_key, link_tpl in ([] if ONLY_RG else GIB_LISTS):
         try:
             items = get_gib_list(path, date_key, no_key, link_tpl)
         except Exception as e:  # noqa: BLE001
@@ -727,6 +732,8 @@ def main():
     seen_sets = {}
     for key, title, short, fn in (("aym", "Anayasa Mahkemesi kararları", "AYM kararı", get_aym),
                                   ("rg", "Resmî Gazete (vergiyle ilgili)", "Resmî Gazete kaydı", get_resmi_gazete)):
+        if ONLY_RG and key != "rg":
+            continue
         try:
             items = fn()
         except Exception as e:  # noqa: BLE001
@@ -744,7 +751,7 @@ def main():
 
     # "Bugün özelge yok" bildirimi
     no_oz_intro = None
-    if (not new_oz and now.hour >= NO_OZELGE_HOUR
+    if (not ONLY_RG and not new_oz and now.hour >= NO_OZELGE_HOUR
             and state.get("last_ozelge_mail") != today and state.get("no_ozelge_notice") != today):
         no_oz_intro = f"Bugün ({today}) GİB'de yeni yayımlanan özelge yok."
 
