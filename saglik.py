@@ -116,6 +116,37 @@ def main_job():
         bad("tarama_gecikme", "kritik", "Otomatik tarama 3 saattir başarıyla çalışmadı")
 
 
+def sources():
+    """Son 4 zamanlanmış taramanın hepsinde aynı kaynak alınamadıysa uyarır (Özelge/Resmî Gazete acil)."""
+    if not GH or not REPO:
+        return
+    h = {"Authorization": f"Bearer {GH}", "Accept": "application/vnd.github+json"}
+    code, body, _ = http(f"https://api.github.com/repos/{REPO}/actions/workflows/gunluk.yml/runs?per_page=10&status=completed", headers=h)
+    if code != 200:
+        raise RuntimeError(f"github {code}")
+    runs = [r for r in json.loads(body)["workflow_runs"] if r["event"] == "schedule" and r["conclusion"] == "success"][:4]
+    if len(runs) < 4:
+        return
+    fails = None
+    for r in runs:
+        code, body, _ = http(r["jobs_url"], headers=h)
+        if code != 200:
+            return
+        jid = json.loads(body)["jobs"][0]["id"]
+        code, log, _ = http(f"https://api.github.com/repos/{REPO}/actions/jobs/{jid}/logs", headers=h)
+        if code != 200:
+            return
+        names = set()
+        for line in log.splitlines():
+            line = line.split(" ", 1)[-1]
+            if " alınamadı" in line and not line.startswith(("Metin", "Müfettiş")):
+                names.add(line.split(" alınamadı")[0].strip())
+        fails = names if fails is None else fails & names
+    for n in sorted(fails or []):
+        crit = any(k in n for k in ("Özelge", "Resmî Gazete", "Tebliğ"))
+        bad("kaynak_" + n[:30], "kritik" if crit else "uyari", f"{n} son 4 taramada alınamadı; kaynak site değişmiş veya kapalı olabilir")
+
+
 def mails():
     since = (NOW - timedelta(days=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
     rows, _ = db(f"mail_queue?select=id&error=not.is.null&created_at=gte.{since}")
@@ -182,7 +213,7 @@ def main():
         print("Supabase ayarı yok")
         return
     for name, fn in (("site", site), ("aktarıcı", relay), ("veritabanı", database), ("kurulum", setup),
-                     ("tarama", main_job), ("e-posta", mails), ("yapay zekâ", ai), ("telefon", phone)):
+                     ("tarama", main_job), ("kaynaklar", sources), ("e-posta", mails), ("yapay zekâ", ai), ("telefon", phone)):
         check(name, fn)
     if TEST:
         bad("deneme", "kritik", "Bu bir deneme uyarısıdır, nöbetçi çalışıyor")
