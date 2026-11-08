@@ -310,8 +310,8 @@ body.typing main{padding-bottom:80px}
 body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-feature-settings:"cv11","ss01","ss03";letter-spacing:-.011em}
 /* canlı ışık zemini */
 body::before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;opacity:.0;transition:opacity .8s;
-  background:radial-gradient(38% 30% at 20% 18%,var(--a1),transparent 70%),radial-gradient(34% 28% at 85% 30%,var(--a2),transparent 70%),radial-gradient(40% 34% at 60% 85%,var(--a3),transparent 72%);
-  filter:blur(40px) saturate(1.1);animation:aurora 22s ease-in-out infinite alternate}
+  background:radial-gradient(46% 36% at 20% 18%,var(--a1),transparent 100%),radial-gradient(42% 34% at 85% 30%,var(--a2),transparent 100%),radial-gradient(48% 40% at 60% 85%,var(--a3),transparent 100%);
+  will-change:transform;transform:translateZ(0);animation:aurora 22s ease-in-out infinite alternate}
 body.home::before{opacity:.85}
 @keyframes aurora{0%{transform:translate3d(0,0,0) rotate(0)}50%{transform:translate3d(4%,-3%,0) rotate(8deg)}100%{transform:translate3d(-3%,4%,0) rotate(-6deg)}}
 @media (prefers-reduced-motion: reduce){body::before{animation:none}}
@@ -374,6 +374,45 @@ body.home .head h2{font-size:36px;background:linear-gradient(100deg,var(--ink) 3
 .sect{font-weight:600;letter-spacing:.06em}
 .badge{background:var(--goldg);color:#2a1d05;font-weight:800}
 .tabbar{-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%)}
+/* ---- v3: tüm ekranlar ---- */
+body::before{opacity:.5}
+body.home::before{opacity:.85}
+.head h2{background:linear-gradient(100deg,var(--ink) 40%,var(--accent) 110%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.btn{background:var(--brand);color:#fff;border-radius:16px;box-shadow:0 10px 24px -8px rgba(91,75,255,.55),inset 0 1px 0 rgba(255,255,255,.3);font-weight:650;letter-spacing:-.01em}
+.btn.ghost{background:var(--surface);color:var(--accent);box-shadow:var(--glass-shadow);border:.5px solid var(--glass-line);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+.btn.plain{background:none;box-shadow:none;color:var(--accent)}
+.btn.danger{background:var(--surface);color:var(--danger);box-shadow:var(--glass-shadow)}
+.seg{background:var(--surface);border:.5px solid var(--glass-line);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-radius:12px;padding:3px}
+.seg button.on{background:var(--solid);box-shadow:0 4px 12px rgba(40,30,120,.14);color:var(--accent);font-weight:650}
+.tdot,.li .tdot{background:var(--brand)!important;box-shadow:0 4px 10px rgba(91,75,255,.3),inset 0 1px 0 rgba(255,255,255,.3)}
+.switch input:checked+span{background:var(--brand)!important}
+.pill.ok{background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+/* sohbet */
+.rav{background:var(--brand);box-shadow:0 6px 14px rgba(91,75,255,.3),inset 0 1px 0 rgba(255,255,255,.3)}
+.rav.ava2{background:linear-gradient(150deg,#f3d58e,#c99a3e 60%,#9b6c22);color:#2a1d05}
+.rb{background:var(--goldg);color:#2a1d05;font-weight:800}
+.msg .bub{background:var(--surface);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:.5px solid var(--glass-line);box-shadow:0 4px 14px -6px rgba(40,30,120,.18)}
+.msg.me .bub{background:var(--brand);color:#fff;border:0;box-shadow:0 8px 18px -8px rgba(91,75,255,.6)}
+.composer{background:color-mix(in srgb,var(--bg) 70%,transparent)}
+.composer textarea{background:var(--surface);border:.5px solid var(--glass-line)}
+.send{background:var(--brand);box-shadow:0 4px 10px rgba(91,75,255,.4)}
+/* takvim */
+.cal .dg button.today{background:var(--brand);box-shadow:0 6px 14px rgba(91,75,255,.4)}
+.cal .dg button.hol{color:var(--gold)}
+.cal .dg button.sel:not(.today){background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+.cal .mh button{color:var(--accent)}
+.evtag.tatil{color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,transparent)}
+.evtag.kisisel{color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+/* bildirimler */
+.ntf .ni{background:var(--brand)!important;box-shadow:0 4px 10px rgba(91,75,255,.3)}
+.ntf.new .nt b::before{background:var(--gold)}
+/* giriş */
+.auth .mark img{width:92px;height:92px;border-radius:22px;box-shadow:0 18px 40px -10px rgba(91,75,255,.6)}
+.auth .mark h1{font-weight:800;letter-spacing:.16em;background:linear-gradient(100deg,var(--ink) 30%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.auth .mark p{color:var(--gold);font-weight:600;letter-spacing:.02em}
+.hint{background:var(--surface);border:.5px solid var(--glass-line);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
+.empty svg{color:var(--accent);opacity:.6}
+.li .ava{background:var(--brand);box-shadow:0 10px 24px -8px rgba(91,75,255,.6)}
 </style>
 </head>
 <body>
