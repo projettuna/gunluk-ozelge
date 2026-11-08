@@ -49,6 +49,7 @@ async function sendOne(sub, payload, vapid) {
 }
 
 // ---------------------------------------------------------------- günaydın bildirimi (/api/morning)
+const WICON = c => c === 0 ? "☀️" : c <= 2 ? "🌤️" : c === 3 ? "☁️" : c <= 48 ? "🌫️" : c <= 67 ? "🌧️" : c <= 77 ? "🌨️" : c <= 82 ? "🌧️" : c <= 86 ? "🌨️" : "⛈️";
 const WMO = c => c === 0 ? "Açık" : c <= 2 ? "Az bulutlu" : c === 3 ? "Kapalı" : c <= 48 ? "Sisli" : c <= 57 ? "Çisentili"
   : c <= 67 ? "Yağmurlu" : c <= 77 ? "Karlı" : c <= 82 ? "Sağanak yağışlı" : c <= 86 ? "Kar sağanaklı" : "Gök gürültülü";
 
@@ -71,13 +72,13 @@ export function weatherAdvice(w) {
   const snow = w.snow > 0 || (c >= 71 && c <= 77) || c === 85 || c === 86;
   const rain = !snow && (c >= 95 || (c >= 51 && c <= 67) || (c >= 80 && c <= 82) || (w.pop >= 50 && w.rain >= 0.5));
   // En önemli tek uyarı
-  if (snow) return "🌨️ Kar bekleniyor, yollar kaygan olabilir.";
-  if (w.min <= 0) return "🧊 Buzlanma riski var, yollarda dikkatli olun.";
-  if (rain && w.min < 3) return "☂️ Yağış ve soğuk var, şemsiyenizi alın, yollarda dikkatli olun.";
-  if (rain) return "☂️ Yağmur bekleniyor, şemsiyenizi almayı unutmayın.";
-  if (w.min < 3) return "❄️ Hava soğuk, yerler kaygan olabilir.";
-  if (c === 45 || c === 48) return "🌫️ Sis var, araçla dikkatli olun.";
-  if (w.max >= 35) return "🥵 Çok sıcak, bol su için.";
+  if (snow) return "Kar yağışı var, yollarda dikkatli olun.";
+  if (w.min <= 0) return "Buzlanma riski var, yollarda dikkatli olun.";
+  if (rain && w.min < 3) return "Yağışlı ve soğuk, şemsiyenizi alın.";
+  if (rain) return "Yağmur bekleniyor, şemsiyenizi alın.";
+  if (w.min < 3) return "Hava soğuk, yerler kaygan olabilir.";
+  if (c === 45 || c === 48) return "Sisli, araçla dikkatli olun.";
+  if (w.max >= 35) return "Çok sıcak, bol su için.";
   return "";
 }
 
@@ -88,13 +89,13 @@ export function composeMorning(u, w, hol, today, tomorrow) {
   const lines = [];
   if (special) lines.push(special.mesaj);
   if (w) {
-    lines.push(`${city} · ${WMO(w.code)} · ${Math.round(w.min)}° / ${Math.round(w.max)}°`);
-    const a = weatherAdvice(w); if (a) lines.push(a);
+    const a = weatherAdvice(w);
+    lines.push(`${WICON(w.code)} ${city} ${Math.round(w.min)}°/${Math.round(w.max)}° · ${WMO(w.code)}` + (a ? `\n${a}` : ""));
   }
   const nt = tm.find(h => h.tur !== "anma");
   if (nt && !th.some(h => h.tur === "tatil")) lines.push(`📅 Yarın ${nt.ad}${nt.tur === "yarim" ? " (yarım gün)" : ""}`);
   if (u.events?.length) lines.push("📌 " + u.events.join(", "));
-  const title = special ? special.ad : `Günaydın${first ? " " + first : ""} ☀️`;
+  const title = special ? special.ad : `Günaydın${first ? " " + first : ""}`;
   return { title, body: (lines.join("\n") || "İyi çalışmalar.").slice(0, 400), url: "/", tag: "tmpro-gunaydin" };
 }
 
