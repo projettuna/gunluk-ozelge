@@ -543,6 +543,7 @@ body.home .head h2{font-size:36px;background:linear-gradient(100deg,var(--ink) 3
 .bento .tile.all .ic{width:36px;height:36px;background:var(--goldg);color:#2a1d05;box-shadow:0 4px 12px rgba(185,134,47,.35)}
 .bento .tile.all b{font-size:16px;color:var(--ink);margin:0}.bento .tile.all small{color:var(--muted);font-weight:500;font-size:13px}
 .bento .tile.all.pair{grid-column:span 2;flex-direction:column;align-items:flex-start;justify-content:space-between;padding:13px}
+.bento .pairs{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:inherit}.bento .pairs .tile.all.pair{grid-column:auto}.bento .pairs .tile.all:not(.pair){grid-column:1/-1}
 .bento .tile.all.pair::after{position:absolute;right:14px;top:22px}
 .tile:active{transform:scale(.97)}
 /* hava kartı: koyu metal kart */
@@ -1159,10 +1160,11 @@ function _render(){
         <span class="tb"><em class="num" data-n="${n}">${n}</em><b>${esc(SHORT(t))}</b>${cls ? `<small>${wk ? `Son 7 günde +${wk}` : "Son 7 günde yeni yok"}</small>` : ""}
         ${cls === "xl" && latest[t] ? `<i class="last">${esc(latest[t].title)}</i>` : ""}</span>${spark(series[t], !!cls)}</button>`; };
     $("grid").className = "grid bento";
-    $("grid").innerHTML = ORDER.filter(t => t !== "Yargıtay (Ceza)" || items.some(i => i.tur === t)).map(bento).join("") + (unreadCount ? wide("__unread", bell, "Okunmamış", unreadCount, unreadCount).replace('class="tile all"', 'class="tile all pair"') : "")
-      + (stars.size ? wide("__star", ICON_STAR(true), "Kaydedilenler", stars.size, 0).replace('class="tile all"', 'class="tile all pair"') : "")
-      + `<button class="tile all" data-t="__watch"><span class="ic">${ICON_SEARCH}</span><span><b>Takip Listem</b><small>${(me.watch_words || []).length ? `${watchHits.size} eşleşen kayıt · ${(me.watch_words || []).slice(0, 3).map(esc).join(", ")}${(me.watch_words || []).length > 3 ? "…" : ""}` : "Konularınızı ekleyin, yeni kayıt çıkınca haber verelim"}</small></span>${watchUnread() ? `<span class="nb">${watchUnread()}</span>` : ""}</button>`
-      + wide("Tümü", icon("Tümü"), "Tüm Kayıtlar", items.length, 0).replace('class="tile all"', unreadCount ? 'class="tile all"' : 'class="tile all pair"');
+    $("grid").innerHTML = ORDER.filter(t => t !== "Yargıtay (Ceza)" || items.some(i => i.tur === t)).map(bento).join("") + (() => { const P = 'class="tile all pair"', ws = me.watch_words || [], wu = watchUnread();
+        const t = [unreadCount ? wide("__unread", bell, "Okunmamış", unreadCount, unreadCount) : "", stars.size ? wide("__star", ICON_STAR(true), "Kaydedilenler", stars.size, 0) : "",
+          `<button class="tile all" data-t="__watch"><span class="ic">${ICON_SEARCH}</span><span><b>Takip Listem</b><small>${ws.length ? `${watchHits.size} kayıt · ${ws.length} konu` : "Konu ekleyin"}</small></span>${wu ? `<span class="nb">${wu}</span>` : ""}</button>`,
+          wide("Tümü", icon("Tümü"), "Tüm Kayıtlar", items.length, 0)].filter(Boolean);
+        return `<div class="pairs">${t.map((h, k) => t.length % 2 && k === 0 ? h : h.replace('class="tile all"', P)).join("")}</div>`; })();
     if(!window._counted){ window._counted = true; $("grid").querySelectorAll(".num").forEach(el => { const n = +el.dataset.n, t1 = performance.now(); if(!n) return;
       const step = now => { const k = Math.min(1, (now - t1) / 900), e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(n * e); if(k < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); }); }
   }
