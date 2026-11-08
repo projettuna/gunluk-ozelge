@@ -1,4 +1,5 @@
 // TMPRO service worker: anlık bildirimler
+const APP = "https://tmpro.tmproapp.workers.dev/";
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
 
@@ -46,10 +47,11 @@ self.addEventListener("push", event => {
 
 self.addEventListener("notificationclick", event => {
   event.notification.close();
-  const url = new URL(event.notification.data.url || "./", self.registration.scope).href;
+  // Bildirim her zaman uygulamanın kendi adresinde açılır (eski adreslere yönlenmesin)
+  const url = new URL(event.notification.data.url || "/", APP).href;
   event.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-    for (const c of all) { if (c.url.startsWith(self.registration.scope)) { await c.focus(); c.postMessage({ type: "open", url }); return; } }
+    for (const c of all) { if (c.url.startsWith(APP)) { await c.focus(); c.postMessage({ type: "open", url }); return; } }
     await self.clients.openWindow(url);
   })());
 });

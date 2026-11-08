@@ -96,7 +96,7 @@ export function composeMorning(u, w, hol, today, tomorrow) {
   if (nt && !th.some(h => h.tur === "tatil")) lines.push(`📅 Yarın ${nt.ad}${nt.tur === "yarim" ? " (yarım gün)" : ""}`);
   if (u.events?.length) lines.push("📌 " + u.events.join(", "));
   const title = special ? special.ad : `Günaydın${first ? " " + first : ""}`;
-  return { title, body: (lines.join("\n") || "İyi çalışmalar.").slice(0, 400), url: "/", tag: "tmpro-gunaydin" };
+  return { title, body: (lines.join("\n") || "İyi çalışmalar.").slice(0, 400), url: "https://tmpro.tmproapp.workers.dev/", tag: "tmpro-gunaydin" };
 }
 
 async function morning(j, env) {
