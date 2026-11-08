@@ -1,6 +1,5 @@
 -- TMPRO: günaydın bildirimi (08:30), hava durumu konumu ve kişisel takvim
 create extension if not exists pg_net with schema extensions;
-create extension if not exists pg_cron;
 
 alter table public.profiles add column if not exists morning_on boolean not null default true;
 alter table public.profiles add column if not exists wx_lat double precision;
@@ -70,6 +69,15 @@ end $$;
 revoke all on function public.send_morning(boolean) from public, anon, authenticated;
 grant execute on function public.send_morning(boolean) to service_role;
 
--- Her sabah 08:30 (Türkiye) = 05:30 UTC
-select cron.unschedule(jobid) from cron.job where jobname = 'tmpro-gunaydin';
-select cron.schedule('tmpro-gunaydin', '30 5 * * *', 'select public.send_morning(false)');
+-- Her sabah 08:30 (Türkiye) = 05:30 UTC. Zamanlayıcı kurulamazsa diğer adımlar yine de kalır.
+do $$
+begin
+  create extension if not exists pg_cron;
+  perform cron.unschedule(jobid) from cron.job where jobname = 'tmpro-gunaydin';
+  perform cron.schedule('tmpro-gunaydin', '30 5 * * *', 'select public.send_morning(false)');
+  raise notice 'Zamanlayıcı kuruldu';
+exception when others then
+  raise warning 'Zamanlayıcı kurulamadı: %', sqlerrm;
+end $$;
+
+notify pgrst, 'reload schema';
