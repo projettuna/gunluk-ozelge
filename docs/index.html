@@ -1372,7 +1372,7 @@ async function openReader(id){
   try{ const { data, error } = await sb.from("items").select("metin,yorum").eq("id", id).single(); if(!error){ metin = data.metin; yorum = data.yorum; } }catch{}
   if(rItem !== i) return;
   const note = yorum ? `<div class="rnote"><div class="rnl">${ICON_SPARK} Müfettiş Notu <em>Yapay zekâ yorumu</em></div>${fmtText(yorum)}</div>`
-    : metin && (i.tur === "Yargıtay (Ceza)" || (i.eklendi && Date.now() - new Date(i.eklendi) < 30 * 864e5)) ? `<div class="rnote" style="opacity:.75"><div class="rnl">${ICON_SPARK} Müfettiş Notu</div>Bu kayıt için not hazırlanıyor; birkaç saat içinde burada görünecek.</div>` : "";
+    : metin ? `<div class="rnote" style="opacity:.75"><div class="rnl">${ICON_SPARK} Müfettiş Notu</div>Bu kayıt için not hazırlanıyor; birkaç saat içinde burada görünecek.</div>` : "";
   const body = metin ? `<div class="rtext">${fmtText(metin)}</div>`
     : `${i.ozet ? `<div class="rtext"><p>${esc(i.ozet)}</p></div>` : ""}<div class="rwait">${metin === "" ? "Bu kaynağın tam metni otomatik alınamıyor. Aşağıdaki bağlantıdan resmî metne ulaşabilirsiniz." : "Tam metin hazırlanıyor. Birkaç dakika içinde burada olacak."}</div>`;
   $("rBody").innerHTML = head + note + body + ref;

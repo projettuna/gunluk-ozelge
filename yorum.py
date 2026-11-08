@@ -4,7 +4,7 @@ Not, vergi müfettişi gözüyle kısa bir değerlendirmedir; uygulamada "Yapay 
 etiketiyle, tam metnin üstünde gösterilir. Depo herkese açık: içerik yazdırılmaz.
 """
 import json
-from urllib.parse import quote
+from concurrent.futures import ThreadPoolExecutor
 import os
 import time
 from datetime import datetime, timedelta, timezone
@@ -38,27 +38,36 @@ def ask(item):
     return "".join(b.get("text", "") for b in d.get("content", []) if b.get("type") == "text").strip()
 
 
-def fill(db, limit=6, budget=150):
+def fill(db, limit=None, budget=None):
     if not KEY:
         print("Müfettiş notu: ANTHROPIC_API_KEY tanımlı değil, atlandı")
         return
-    # Maliyeti sınırlamak için yalnızca son 30 günde eklenen kayıtlar
+    limit = limit or int(os.environ.get("YORUM_LIMIT") or 6)
+    budget = budget or max(150, limit * 6)
+    sel = "items?select=id,tur,title,meta,metin&yorum=is.null&metin=neq."
+    # Önce son 30 günde eklenenler, sonra geriye kalan (eski/toplu yüklenen) kayıtlar
     since = (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
-    rows = db("GET", f"items?select=id,tur,title,meta,metin&yorum=is.null&metin=neq.&eklendi=gte.{since}&order=id.desc&limit={limit}") or []
-    if len(rows) < limit:  # Yargıtay ceza kararları (toplu yüklenenler dahil) da sırayla yorumlanır
-        rows += db("GET", "items?select=id,tur,title,meta,metin&yorum=is.null&metin=neq.&tur=eq."
-                   + quote("Yargıtay (Ceza)") + f"&order=id.desc&limit={limit - len(rows)}") or []
-    start, ok = time.time(), 0
-    for r in rows:
-        if time.time() - start > budget:
-            break
+    rows = db("GET", f"{sel}&eklendi=gte.{since}&order=id.desc&limit={limit}") or []
+    if len(rows) < limit:
+        have = {r["id"] for r in rows}
+        rows += [r for r in (db("GET", f"{sel}&order=id.desc&limit={limit}") or []) if r["id"] not in have][:limit - len(rows)]
+    start, ok, stop = time.time(), 0, False
+
+    def one(r):
+        nonlocal ok, stop
+        if stop or time.time() - start > budget:
+            return
         try:
             note = ask(r)
         except Exception as e:  # noqa: BLE001
             print(f"Müfettiş notu yazılamadı (#{r['id']}): {type(e).__name__} {getattr(e, 'code', '')}")
             if getattr(e, "code", 0) in (401, 403):
-                return
-            continue
-        db("PATCH", f"items?id=eq.{r['id']}", {"yorum": note}, prefer="return=minimal")
-        ok += 1
+                stop = True
+            return
+        if note:
+            db("PATCH", f"items?id=eq.{r['id']}", {"yorum": note}, prefer="return=minimal")
+            ok += 1
+
+    with ThreadPoolExecutor(max_workers=4) as ex:
+        list(ex.map(one, rows))
     print(f"Müfettiş notu: {ok} kayda yazıldı")
