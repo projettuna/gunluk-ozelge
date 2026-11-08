@@ -91,9 +91,7 @@ jobs:
             curl -s -X POST -H 'Content-Type: application/json' -d '{"preview":true,"users":[{"name":"Deneme Kullanıcı","lat":39.93,"lon":32.86,"city":"Ankara","events":["Örnek Gün"]},{"name":"Deneme","lat":41.01,"lon":28.98,"city":"İstanbul"},{"name":"Deneme","lat":39.9,"lon":41.27,"city":"Erzurum"}]}' https://tmpro.tmproapp.workers.dev/api/morning
             echo; echo "Yöneticilere deneme (kişi sayısı):"
             AUTH=""; case "$SUPABASE_SERVICE_KEY" in eyJ*) AUTH="Authorization: Bearer $SUPABASE_SERVICE_KEY";; esac
-            for q in "profiles?select=morning_on,wx_city&limit=0" "user_events?select=id&limit=0"; do
-              echo "kontrol ${q%%\?*}: $(curl -s -o /dev/null -w '%{http_code}' "$SUPABASE_URL/rest/v1/$q" -H "apikey: $SUPABASE_SERVICE_KEY" ${AUTH:+-H "$AUTH"})"
-            done
+            echo "konumu kayıtlı üye sayısı: $(curl -s "$SUPABASE_URL/rest/v1/profiles?select=id&wx_city=not.is.null" -H "apikey: $SUPABASE_SERVICE_KEY" ${AUTH:+-H "$AUTH"} | python3 -c 'import json,sys;print(len(json.load(sys.stdin)))')"
             curl -s -w ' %{http_code}' -X POST "$SUPABASE_URL/rest/v1/rpc/send_morning" -H "apikey: $SUPABASE_SERVICE_KEY" ${AUTH:+-H "$AUTH"} -H 'Content-Type: application/json' -d '{"test":true}'
             echo; exit 0
           fi
