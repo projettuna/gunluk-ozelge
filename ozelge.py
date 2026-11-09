@@ -721,6 +721,11 @@ def main():
         return
     if DIAG:
         # Depo herkese açık: yalnızca sayılar yazdırılır, içerik/kimlik yazdırılmaz
+        try:
+            import haber
+            haber.diag()
+        except Exception as e:  # noqa: BLE001
+            print("Haber teşhis hatası", type(e).__name__)
         def safe(q):
             try:
                 return db("GET", q) or []

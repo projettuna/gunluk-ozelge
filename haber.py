@@ -62,3 +62,27 @@ def run(db):
     old = (datetime.now(timezone.utc) - timedelta(days=60)).strftime("%Y-%m-%dT%H:%M:%SZ")
     db("DELETE", f"news?published=lt.{old}", prefer="return=minimal")
     print(f"Haberler: {len(items)} bulundu/güncellendi, Dünya: {sum(1 for x in items if x['konu'] == 'Dünya')}")
+
+
+def diag():
+    """Teşhis: haber bağlantılarının çözülüp metnin alınabildiğini dener (yalnızca alan adı ve sayılar yazdırılır)."""
+    import base64
+    from urllib.parse import urlparse
+    raw, ct = metin.fetch(RSS.format(q=quote(QUERIES[2][1] + " when:3d")), timeout=30)
+    links = re.findall(r"<link>(https://news\.google\.com/[^<]+)</link>", metin.decode(raw, ct))[:6]
+    print(f"Haber teşhis: {len(links)} bağlantı")
+    for ln in links:
+        aid = ln.split("/articles/")[-1].split("?")[0]
+        try:
+            b = base64.urlsafe_b64decode(aid + "=" * (-len(aid) % 4))
+            m = re.search(rb"https?://[\x21-\x7e]+", b)
+            dec = urlparse(m.group(0).decode()).netloc if m else "-"
+        except Exception:  # noqa: BLE001
+            dec = "çözülemedi"
+        try:
+            r2, c2 = metin.fetch(ln, timeout=20)
+            page = metin.decode(r2, c2)
+            sg = bool(re.search(r'data-n-a-sg="', page))
+            print(f"  id {aid[:6]}… b64: {dec} · sayfa {len(page)} krk · imza: {sg}")
+        except Exception as e:  # noqa: BLE001
+            print(f"  id {aid[:6]}… b64: {dec} · sayfa hata {type(e).__name__} {getattr(e, 'code', '')}")
