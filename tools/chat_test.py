@@ -60,7 +60,10 @@ try:
     print("B kabul:", as_(tb, "POST", "/rest/v1/rpc/friend_respond", {"other": a, "accept": True})[0])
     st, fl = as_(ta, "POST", "/rest/v1/rpc/list_friends", {})
     print("A arkadaş listesinde B:", isinstance(fl, list) and any(x["id"] == b and x["kind"] == "friend" for x in fl),
-          "ad yıldızlı:", isinstance(fl, list) and all("*" in (x.get("name") or "*") for x in fl))
+          "arkadaşın adı açık:", isinstance(fl, list) and any(x["id"] == b and x["name"] == "Test" for x in fl), "(beklenen True)")
+    st, mu = as_(ta, "POST", "/rest/v1/rpc/set_mute", {"k": "sohbet", "saat": 1})
+    print("susturma:", st, isinstance(mu, dict) and "sohbet" in mu, "kaldır:", as_(ta, "POST", "/rest/v1/rpc/set_mute", {"k": "sohbet", "saat": 0})[1], "(beklenen 200 True {})")
+    print("ekrandaki sohbet:", as_(ta, "POST", "/rest/v1/rpc/set_active_room", {"r": "genel"})[0], "(beklenen 204)")
     print("dm yaz A:", as_(ta, "POST", "/rest/v1/messages", {"body": "x", "room": dm})[0], "(beklenen 201)")
     print("dm oku A/B/C:", count(ta, dm), count(tb, dm), count(tc, dm), "(beklenen 1 1 0)")
     st, ms = as_(tb, "GET", f"/rest/v1/messages?select=username&room=eq.{dm}")
