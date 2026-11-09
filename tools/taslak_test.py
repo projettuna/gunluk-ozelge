@@ -24,6 +24,20 @@ def call(method, url, body=None, h=None, timeout=30):
             return e.code, t[:300]
 
 
+if os.environ.get("KONTROL"):
+    S0 = {"apikey": KEY, "Authorization": f"Bearer {KEY}"} if KEY.startswith("eyJ") else {"apikey": KEY}
+    for name_, path_ in [("madde_takip kolonu", "profiles?select=madde_takip&limit=1"), ("madde_durum", "madde_durum?select=kod&limit=1"),
+                         ("sinav_until kolonu", "profiles?select=sinav_until&limit=1"), ("sinav_bildirim", "sinav_bildirim?select=id&limit=1"),
+                         ("SINAV paketi", "ai_packages?select=code,fiyat,gun&code=eq.SINAV")]:
+        st_, r_ = call("GET", f"{URL}/rest/v1/{path_}", None, S0)
+        print(name_, ":", st_, r_ if name_ == "SINAV paketi" else ("var" if st_ == 200 else str(r_)[:120]))
+    req_ = Request(f"{URL}/rest/v1/sinav_sorular?select=id", headers={**S0, "Prefer": "count=exact", "Range": "0-0"})
+    try:
+        with urlopen(req_, timeout=30) as r__:
+            print("sinav_sorular sayısı:", r__.headers.get("Content-Range"))
+    except HTTPError as e:
+        print("sinav_sorular:", e.code, e.read().decode()[:120])
+    raise SystemExit
 try:
     with urlopen(Request(SITE + "/?v=" + secrets.token_hex(3), headers={"User-Agent": "TMPRO-test"}), timeout=30) as r_:
         page = r_.read().decode()
