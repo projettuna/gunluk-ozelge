@@ -438,9 +438,11 @@ Kurallar:
 // ---- Döviz (TCMB) ve altın: tarayıcı bu kaynaklara doğrudan erişemediği için worker üzerinden, önbellekli
 // ---- İçtihat yönü (/api/ictihat): konudaki Danıştay kararlarının sonucu ve kimin lehine olduğu (metinden kural tabanlı; yapay zekâ yok)
 function hukumOf(t) {
-  t = String(t || "").trim(); const tail = t.slice(-2200);
-  const at = tail.search(/(açıklanan nedenlerle|sonuç ?:|bu nedenlerle|hüküm ?:|gerekçelerle)/i);
-  return at >= 0 ? tail.slice(at).trim() : "";
+  t = String(t || "").trim();
+  const ko = t.search(/\n\s*(\(x\)\s*)?(karşı oy|ayrışık oy|azlık oyu)/i); if (ko > 0) t = t.slice(0, ko);
+  const re = /(açıklanan nedenlerle|sonuç ?:|bu nedenlerle|hüküm ?:|gerekçelerle)/gi; let at = -1, m;
+  while ((m = re.exec(t))) at = m.index;
+  return at >= 0 && t.length - at < 4000 ? t.slice(at).trim() : "";
 }
 function kararYonu(h) {
   const l = h.toLocaleLowerCase("tr").replace(/\s+/g, " ");
@@ -465,7 +467,7 @@ async function ictihat(req, env, url) {
   const ifade = (url.searchParams.get("ifade") || "").replace(/[^\p{L}\p{N} ]/gu, " ").replace(/\s+/g, " ").trim().slice(0, 40);
   const ps = TASLAK_ARA[konu]?.p || (ifade.length >= 4 ? [ifade] : null);
   if (!ps) return Response.json({ error: "Konu seçin ya da en az 4 harflik bir ifade yazın" }, { status: 400 });
-  return cached("ictihat3:" + (TASLAK_ARA[konu] ? konu : "q:" + ifade.toLocaleLowerCase("tr")), 1800, async () => {
+  return cached("ictihat4:" + (TASLAK_ARA[konu] ? konu : "q:" + ifade.toLocaleLowerCase("tr")), 1800, async () => {
     const or = ps.flatMap(w => [`title.ilike.*${w}*`, `metin.ilike.*${w}*`]).join(",");
     const r = await fetch(`${SB_URL}/rest/v1/items?select=id,tur,title,meta,metin&tur=ilike.Dan*&or=(${encodeURIComponent(or)})&order=id.desc&limit=160`, { headers: H });
     if (!r.ok) return { error: "Kararlar alınamadı" };
@@ -476,15 +478,16 @@ async function ictihat(req, env, url) {
       return { id: x.id, tur: x.tur, title: x.title, meta: x.meta, hits, hukum: h.slice(0, 700), ...kararYonu(h) };
     }).filter(x => x.hits >= 2 && x.hukum);
     // Veritabanındaki kararlar azsa Danıştay karar aramasından güncel kararlarla tamamla
+    let canli = 0;
     if (rows.length < 25) {
       const q = ps.find(x => !x.includes("_")) || ps[0].replace(/_/g, "");
-      const live = await danistayList(q, 25 - rows.length);
+      const live = await danistayList(q, 25 - rows.length); canli = live.length;
       const seen = new Set(rows.map(x => (x.title || "").replace(/\s+/g, "")));
       for (const x of live) { const h = hukumOf(x.metin); if (!h || seen.has(x.title.replace(/\s+/g, ""))) continue;
         rows.push({ id: null, tur: "Danıştay kararı", title: x.title, meta: x.meta, hukum: h.slice(0, 700), ...kararYonu(h) }); }
     }
     const say = k => rows.filter(x => x.lehine === k).length;
-    return { n: rows.length, ozet: { mukellef: say("mukellef"), idare: say("idare"), kismen: say("kismen"), belirsiz: say(null) },
+    return { n: rows.length, canli, ozet: { mukellef: say("mukellef"), idare: say("idare"), kismen: say("kismen"), belirsiz: say(null) },
       sonuc: ["Onama", "Bozma", "Kısmen", "Israr", "Belirsiz"].map(k => [k, rows.filter(x => x.sonuc === k).length]),
       list: rows.slice(0, 40).map(({ hits, ...x }) => x) };
   });
