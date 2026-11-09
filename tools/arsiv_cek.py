@@ -45,7 +45,7 @@ def row(tur, kind, r):
         no = (r.get("sirkulerNo") or "").strip()
         meta = " · ".join(x for x in ((r.get("kanunTitle") or "").replace("(*)", "").strip(), tarih(r.get("sirkulerTarih")), f"No: {no}" if no else "") if x)
     return {"tur": tur, "gid": int(r["id"]), "title": ozelge.strip_tags(r.get("title"))[:500] or "Başlıksız", "meta": meta[:300],
-            "url": r.get("siteLink") or f"https://gib.gov.tr/mevzuat/{kind}/{r['id']}", "metin": txt[:metin.MAX_LEN]}
+            "url": r.get("siteLink") or f"https://gib.gov.tr/mevzuat/{kind}/{r['id']}", "metin": txt[:30000]}
 
 
 def main():
@@ -75,7 +75,7 @@ def main():
                 x = row(tur, kind, r)
                 if len(x["metin"]) < 120 and tur != "Özelge":
                     try:
-                        x["metin"] = metin.gib_text(kind, r["id"])[:metin.MAX_LEN]
+                        x["metin"] = metin.gib_text(kind, r["id"])[:30000]
                     except Exception:  # noqa: BLE001
                         pass
                 if len(x["metin"]) < 120:

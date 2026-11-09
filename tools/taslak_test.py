@@ -1,6 +1,7 @@
 """Emsal Bul / İçtihat uçtan uca testi: geçici kullanıcı açar, /api/emsal'ı dener, kullanıcıyı siler.
 Depo herkese açık olduğu için yalnızca durum kodları, uzunluklar ve hata metni yazdırılır."""
 import json, os, re, secrets, time
+from urllib.parse import quote
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
@@ -26,22 +27,22 @@ def call(method, url, body=None, h=None, timeout=30):
 
 if os.environ.get("KONTROL"):
     S0 = {"apikey": KEY, "Authorization": f"Bearer {KEY}"} if KEY.startswith("eyJ") else {"apikey": KEY}
-    for name_, path_ in [("madde_takip kolonu", "profiles?select=madde_takip&limit=1"), ("madde_durum", "madde_durum?select=kod&limit=1"),
-                         ("sinav_until kolonu", "profiles?select=sinav_until&limit=1"), ("sinav_bildirim", "sinav_bildirim?select=id&limit=1"),
-                         ("SINAV paketi", "ai_packages?select=code,fiyat,gun&code=eq.SINAV")]:
+    for name_, path_ in [("sinav_until kolonu (silinmiş olmalı)", "profiles?select=sinav_until&limit=1"), ("sinav_sorular (silinmiş olmalı)", "sinav_sorular?select=id&limit=1"),
+                         ("SINAV paketi", "ai_packages?select=code&code=eq.SINAV"), ("mevzuat_arsiv", "mevzuat_arsiv?select=gid&limit=1")]:
         st_, r_ = call("GET", f"{URL}/rest/v1/{path_}", None, S0)
-        print(name_, ":", st_, r_ if name_ == "SINAV paketi" else ("var" if st_ == 200 else str(r_)[:120]))
-    req_ = Request(f"{URL}/rest/v1/sinav_sorular?select=id", headers={**S0, "Prefer": "count=exact", "Range": "0-0"})
-    try:
-        with urlopen(req_, timeout=30) as r__:
-            print("sinav_sorular sayısı:", r__.headers.get("Content-Range"))
-    except HTTPError as e:
-        print("sinav_sorular:", e.code, e.read().decode()[:120])
+        print(name_, ":", st_, ("var" if st_ == 200 else "yok"), (len(r_) if isinstance(r_, list) else ""))
+    for tur_ in ("Özelge", "Tebliğ", "Sirküler"):
+        req_ = Request(f"{URL}/rest/v1/mevzuat_arsiv?select=gid&tur=eq.{quote(tur_)}", headers={**S0, "Prefer": "count=exact", "Range": "0-0"})
+        try:
+            with urlopen(req_, timeout=30) as r__:
+                print("arşiv", tur_, ":", r__.headers.get("Content-Range"))
+        except HTTPError as e:
+            print("arşiv", tur_, ":", e.code)
     raise SystemExit
 try:
     with urlopen(Request(SITE + "/?v=" + secrets.token_hex(3), headers={"User-Agent": "TMPRO-test"}), timeout=30) as r_:
         page = r_.read().decode()
-    print("site sürümü: PDF düğmesi", "tsPdf" in page, "| Word", "taslakDoc" in page, "| taslak", "toolTaslak" in page)
+    print("site sürümü: emsal", "toolEmsal" in page)
 except Exception as e:  # noqa: BLE001
     print("site okunamadı:", e)
 S = {"apikey": KEY, "Authorization": f"Bearer {KEY}"} if KEY.startswith("eyJ") else {"apikey": KEY}
@@ -62,7 +63,7 @@ try:
         raise SystemExit
     st, r = call("POST", SITE + "/api/emsal", {"konu": "sahte_kullanma", "aciklama": "ABC Gıda A.Ş."}, A)
     print("kimlik bilgisiyle:", st, "(beklenen 422)")
-    for konu_ in (os.environ.get("TK") or "stopaj,kkeg,ibraz").split(","):
+    for konu_ in (os.environ.get("TK") or "sahte_kullanma,kdv_iade,ortulu_sermaye").split(","):
         t0 = time.time()
         st, r = call("POST", SITE + "/api/emsal", {"konu": konu_, "aciklama": ""}, A, timeout=180)
         r = r if isinstance(r, dict) else {"error": str(r)[:120]}

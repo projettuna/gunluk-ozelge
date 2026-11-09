@@ -314,6 +314,22 @@ function piiFound(t) {
 // ---- Konuya emsal bul (/api/emsal): konudaki yargı kararları + özelge/tebliğ/sirküler, her biri için kısa özet ve raporda kullanımı.
 // Yalnızca konu + genel açıklama alır, mükellef bilgisi engellenir, sonuç saklanmaz. Yapay zekâ yalnız özet yazar; karar sonucu metinden kural tabanlı.
 const EMSAL_COST = 2;
+// GİB arşivinde (mevzuat_arsiv, ~18 bin özelge + tebliğ + sirküler) tam metin arama ifadeleri (to_tsquery, simple sözlük)
+const ARSIV_Q = {
+  sahte_kullanma: "sahte:* & (fatura:* | belge:*)", sahte_duzenleme: "sahte:* & (fatura:* | belge:*) & düzenle:*",
+  yaniltici: "yanıltıcı:* & belge:*", kdv_iade: "iade:* & (kdv:* | katma:*)", ortulu_sermaye: "örtülü:* & sermaye:*",
+  transfer: "transfer:* & fiyatlandırma:*", hasilat: "hasılat:* & (kayıt:* | gizle:*)", ibraz: "ibraz:* & defter:*",
+  ortaklar_cari: "ortak:* & cari:*", kkeg: "kanunen & kabul & edilmeyen", degerleme: "değerleme:*",
+  gayrimenkul: "(gayrimenkul:* | taşınmaz:*) & (satış:* | kazan:*)", stopaj: "tevkifat:* | stopaj:*",
+};
+async function arsivAra(H, konuKey, ws) {
+  const q = ARSIV_Q[konuKey] || ws.filter(w => /^[a-zçğıöşü0-9]+$/.test(w)).slice(0, 3).map(w => w + ":*").join(" & ");
+  if (!q) return [];
+  const one = (turler, lim) => fetch(SB_URL + "/rest/v1/rpc/arsiv_ara", { method: "POST", headers: { ...H, "Content-Type": "application/json" }, body: JSON.stringify({ q, turler, lim }), signal: AbortSignal.timeout(9000) })
+    .then(r => r.ok ? r.json() : []).catch(() => []);
+  const [a, b] = await Promise.all([one(["Özelge"], 30), one(["Tebliğ", "Sirküler"], 20)]);
+  return [...(a || []), ...(b || [])].map(x => ({ tur: x.tur, title: x.title, meta: x.meta, url: x.url, metin: x.metin }));
+}
 async function emsal(req, env) {
   const token = (req.headers.get("Authorization") || "").replace(/^Bearer /, "");
   let j; try { j = await req.json(); } catch { return Response.json({ error: "bad json" }, { status: 400 }); }
@@ -341,6 +357,7 @@ async function emsal(req, env) {
       fetch(`${SB_URL}/rest/v1/items?select=id,tur,title,meta,url,metin,ozet&or=(${encodeURIComponent(or2)})&and=(${encodeURIComponent("tur.not.ilike.Dan*,tur.not.ilike.Yarg*,tur.not.ilike.Anayasa*,tur.not.ilike.AYM*")})&order=id.desc&limit=120`, { headers: H })]);
     rows = [...(r.ok ? await r.json() : []), ...(r2.ok ? await r2.json() : [])];
   }
+  rows = [...rows, ...await arsivAra(H, konuKey, ws)];
   const yg = x => /Yargıtay/i.test(x.tur || "");
   if (!ara?.ceza) rows = rows.filter(x => !yg(x));
   const liveQ = ara ? (CQ[konuKey] || ara.p.filter(x => !x.includes("_"))[0] || konu) : konu;
@@ -355,7 +372,7 @@ async function emsal(req, env) {
   const seen = new Set(), key = x => (x.title || "").replace(/\s+/g, " ").toLocaleLowerCase("tr");
   const uniq = a => a.filter(x => { const k = key(x); if (seen.has(k)) return false; seen.add(k); return true; });
   const kararlar = uniq([...local.filter(x => KARAR.test(x.tur || "") && !yg(x)).slice(0, 6), ...live, ...local.filter(yg).slice(0, 2)]).slice(0, 10);
-  const idari = uniq(local.filter(x => !KARAR.test(x.tur || ""))).slice(0, 6);
+  const idari = uniq(local.filter(x => !KARAR.test(x.tur || ""))).slice(0, 7);
   const all = [...kararlar, ...idari].map((x, i) => {
     const t = x.metin || x.ozet || "", h = KARAR.test(x.tur || "") ? hukumOf(t) : "", y = h ? kararYonu(h) : null;
     return { n: i + 1, id: x.id || null, url: x.id ? null : x.url || null, tur: x.tur, title: x.title, meta: x.meta || "", karar: KARAR.test(x.tur || ""),
