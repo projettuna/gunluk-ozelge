@@ -75,6 +75,7 @@ svg{display:block}
 .field span{display:none}
 .field input{width:100%;border:0;background:transparent;padding:0 16px;height:50px;font-size:17px;outline:none}
 .field input::placeholder{color:var(--faint)}
+.tf input::placeholder,.tf textarea::placeholder{color:var(--faint);font-weight:400}
 .err{color:var(--danger);font-size:13px;min-height:18px;margin:6px 16px 10px}
 .kchk{display:flex;gap:10px;align-items:flex-start;margin:12px 4px 0;font-size:13.5px;line-height:1.45;color:var(--muted)}
 .kchk input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--accent)}
@@ -1611,7 +1612,7 @@ async function toolEmsal(){
       <div class="thelp" style="margin-top:0">Seçtiğiniz konudaki Danıştay, AYM ve Yargıtay kararlarını, özelge, tebliğ ve sirkülerleri bulur. Her biri için sonucu, ortaya koyduğu ilkeyi ve raporda nasıl kullanılabileceğini kısaca yazar.</div>
       <div class="kwarn" style="margin:0 0 10px"><b>Mükellefe ait hiçbir bilgi yazmayınız</b> (ad/unvan, VKN/TCKN, adres, IBAN, plaka, belge numarası). Belge yüklenemez; sonuç sunucuda saklanmaz.</div>
       <div class="tf"><label>Konu<select id="emKonu">${opt(TS_KONU, emForm.konu)}</select></label></div>
-      <div class="tf"><label>Ayrıntı (isteğe bağlı)<textarea id="emAc" rows="2" maxlength="600" placeholder="Örn. mal teslimi olmadan düzenlenen faturalarda ispat yükü ve KDV indiriminin reddi">${esc(emForm.aciklama)}</textarea></label></div>
+      <div class="tf"><label>Ayrıntı (isteğe bağlı)<textarea id="emAc" rows="2" maxlength="600" placeholder="Örn. ispat yükü, mal teslimi yokluğu">${esc(emForm.aciklama)}</textarea></label></div>
       <div id="emWarn" class="kwarn" style="margin:0 0 10px" hidden></div>
       <div class="thelp" style="margin:0 0 8px">Her arama <b>2 asistan hakkı</b> kullanır; hakkınız yetmezse kaynaklar özetsiz listelenir.${qt ? "<br>" + qt : ""}</div>
       <button class="btn" id="emGo" ${emBusy ? "disabled" : ""}>${emBusy ? "Kaynaklar taranıyor… (30-60 sn)" : "Emsal Bul"}</button></div>
