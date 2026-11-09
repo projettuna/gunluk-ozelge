@@ -41,14 +41,16 @@ self.addEventListener("push", event => {
     badge: "icon-192.png?v=3",
     tag: data.tag || "tmpro",
     renotify: true,
-    data: { url: data.url || "./" }
+    data: { url: data.url || "./", at: n.at }
   })]));
 });
 
 self.addEventListener("notificationclick", event => {
   event.notification.close();
   // Bildirim her zaman uygulamanın kendi adresinde açılır (eski adreslere yönlenmesin)
-  const url = new URL(event.notification.data.url || "/", APP).href;
+  // Sohbet bildirimi doğrudan sohbete; diğerleri Bildirimler sayfasında açılır ve mesaj tekrar okunur
+  const d = event.notification.data || {}, target = new URL(d.url || "/", APP);
+  const url = target.searchParams.has("room") || !d.at ? target.href : APP + "?bildirim=" + d.at;
   event.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
     for (const c of all) { if (c.url.startsWith(APP)) { await c.focus(); c.postMessage({ type: "open", url }); return; } }

@@ -466,6 +466,10 @@ body.aichat #tools>.foot{display:none}
 .ktbl .kr span:first-child{display:flex;flex-direction:column;min-width:0}.ktbl .kr small{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ktbl .kr.main b{color:var(--accent)}
 #toolSeg{overflow-x:auto;scrollbar-width:none}#toolSeg::-webkit-scrollbar{display:none}#toolSeg button{white-space:nowrap;flex:none}
+.ntfpop{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:6px 10px 14px}
+.ntfpop .ni{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;color:#fff;background:var(--brand);box-shadow:0 4px 10px rgba(91,75,255,.3)}
+.ntfpop small{color:var(--muted);font-size:12.5px}
+.ntfpop p{margin:8px 0 0;font-size:16px;line-height:1.5;white-space:pre-wrap;text-align:left;align-self:stretch;background:var(--fill);border-radius:14px;padding:12px 14px;max-height:45vh;overflow:auto}
 .tact button{display:flex;align-items:center;gap:5px;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;padding:7px 8px 7px 0;cursor:pointer}
 .tact button.on{color:var(--gold)}
 .tact button:active{opacity:.6}
@@ -1015,6 +1019,8 @@ async function boot(){
   await startChat();
   const qr = new URLSearchParams(location.search).get("room");
   if(qr){ history.replaceState(null, "", location.pathname); tab = "chat"; room = qr; }
+  const qb = new URLSearchParams(location.search).get("bildirim");
+  if(qb){ history.replaceState(null, "", location.pathname); showNtfAt(qb); }
   if(new URLSearchParams(location.search).has("takip")){ history.replaceState(null, "", location.pathname); tab = "watch"; render(); }
   if(tab === "chat") render();
 }
@@ -1282,6 +1288,7 @@ document.addEventListener("visibilitychange", async () => { if(document.visibili
 navigator.serviceWorker?.addEventListener("message", async e => {
   if(e.data?.type === "inbox"){ refreshBell(); if(tab === "inbox") renderInbox(); }
   if(e.data?.type === "refresh"){ await loadItems(); render(); }
+  if(e.data?.type === "open" && new URL(e.data.url).searchParams.get("bildirim")){ showNtfAt(new URL(e.data.url).searchParams.get("bildirim")); return; }
   if(e.data?.type === "open"){ const r = new URL(e.data.url).searchParams.get("room"); if(r && me){ await fetchNewMsgs(); tab = "chat"; room = r; render(); } else { await loadItems(); if(new URL(e.data.url).searchParams.has("takip")) tab = "watch"; render(); } }
 });
 
@@ -1800,19 +1807,40 @@ function agoText(t){ const m = Math.round((Date.now() - t) / 60e3); if(m < 1) re
 async function renderInbox(){
   const list = await inboxAll(); if(tab !== "inbox") return;
   $("sub").textContent = list.length ? `${list.length} bildirim` : "";
-  $("inbox").innerHTML = list.length ? `<div class="list" style="margin-top:8px">${list.map(n => { const [c, ic] = ntfKind(n); return `<button class="ntf ${n.read ? "" : "new"}" data-url="${esc(n.url || "")}">
+  $("inbox").innerHTML = list.length ? `<div class="list" style="margin-top:8px">${list.map(n => { const [c, ic] = ntfKind(n); return `<button class="ntf ${n.read ? "" : "new"}" data-at="${n.at}">
       <span class="ni" style="--c:var(${c})"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${ic}</svg></span>
       <span class="grow" style="flex:1;min-width:0"><span class="nt"><b>${esc(n.title)}</b><span>${agoText(n.at)}</span></span><p>${esc(n.body || "")}</p></span></button>`; }).join("")}</div>
       <button class="btn plain" id="inboxClear" style="margin-top:12px;color:var(--danger)">Tümünü Temizle</button>`
     : `<div class="empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Henüz bildirim yok. Gelen bildirimler burada toplanır.</div>`;
   if(list.some(n => !n.read)){ await inboxWrite(st => list.forEach(n => { if(!n.read) st.put({ ...n, read: true }); })); refreshBell(); }
   const clr = $("inboxClear"); if(clr) clr.onclick = async () => { if(!confirm("Tüm bildirimler silinsin mi?")) return; await inboxWrite(st => st.clear()); refreshBell(); renderInbox(); };
-  $("inbox").querySelectorAll(".ntf").forEach(b => b.onclick = async () => {
-    const r = b.dataset.url ? new URL(b.dataset.url, location.href).searchParams.get("room") : null;
-    if(r){ await fetchNewMsgs(); tab = "chat"; room = r; } else { tab = "feed"; filter = "Tümü"; }
-    render(); scrollTo({ top: 0 });
-  });
+  $("inbox").querySelectorAll(".ntf").forEach(b => b.onclick = () => { const n = list.find(x => String(x.at) === b.dataset.at); if(n) openNtf(n); });
 }
+function ntfTarget(n){
+  let u; try{ u = new URL(n.url || "./", location.href); }catch{ return null; }
+  if(u.searchParams.get("room")) return ["Sohbete git", async () => { await fetchNewMsgs(); tab = "chat"; room = u.searchParams.get("room"); render(); }];
+  if(u.searchParams.has("takip")) return ["Takip Listemi aç", () => { tab = "watch"; render(); scrollTo({ top: 0 }); }];
+  if(u.searchParams.has("yenilikler")) return ["Yenilikleri gör", () => openVersionSheet("all")];
+  if(n.tag === "tmpro-gunaydin") return ["Takvimi aç", () => { tab = "cal"; render(); scrollTo({ top: 0 }); }];
+  if(/kayıt|mevzuat|özelge|karar|tebliğ|gazete|sirküler|kanun/i.test((n.title || "") + " " + (n.body || ""))) return ["Akışı aç", () => { tab = "feed"; filter = "Tümü"; render(); scrollTo({ top: 0 }); }];
+  return null;
+}
+function openNtf(n){
+  closeSheet();
+  const [c, ic] = ntfKind(n), go = ntfTarget(n);
+  const when = new Date(n.at).toLocaleString("tr-TR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const el = document.createElement("div"); el.className = "sheetwrap"; el.id = "sheet";
+  el.innerHTML = `<div class="sheet"><div class="ntfpop"><span class="ni" style="--c:var(${c})"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${ic}</svg></span>
+      <div class="stitle" style="padding:0">${esc(n.title || "TMPRO")}</div><small>${esc(when)}</small>
+      <p>${esc(n.body || "")}</p></div>
+    ${go ? `<button data-a="go" class="primary" style="justify-content:center">${esc(go[0])}</button>` : ""}
+    <button data-a="x" class="cancel">Kapat</button></div>`;
+  document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
+  el.onclick = e => { if(e.target === el) return closeSheet(); const a = e.target.closest("button")?.dataset.a;
+    if(a === "x") closeSheet(); if(a === "go"){ closeSheet(); go[1](); } };
+}
+async function showNtfAt(at){ tab = "inbox"; room = null; render(); scrollTo({ top: 0 });
+  for(let i = 0; i < 6; i++){ const n = (await inboxAll()).find(x => String(x.at) === String(at)); if(n) return openNtf(n); await new Promise(r => setTimeout(r, 300)); } }
 $("bell").addEventListener("click", () => { tab = "inbox"; room = null; render(); scrollTo({ top: 0 }); });
 
 /* ---------------- takvim ---------------- */
