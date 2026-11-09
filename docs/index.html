@@ -232,7 +232,7 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
 .hint{font-size:15px;color:var(--muted);background:var(--surface);border-radius:14px;padding:14px 16px;margin-bottom:8px;line-height:1.45}
 .hint b{color:var(--text);font-weight:600}
 #admin .seg,#account .seg{margin:0 0 8px}
-.wchips{display:flex;flex-wrap:wrap;gap:6px}.wchip{border:0;border-radius:999px;padding:6px 12px;background:var(--fill);color:var(--ink);font:inherit;font-size:14.5px;cursor:pointer}.wchip b{color:var(--muted);margin-left:2px}
+.wchips{display:flex;flex-wrap:wrap;gap:6px}.mchip{display:inline-flex;padding:0}.mchip button{border:0;background:none;color:inherit;font:inherit;padding:6px 4px 6px 12px;cursor:pointer}.mchip button+button{padding:6px 12px 6px 4px}.mchip.chg{background:color-mix(in srgb,var(--warn,#c77700) 18%,var(--fill))}.wchip{border:0;border-radius:999px;padding:6px 12px;background:var(--fill);color:var(--ink);font:inherit;font-size:14.5px;cursor:pointer}.wchip b{color:var(--muted);margin-left:2px}
 .wtag{font-size:12px;font-weight:600;color:var(--accent);background:var(--fill);border-radius:999px;padding:2px 8px;margin-left:6px}
 .sheet #fbKind button{flex:1;width:auto;justify-content:center;padding:8px 6px;font-size:15px;border-radius:8px}.sheet #fbKind button.on{background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.12)}
 #adminSeg{overflow-x:auto;scrollbar-width:none}#adminSeg::-webkit-scrollbar{display:none}#adminSeg button{flex:0 0 auto;padding-left:12px;padding-right:12px;white-space:nowrap}
@@ -370,7 +370,7 @@ body.aichat #tools>.foot{display:none}
 .tt span{font-size:11.5px;font-weight:700;letter-spacing:.06em;color:var(--gold);text-transform:uppercase}
 .tf{margin-bottom:10px}.tf.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .tf label{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:12.5px;font-weight:600;color:var(--muted)}
-.tf input,.tf select,#askQ{height:42px;border-radius:12px;border:.5px solid var(--glass-line);background:var(--fill);padding:0 12px;font:inherit;font-size:16px;color:var(--ink);outline:none;width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none;min-width:0}
+.tf input,.tf select,.mrow select,.mrow input,#askQ{height:42px;border-radius:12px;border:.5px solid var(--glass-line);background:var(--fill);padding:0 12px;font:inherit;font-size:16px;color:var(--ink);outline:none;width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none;min-width:0}
 .tf textarea{border-radius:12px;border:.5px solid var(--glass-line);background:var(--fill);padding:10px 12px;font:inherit;font-size:16px;color:var(--ink);outline:none;width:100%;box-sizing:border-box;resize:vertical;line-height:1.4}
 #askQ{height:auto;padding:10px 12px;resize:none;line-height:1.4}
 .thelp{font-size:12.5px;color:var(--muted);line-height:1.45;margin:2px 0 6px}
@@ -950,7 +950,7 @@ async function fillSignupPrice(){
 }
 function isActive(p){ return p.role === "admin" || (p.status === "active" && (!p.expires_at || new Date(p.expires_at) > new Date())); }
 /* ---------------- sürüm ---------------- */
-const APP_VERSION = "2.7";
+const APP_VERSION = "2.8";
 const verNum = v => String(v || "0").split(".").map(n => +n || 0);
 const verGt = (a, b) => { const x = verNum(a), y = verNum(b); for(let k = 0; k < Math.max(x.length, y.length); k++){ if((x[k] || 0) !== (y[k] || 0)) return (x[k] || 0) > (y[k] || 0); } return false; };
 let releases = [];
@@ -1111,6 +1111,49 @@ function watchEditor(){
     <div class="row" style="gap:8px;margin-top:10px"><input id="wIn" maxlength="40" placeholder="Kelime veya ifade ekleyin" style="flex:1;min-width:0;border:.5px solid var(--glass-line);background:var(--surface);color:var(--ink);border-radius:12px;padding:10px 12px;font:inherit;font-size:16px"><button class="btn small" id="wAdd">Ekle</button></div>
     <div class="thelp">Özelge, karar, tebliğ ve Resmî Gazete kayıtlarının başlığında, özetinde ve tam metninde aranır. Yeni eşleşmede telefonunuza bildirim gelir.</div></div>`;
 }
+/* kanun maddesi takibi */
+const MKAN = [["VUK", "Vergi Usul K."], ["KDVK", "KDV K."], ["GVK", "Gelir Vergisi K."], ["KVK", "Kurumlar Vergisi K."], ["ÖTVK", "ÖTV K."], ["DVK", "Damga Vergisi K."], ["HK", "Harçlar K."], ["AATUHK", "6183 s. AATUHK"], ["İYUK", "İYUK"]];
+let mDurum = null;
+async function loadMDurum(){ const ks = me.madde_takip || []; if(!ks.length){ mDurum = new Map(); return; }
+  try{ const { data, error } = await sb.from("madde_durum").select("kod,baslik,degisti,kontrol").in("kod", ks); mDurum = new Map((error ? [] : data || []).map(r => [r.kod, r])); }catch{ mDurum = new Map(); } }
+function maddeEditor(){
+  if(!("madde_takip" in me)) return "";
+  const ks = me.madde_takip || [];
+  if(mDurum === null){ loadMDurum().then(() => { if(tab === "watch") render(); }); }
+  const yeni = k => { const d = mDurum?.get(k)?.degisti; return d && Date.now() - new Date(d) < 30 * 864e5; };
+  return `<div class="tcard" style="margin-bottom:14px"><div class="tt">Takip Ettiğim Kanun Maddeleri <span>${ks.length}/30</span></div>
+    <div class="wchips">${ks.map(k => `<span class="wchip mchip${yeni(k) ? " chg" : ""}"><button data-mshow="${esc(k)}">${esc(k)}${yeni(k) ? " · değişti" : ""}</button><button data-mdel="${esc(k)}" aria-label="Kaldır"><b>×</b></button></span>`).join("") || `<small class="muted">Örn. KDVK 29, VUK 359, KVK 13</small>`}</div>
+    <div class="row mrow" style="gap:8px;margin-top:10px"><select id="mKan" style="flex:1.3;min-width:0">${MKAN.map(([k, l]) => `<option value="${k}">${l}</option>`).join("")}</select><input id="mNo" inputmode="numeric" maxlength="14" placeholder="Madde no" style="flex:1;min-width:0"><button class="btn small" id="mAdd">Ekle</button></div>
+    <div class="thelp">Maddeye atıf yapan yeni Danıştay kararı, özelge veya tebliğ çıkınca ve madde metni değişince bildirim gelir. Metin her sabah mevzuat.gov.tr'den kontrol edilir. Ek ve mükerrer maddeler için "Ek 1", "Mükerrer 80" yazın.</div></div>`;
+}
+async function saveMadde(ks){
+  const { error } = await sb.rpc("set_madde_takip", { maddeler: ks });
+  if(error){ toast("Kaydedilemedi: " + error.message, 4000); return; }
+  me.madde_takip = ks; mDurum = null; await loadWatch(); render(); toast("Kaydedildi");
+}
+async function showMadde(k){
+  const { data } = await sb.from("madde_durum").select("*").eq("kod", k).maybeSingle();
+  closeSheet();
+  const el = document.createElement("div"); el.className = "sheetwrap"; el.id = "sheet";
+  const box = t => `<div style="white-space:pre-wrap;font-size:14px;line-height:1.5;max-height:42vh;overflow:auto;padding:10px 12px;border-radius:14px;background:var(--fill)">${esc(t || "")}</div>`;
+  el.innerHTML = `<div class="sheet"><div class="stitle">${esc(k)}${data?.baslik ? ` · ${esc(data.baslik)}` : ""}</div>
+    ${!data ? `<div class="empty">Madde metni ilk sabah kontrolünde alınacak.</div>` : `
+    ${data.degisti ? `<div class="foot" style="margin:0 4px 8px">Değişiklik fark edildi: ${new Date(data.degisti).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}</div>` : `<div class="foot" style="margin:0 4px 8px">Takibe aldığınızdan beri değişiklik yok · son kontrol ${data.kontrol ? new Date(data.kontrol).toLocaleDateString("tr-TR") : "-"}</div>`}
+    <div class="sect">Güncel metin</div>${box(data.metin)}
+    ${data.onceki ? `<div class="sect">Önceki metin</div>${box(data.onceki)}` : ""}`}
+    <button data-a="x" class="cancel">Kapat</button></div>`;
+  document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
+  el.onclick = e => { if(e.target === el || e.target.closest("[data-a=x]")) closeSheet(); };
+}
+$("list").addEventListener("click", e => {
+  const s = e.target.closest("[data-mshow]"); if(s){ showMadde(s.dataset.mshow); return; }
+  const d = e.target.closest("[data-mdel]"); if(d){ saveMadde((me.madde_takip || []).filter(k => k !== d.dataset.mdel)); return; }
+  if(e.target.closest("#mAdd")){ let no = ($("mNo").value || "").trim().replace(/\s+/g, " ").replace(/^ek/i, "Ek").replace(/^mükerrer|^mukerrer/i, "Mükerrer");
+    if(!/^((Ek|Mükerrer) )?\d{1,3}$/.test(no)){ toast("Madde numarasını yazın (örn. 29 veya Ek 1)"); return; }
+    const k = $("mKan").value + " " + no; const ks = me.madde_takip || [];
+    if(ks.includes(k)){ toast("Bu madde zaten listede"); return; } if(ks.length >= 30){ toast("En fazla 30 madde"); return; }
+    saveMadde([...ks, k]); }
+});
 async function saveWatch(ws){
   const { data, error } = await sb.rpc("set_watch_words", { words: ws });
   if(error){ toast("Kaydedilemedi: " + error.message, 4000); return; }
@@ -1260,10 +1303,10 @@ function _render(){
   $("sub").textContent = home ? "" : `${list.length} kayıt`;
   if(!list.length){
     const msg = tab === "watch" ? ((me.watch_words || []).length ? "Son 90 günde kelimelerinizle eşleşen kayıt yok. Yeni kayıt çıkınca bildirim gelecek." : "Takip etmek istediğiniz konuları yukarıya ekleyin.") : tab === "unread" ? "Yeni kayıt yok. Her şey güncel." : tab === "star" ? "Saklamak istediğiniz kayıtlarda yıldıza dokunun; burada toplanır." : "Kayıt bulunamadı.";
-    $("list").innerHTML = (tab === "watch" ? watchEditor() : "") + `<div class="empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>${msg}</div>`;
+    $("list").innerHTML = (tab === "watch" ? watchEditor() + maddeEditor() : "") + `<div class="empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>${msg}</div>`;
     return;
   }
-  let html = home ? `<div class="day">Son Eklenenler</div>` : tab === "watch" ? watchEditor() : "", last = null;
+  let html = home ? `<div class="day">Son Eklenenler</div>` : tab === "watch" ? watchEditor() + maddeEditor() : "", last = null;
   if(sfil === "note" && !home && allFolders().length) html += `<div class="chips" id="folderChips" style="display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px">${[null, ...allFolders()].map(f => `<button class="chip ${f === noteFolder ? "on" : ""}" data-folder="${esc(f || "")}">${f ? "📁 " + esc(f) : "Tüm notlar"}</button>`).join("")}</div>`;
   for(const i of list.slice(0, 300)){
     const dl = dayLabel(i.eklendi);
@@ -1367,36 +1410,54 @@ const left = iso => { const n = daysTo(iso); return n < 0 ? `<span class="tleft 
 const resRow = (lbl, iso, sub, evTitle) => `<div class="tres"><div class="grow"><small>${lbl}</small><b>${trD(iso)}</b>${sub ? `<em>${sub}</em>` : ""}</div><div class="tside">${left(iso)}${evTitle ? `<button class="tadd" data-t="${esc(evTitle)}" data-d="${iso}">Takvime Ekle</button>` : ""}</div></div>`;
 function renderTools(){
   $("sub").textContent = "Süre, ceza, faiz ve mevzuat yardımcıları";
-  const segs = [["asistan", "Asistan"], ["taslak", "Rapor Taslağı"], ["piyasa", "Döviz ve Altın"], ["sure", "Süreler"], ["ceza", "Ceza ve Faiz"]];
+  const segs = [["asistan", "Asistan"], ["taslak", "Rapor Taslağı"], ["ictihat", "İçtihat Yönü"], ["delil", "Delil Matrisi"], ["sure", "Süreler"], ["ceza", "Ceza ve Faiz"], ["sinav", "Sınav"], ["piyasa", "Döviz ve Altın"]];
   $("tools").innerHTML = `<div class="sfil" id="toolSeg">${segs.map(([k, l]) => `<button data-s="${k}" class="${toolSeg === k ? "on" : ""}">${l}</button>`).join("")}</div><div id="toolBody"></div>
     <div class="foot" style="margin-top:14px">Hesaplamalar yardımcı amaçlıdır; sonuçları mevzuat ve güncel içtihatla teyit edin.</div>`;
   $("toolSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; toolSeg = b.dataset.s; renderTools(); syncNav(); };
-  if(toolSeg === "sure") toolSure(); else if(toolSeg === "ceza") toolCeza(); else if(toolSeg === "piyasa") toolPiyasa(); else if(toolSeg === "taslak") toolTaslak(); else toolAsk();
+  if(toolSeg === "ictihat") toolIctihat(); else if(toolSeg === "delil") toolDelil(); else if(toolSeg === "sinav") toolSinav(); else if(toolSeg === "sure") toolSure(); else if(toolSeg === "ceza") toolCeza(); else if(toolSeg === "piyasa") toolPiyasa(); else if(toolSeg === "taslak") toolTaslak(); else toolAsk();
 }
+// VUK 18 / İYUK 8: son gün hafta sonu veya tam gün resmî tatile denk gelirse ilk iş gününe kayar
+function isWorkday(iso){ const g = parseIso(iso).getDay(); if(g === 0 || g === 6) return false;
+  if(HOL){ if(HOL.sabit.some(h => h.tur === "tatil" && h.g === iso.slice(5))) return false; if(HOL.degisken.some(h => h.tur === "tatil" && h.t === iso)) return false; } return true; }
+function sonGun(iso){ let d = iso, n = 0; while(!isWorkday(d) && n++ < 15) d = addD(d, 1);
+  const yarim = HOL && (HOL.degisken.some(h => h.tur === "yarim" && h.t === d) || HOL.sabit.some(h => h.tur === "yarim" && h.g === d.slice(5)));
+  return { d, kay: d !== iso, yarim }; }
+const sgSub = (r, base) => base + (r.kay ? ` · son gün tatile denk geldiği için ${trD(r.d)} iş gününe kaydı` : "") + (r.yarim ? " · son gün yarım gün (arife), işlemi sabahtan yapın" : "");
 function toolSure(){
   const y = new Date().getFullYear() - 1;
+  loadHolidays().then(() => { if(toolSeg === "sure" && $("tbr")) $("toolBody").oninput?.(); });
   $("toolBody").innerHTML = `
+  <div class="tcard"><div class="tt">İhbarname Tebliğinden Sonraki Süreler <span>İYUK 7 · VUK 376 · Ek 1</span></div>
+    <div class="tf two"><label>İhbarnamenin tebliğ tarihi<input id="tb" type="date" value="${todayIso()}"></label><label>Dosya / not (takvim için)<input id="tbn" maxlength="40" placeholder="İsteğe bağlı"></label></div>
+    <div class="thelp">Süreler tebliği izleyen günden başlar. Son gün hafta sonu veya resmî tatile denk gelirse süre ilk iş günü biter (VUK 18, İYUK 8). Takvime eklediğiniz süreler için 3 gün ve 1 gün önce hatırlatma gelir.</div><div id="tbr"></div>
+    <div class="thelp" style="margin-top:8px">Uzlaşma vaki olmazsa veya temin edilemezse dava, kalan dava açma süresi içinde, bu süre 15 günden azsa tutanağın tebliğinden itibaren 15 gün içinde açılabilir (VUK Ek 7). VUK 359'daki fiillerle vergi ziyaına sebebiyet verilen (üç kat cezalı) tarhiyatlarda uzlaşma yapılamaz (VUK Ek 1). VUK 376 indiriminde kalan ceza ve vergi vadede ödenmeli ya da teminat gösterilerek vadenin bitiminden itibaren 3 ay içinde ödenmelidir.</div></div>
   <div class="tcard"><div class="tt">Tarh Zamanaşımı <span>VUK 114</span></div>
     <div class="tf"><label>Verginin ait olduğu yıl<input id="zy" type="number" inputmode="numeric" value="${y}" min="2000" max="2100"></label></div>
     <div class="tf two"><label>Takdire sevk tarihi<input id="zs" type="date"></label><label>Takdir kararının tebliği<input id="zt" type="date"></label></div>
     <div class="thelp">Alacağın doğduğu yılı izleyen yılın başından itibaren 5 yıl. Takdire sevk zamanaşımını durdurur; durma en fazla 1 yıldır.</div><div id="zr"></div></div>
   <div class="tcard"><div class="tt">Dava Zamanaşımı <span>VUK 359 · TCK 66-67</span></div>
-    <div class="tf"><label>Fiil<select id="df"><option value="a">359/a: Defter ve kayıtlarda hile (18 ay-3 yıl)</option><option value="b" selected>359/b: Sahte belge düzenleme/kullanma (3-8 yıl)</option><option value="c">359/c: İzinsiz belge basma ve kullanma (2-5 yıl)</option></select></label></div>
+    <div class="tf"><label>Fiil<select id="df"><option value="a">359/a: Defter ve kayıtlarda hile, yanıltıcı belge (18 ay-5 yıl)</option><option value="b" selected>359/b: Sahte belge düzenleme/kullanma (3-8 yıl)</option><option value="c">359/c: İzinsiz belge basma ve kullanma (2-8 yıl)</option></select></label></div>
     <div class="tf"><label>Suç tarihi<input id="dt" type="date" value="${y + 1}-01-01"></label></div>
     <div class="thelp">Üst sınırı 5 yılı geçmeyen suçlarda 8 yıl, 5-20 yıl arasında 15 yıl (TCK 66). Kesme sebebiyle en fazla yarısı kadar uzar (TCK 67/4). Suç tarihi için VUK 359 ve Yargıtay kabulünü esas alın.</div><div id="dr"></div></div>
   <div class="tcard"><div class="tt">İnceleme Süresi <span>VUK 140</span></div>
-    <div class="tf two"><label>İncelemeye başlama<input id="it" type="date" value="${todayIso()}"></label><label>İnceleme türü<select id="ik"><option value="12">Tam inceleme (1 yıl)</option><option value="6">Diğer (6 ay)</option></select></label></div>
+    <div class="tf two"><label>İncelemeye başlama<input id="it" type="date" value="${todayIso()}"></label><label>İnceleme türü<select id="ik"><option value="12">Tam inceleme (1 yıl)</option><option value="6">Sınırlı inceleme (6 ay)</option><option value="3">KDV iade incelemesi (3 ay)</option></select></label></div>
     <div class="tf"><label>Dosya / mükellef adı (takvim için)<input id="in" maxlength="40" placeholder="İsteğe bağlı"></label></div>
-    <div class="thelp">Tam incelemede en fazla 1 yıl, diğerlerinde 6 ay; gerekirse 6 ay ek süre verilebilir.</div><div id="ir"></div></div>`;
+    <div class="thelp">Tam incelemede en fazla 1 yıl, sınırlı incelemede 6 ay, KDV iade incelemesinde 3 ay. Ek süre tam ve sınırlı incelemede en fazla 6 ay, KDV iadesinde 2 ay (VUK 140/6).</div><div id="ir"></div></div>`;
   const calc = () => {
+    const tb = $("tb").value, tbn = $("tbn").value.trim(), sfx = tbn ? ": " + tbn : "";
+    if(tb){ const r30 = sonGun(addD(tb, 30)), r1a = sonGun(addM(tb, 1));
+      $("tbr").innerHTML = resRow("Dava açma süresi sonu", r30.d, sgSub(r30, "30 gün · İYUK 7"), "Dava açma son gün" + sfx)
+        + resRow("Tarhiyat sonrası uzlaşma başvurusu", r30.d, sgSub(r30, "30 gün · VUK Ek 1, Uzlaşma Yönetmeliği"), "Uzlaşma başvurusu son gün" + sfx)
+        + resRow("Cezada indirim (VUK 376) başvurusu", r30.d, sgSub(r30, "Tebliğden itibaren 30 gün"), "VUK 376 indirim başvurusu" + sfx)
+        + resRow("Ödeme vadesi", r1a.d, sgSub(r1a, "Tebliğden itibaren 1 ay (dava açılmazsa)"), "Ödeme vadesi" + sfx); }
     const yy = +$("zy").value, s0 = $("zs").value, t0 = $("zt").value;
     if(yy > 1990){ let end = `${yy + 5}-12-31`, sub = `${yy + 1} yılı başından itibaren 5 yıl`;
       if(s0 && t0 && t0 > s0){ const stop = Math.min(365, Math.round((new Date(t0) - new Date(s0)) / 864e5)); end = addD(end, stop); sub += ` + ${stop} gün durma`; }
       $("zr").innerHTML = resRow("Zamanaşımı sonu", end, sub, `${yy} yılı tarh zamanaşımı`); }
-    const f = $("df").value, dt = $("dt").value, yrs = f === "b" ? 15 : 8;
+    const f = $("df").value, dt = $("dt").value, yrs = f === "a" ? 8 : 15;
     if(dt){ $("dr").innerHTML = resRow(`Olağan zamanaşımı (${yrs} yıl)`, addM(dt, yrs * 12), "") + resRow(`Uzamış zamanaşımı (${yrs * 1.5} yıl)`, addM(dt, yrs * 18), "Kesme hâlinde üst sınır"); }
     const it = $("it").value, km = +$("ik").value, nm = $("in").value.trim();
-    if(it){ $("ir").innerHTML = resRow("Süre sonu", addM(it, km), km === 12 ? "Tam inceleme" : "Diğer inceleme", `İnceleme süresi${nm ? ": " + nm : ""}`) + resRow("Ek süreyle", addM(it, km + 6), "+6 ay ek süre", `İnceleme ek süre${nm ? ": " + nm : ""}`); }
+    if(it){ $("ir").innerHTML = resRow("Süre sonu", addM(it, km), km === 12 ? "Tam inceleme" : km === 6 ? "Sınırlı inceleme" : "KDV iade incelemesi", `İnceleme süresi${nm ? ": " + nm : ""}`) + resRow("Ek süreyle", addM(it, km + (km === 3 ? 2 : 6)), km === 3 ? "+2 ay ek süre" : "+6 ay ek süre", `İnceleme ek süre${nm ? ": " + nm : ""}`); }
   };
   $("toolBody").oninput = calc; calc();
   $("toolBody").onclick = async e => { const b = e.target.closest(".tadd"); if(!b) return;
@@ -1629,6 +1690,151 @@ function taslakPdfDef(text){
   return { pageSize: "A4", pageMargins: [56, 60, 56, 60], content: c, defaultStyle: { font: "Roboto", fontSize: 10.5, lineHeight: 1.25 },
     footer: (p, n) => ({ text: `${p} / ${n}`, alignment: "center", fontSize: 8, color: "#777", margin: [0, 20, 0, 0] }), info: { title: "Rapor taslağı" } };
 }
+/* ---- İçtihat yönü: konudaki Danıştay kararlarının sonucu (metinden otomatik, maliyetsiz) ---- */
+let icForm = { konu: "sahte_kullanma", ifade: "" }, icRes = null, icBusy = false;
+const LEH = { mukellef: ["Mükellef lehine", "--ok,#1a8f4a"], idare: ["İdare lehine", "--accent"], kismen: ["Kısmen", "--warn,#c77700"] };
+async function toolIctihat(){
+  const opt = (a, v) => a.map(([k, l]) => `<option value="${k}"${k === v ? " selected" : ""}>${l}</option>`).join("");
+  const K = [...TS_KONU.filter(([k]) => k !== "diger"), ["", "Kendi ifadem…"]];
+  $("toolBody").innerHTML = `<div class="tcard"><div class="tt">İçtihat Yönü <span>Danıştay</span></div>
+    <div class="thelp" style="margin-top:0">Seçtiğiniz konudaki Danıştay kararlarının sonucunu (onama, bozma) ve kimin lehine olduğunu kararların hüküm kısmından çıkarır. Rapor savunmasında Danıştay'ın güncel eğilimini görmenizi sağlar. Hak kullanmaz.</div>
+    <div class="tf"><label>Konu<select id="icK">${opt(K, icForm.konu)}</select></label></div>
+    <div class="tf" id="icQw" ${icForm.konu ? "hidden" : ""}><label>Aranacak ifade<input id="icQ" maxlength="40" value="${esc(icForm.ifade)}" placeholder="Örn. örtülü kazanç, emsal bedel"></label></div>
+    <button class="btn" id="icGo" ${icBusy ? "disabled" : ""}>${icBusy ? "Kararlar taranıyor…" : "Göster"}</button></div><div id="icOut"></div>`;
+  $("icK").onchange = e => { icForm.konu = e.target.value; $("icQw").hidden = !!icForm.konu; };
+  $("icQ").oninput = e => icForm.ifade = e.target.value;
+  $("icGo").onclick = async () => {
+    if(icBusy) return; icBusy = true; icRes = null; toolIctihat();
+    try{ const { data: { session } } = await sb.auth.getSession();
+      const r = await fetch(`/api/ictihat?konu=${encodeURIComponent(icForm.konu)}&ifade=${encodeURIComponent(icForm.ifade)}`, { headers: { Authorization: "Bearer " + session?.access_token } });
+      icRes = await r.json().catch(() => ({ error: "Yanıt okunamadı" }));
+    }catch{ icRes = { error: "Bağlantı kurulamadı" }; }
+    icBusy = false; if(tab === "tools" && toolSeg === "ictihat") toolIctihat();
+  };
+  const o = icRes; if(!o) return;
+  if(o.error){ $("icOut").innerHTML = `<div class="kwarn">${esc(o.error)}</div>`; return; }
+  if(!o.n){ $("icOut").innerHTML = `<div class="tcard"><div class="rwait">Bu konuda hüküm kısmı okunabilen Danıştay kararı bulunamadı.</div></div>`; return; }
+  const z = o.ozet, tot = z.mukellef + z.idare + z.kismen || 1, pct = v => Math.round(v * 100 / tot);
+  const bar = `<div style="display:flex;height:12px;border-radius:99px;overflow:hidden;background:var(--fill);margin:10px 0 6px">${["idare", "mukellef", "kismen"].map(k => z[k] ? `<span style="width:${pct(z[k])}%;background:var(${LEH[k][1]})"></span>` : "").join("")}</div>`;
+  const leg = ["idare", "mukellef", "kismen"].map(k => `<span style="display:inline-flex;align-items:center;gap:5px;margin-right:12px;font-size:13px"><i style="width:9px;height:9px;border-radius:50%;background:var(${LEH[k][1]})"></i>${LEH[k][0]} <b>${z[k]}</b></span>`).join("");
+  $("icOut").innerHTML = `<div class="tcard"><div class="tt">${o.n} karar <span>${o.sonuc.filter(x => x[1]).map(x => `${x[0]} ${x[1]}`).join(" · ")}</span></div>${bar}<div>${leg}</div>
+    ${z.belirsiz ? `<div class="thelp">${z.belirsiz} kararda kimin lehine olduğu metinden çıkarılamadı.</div>` : ""}
+    <div class="thelp">Sınıflandırma kararların hüküm kısmından otomatik yapılır ("davacının temyiz isteminin reddine" gibi). Raporda kullanmadan önce kararın tam metnini okuyun.</div></div>
+    <div class="list" style="margin-top:12px">${o.list.map(x => `<button class="li" data-icid="${x.id}" style="display:block;text-align:left;padding:11px 12px">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="pill">${esc(x.sonuc)}</span>${x.lehine ? `<span class="pill" style="color:var(${LEH[x.lehine][1]})">${LEH[x.lehine][0]}</span>` : ""}<small style="color:var(--muted)">${esc(x.meta || "")}</small></div>
+      <b style="display:block;font-weight:600;margin-top:4px">${esc(x.title)}</b><small style="display:block;color:var(--muted);line-height:1.4;margin-top:3px">${esc(x.hukum.slice(0, 260))}${x.hukum.length > 260 ? "…" : ""}</small></button>`).join("")}</div>`;
+  $("icOut").onclick = e => { const b = e.target.closest("[data-icid]"); if(b) openReader(+b.dataset.icid); };
+}
+
+/* ---- Sahte belge delil matrisi: yalnızca cihazda tutulur, mükellef bilgisi girilmez ---- */
+const DELIL = [
+  ["Düzenleyici hakkında", [
+    ["d1", "Düzenleyici hakkında sahte belge düzenlediğine dair VTR veya inceleme raporu var", "Tek başına yeterli değildir; Danıştay rapordaki tespitlerin kullanıcı nezdinde somutlaştırılmasını arar.", "faturaları düzenleyen mükellef hakkında sahte belge düzenlediğine ilişkin vergi tekniği raporu bulunduğu"],
+    ["d2", "İşyeri, personel, depo ve araç kapasitesi fatura hacmiyle uyumsuz", "", "düzenleyicinin işyeri, personel, depo ve taşıma kapasitesinin düzenlenen fatura hacmini karşılamadığı"],
+    ["d3", "Sattığı mala ait alış belgesi yok veya alışları da sahte", "", "düzenleyicinin satışını yaptığı mallara ait alışlarının belgelendirilemediği veya alışlarının da sahte belgeye dayandığı"],
+    ["d4", "Bildirilen adreste bulunamadı (yoklama tespiti)", "", "düzenleyicinin bildirdiği adreste faaliyetinin bulunmadığının yoklama ile tespit edildiği"],
+    ["d5", "Beyanname vermiyor veya beyan ettiği vergiyi ödemiyor", "", "düzenleyicinin beyannamelerini vermediği ya da beyan ettiği vergileri ödemediği"],
+    ["d6", "Ortak/yetkililerin ekonomik ve sosyal durumu faaliyetle uyumsuz", "", "düzenleyicinin ortak ve yetkililerinin ekonomik ve sosyal durumunun yürütülen faaliyetle bağdaşmadığı"],
+  ]],
+  ["İncelenen mükellef nezdinde", [
+    ["k1", "Karşıt inceleme veya mal hareketinin araştırılması yapıldı", "Danıştay'ın en çok aradığı somutlaştırma unsurudur.", "faturalara konu mal hareketinin karşıt incelemeyle araştırıldığı ve doğrulanamadığı"],
+    ["k2", "Sevk irsaliyesi, taşıma belgesi, kantar fişi yok veya gerçeği yansıtmıyor", "", "faturalara konu malların sevk ve taşınmasına ilişkin belgelerin ibraz edilemediği veya gerçeği yansıtmadığı"],
+    ["k3", "Stok, üretim ve satış kayıtlarıyla uyumsuzluk var", "", "faturalara konu malların stok, üretim ve satış kayıtlarıyla uyum göstermediği"],
+    ["k4", "Ödeme akışı: paranın geri dönüşü, nakit çekim veya ilişkili hesaplara aktarım", "Bankadan ödeme tek başına gerçekliği kanıtlamaz; paranın akıbeti araştırılmalıdır.", "fatura bedellerinin ödenmesinden sonra paranın nakit olarak çekildiği veya mükellefe ya da ilişkili kişilere geri döndüğü"],
+    ["k5", "Fatura bedeli piyasa fiyatı ve işin niteliğiyle uyumsuz", "", "fatura bedellerinin emsal piyasa fiyatlarıyla ve işin niteliğiyle uyumlu olmadığı"],
+    ["k6", "Mükellefin savunması alındı ve tek tek değerlendirildi", "Savunmanın değerlendirilmemesi usul yönünden bozma sebebi olabilir.", "mükellefin savunmasının alınarak sunduğu belgelerin tek tek değerlendirildiği"],
+    ["k7", "Malın gerçekte kimden alındığı araştırıldı", "Mal fiilen alınmışsa gerçek satıcının tespiti, cezanın türü ve KDV indirimi açısından önemlidir.", "faturalara konu malların gerçekte kimden temin edildiğinin araştırıldığı"],
+  ]],
+  ["Vergi suçu raporu için (VUK 359)", [
+    ["s1", "Kullanıcının bilerek kullandığını gösteren somut tespit var (kast)", "Yargıtay, sahte belgeyi bilerek kullanma kastının somut delillerle gösterilmesini arar.", "mükellefin faturaların gerçek bir işleme dayanmadığını bildiğini gösteren somut tespitler bulunduğu"],
+    ["s2", "Faturaların asılları ve yasal defterler incelendi", "Yargıtay kararlarında fatura asıllarının ve defterlerin incelenmesi sıkça aranır.", "faturaların asıllarının ve yasal defterlerin incelendiği"],
+    ["s3", "Düzenleyici ile kullanıcı arasında ortaklık, akrabalık veya organik bağ var", "", "düzenleyici ile kullanıcı arasında ortaklık, akrabalık veya organik bağ bulunduğu"],
+  ]],
+];
+const DST = [["v", "Tespit var"], ["y", "Tespit yok"], ["", "Bakılmadı"]];
+function toolDelil(){
+  let st = {}; try{ st = JSON.parse(localStorage.getItem("delil") || "{}"); }catch{}
+  const all = DELIL.flatMap(g => g[1]), inc = all.filter(x => !x[0].startsWith("s")), suc = all.filter(x => x[0].startsWith("s"));
+  const V = k => st[k] === "v", N = a => a.filter(x => V(x[0])).length, B = a => a.filter(x => !st[x[0]]).length;
+  const somut = inc.filter(x => x[0] !== "d1" && x[0] !== "k6" && V(x[0])).length;
+  const warns = [];
+  if(V("d1") && somut < 3) warns.push("Tarhiyat ağırlıklı olarak düzenleyici hakkındaki rapora dayanıyor. Danıştay, VTR'nin tek başına yeterli olmadığını, kullanıcı nezdinde somut tespit arandığını kabul ediyor. En az birkaç somut tespit ekleyin.");
+  if(!st.k1) warns.push("Karşıt inceleme veya mal hareketi araştırması işaretlenmedi.");
+  if(!st.k4) warns.push("Ödemenin akıbeti (paranın geri dönüşü) araştırılmadı. Bankadan ödeme savunmasına karşı en güçlü delillerdendir.");
+  if(st.k6 !== "v") warns.push("Mükellefin savunmasının alınıp değerlendirildiği işaretlenmedi.");
+  if(N(suc) && st.s1 !== "v") warns.push("Suç raporu için kullanma kastını gösteren somut tespit işaretlenmedi.");
+  const score = Math.min(100, Math.round(somut * 100 / 7)), lvl = score >= 60 ? ["Güçlü", "--ok,#1a8f4a"] : score >= 30 ? ["Orta", "--warn,#c77700"] : ["Zayıf", "--danger"];
+  $("toolBody").innerHTML = `<div class="tcard"><div class="tt">Sahte Belge Delil Matrisi <span>Danıştay ölçütleri</span></div>
+    <div class="thelp" style="margin-top:0">Danıştay ve Yargıtay'ın sahte belge dosyalarında aradığı somut tespitleri tek tek işaretleyin. Eksik kalanları gösterir ve rapor için değerlendirme paragrafı çıkarır. İşaretleriniz yalnızca bu cihazda tutulur. Mükellef bilgisi girilmez.</div>
+    <div style="display:flex;align-items:center;gap:10px;margin:8px 0 2px"><div style="flex:1;height:10px;border-radius:99px;background:var(--fill);overflow:hidden"><span style="display:block;height:100%;width:${score}%;background:var(${lvl[1]})"></span></div><b style="color:var(${lvl[1]})">${lvl[0]}</b></div>
+    <div class="thelp">${somut} somut tespit · ${B(inc)} madde bakılmadı</div></div>
+    ${warns.length ? `<div class="tcard">${warns.map(w => `<div class="thelp" style="color:var(--warn,#c77700);margin:4px 0">• ${esc(w)}</div>`).join("")}</div>` : ""}
+    ${DELIL.map(([g, xs]) => `<div class="tcard"><div class="tt">${g}</div>${xs.map(([k, l, h]) => `<div style="padding:9px 0;border-top:.5px solid var(--glass-line)"><div style="font-weight:550;line-height:1.35">${esc(l)}</div>${h ? `<small style="display:block;color:var(--muted);margin-top:2px;line-height:1.35">${esc(h)}</small>` : ""}
+      <div class="sfil" style="margin:7px 0 0">${DST.map(([v, t]) => `<button data-dk="${k}" data-dv="${v}" class="${(st[k] || "") === v ? "on" : ""}">${t}</button>`).join("")}</div></div>`).join("")}</div>`).join("")}
+    <div class="tcard"><div class="row" style="gap:8px"><button class="btn" id="dlPar" style="flex:1">Rapor Paragrafı Oluştur</button><button class="btn small" id="dlClr" style="background:var(--fill);color:var(--ink)">Sıfırla</button></div><div id="dlOut"></div></div>`;
+  $("toolBody").onclick = e => {
+    const b = e.target.closest("[data-dk]");
+    if(b){ if(b.dataset.dv) st[b.dataset.dk] = b.dataset.dv; else delete st[b.dataset.dk]; try{ localStorage.setItem("delil", JSON.stringify(st)); }catch{} const y = scrollY; toolDelil(); scrollTo({ top: y }); return; }
+    if(e.target.closest("#dlClr")){ if(!confirm("Tüm işaretler silinsin mi?")) return; try{ localStorage.removeItem("delil"); }catch{} toolDelil(); return; }
+    if(e.target.closest("#dlPar")){
+      const vs = all.filter(x => V(x[0]) && !x[0].startsWith("s")).map(x => x[3]), ss = suc.filter(x => V(x[0])).map(x => x[3]);
+      if(!vs.length){ $("dlOut").innerHTML = `<div class="thelp">Önce en az bir tespiti "Tespit var" olarak işaretleyin.</div>`; return; }
+      const list = a => a.length > 1 ? a.slice(0, -1).join("; ") + " ve " + a.at(-1) : a[0];
+      let t = `Yapılan incelemede; ${list(vs)} tespit edilmiştir. Danıştay'ın yerleşik içtihadında, düzenleyici hakkındaki tespitlerin tek başına yeterli olmadığı, kullanıcı nezdinde somut tespitlerle desteklenmesi gerektiği kabul edilmektedir. Yukarıda belirtilen tespitler birlikte değerlendirildiğinde, [DÜZENLEYEN] tarafından düzenlenen ve [DÖNEM] döneminde indirim konusu yapılan faturaların gerçek bir mal teslimi veya hizmet ifasına dayanmadığı sonucuna varılmıştır.`;
+      if(ss.length) t += `\n\nAyrıca; ${list(ss)} tespit edildiğinden, söz konusu faturaların bilerek kullanıldığı değerlendirilmektedir.`;
+      $("dlOut").innerHTML = `<div style="white-space:pre-wrap;margin-top:10px;padding:10px 12px;border-radius:14px;background:var(--fill);font-size:14.5px;line-height:1.5">${esc(t)}</div><button class="btn small" id="dlCp" style="margin-top:8px">Kopyala</button>`;
+      $("dlCp").onclick = () => { navigator.clipboard?.writeText(t).then(() => toast("Kopyalandı")); };
+    }
+  };
+}
+
+/* ---- Yeterlik sınavı soru bankası (ilerleme yalnızca cihazda) ---- */
+let SORU = null, sv = null;
+const svStat = () => { try{ return JSON.parse(localStorage.getItem("sinav") || "{}"); }catch{ return {}; } };
+const svSave = st => { try{ localStorage.setItem("sinav", JSON.stringify(st)); }catch{} };
+async function toolSinav(){
+  if(!SORU){ $("toolBody").innerHTML = `<div class="tcard"><div class="rload"><i></i><i></i><i></i></div></div>`;
+    try{ SORU = (await (await fetch("sorular.json?v=" + Math.floor(Date.now() / 36e5))).json()).sorular; }catch{ SORU = []; } if(toolSeg !== "sinav") return; }
+  const st = svStat(), cats = [...new Set(SORU.map(x => x.k))];
+  const yan = SORU.filter(x => st[x.id] === 0), cevap = SORU.filter(x => st[x.id] != null), dog = cevap.filter(x => st[x.id] === 1).length;
+  if(!sv){
+    $("toolBody").innerHTML = `<div class="tcard"><div class="tt">Yeterlik Sınavı Çalışma <span>${SORU.length} soru</span></div>
+      <div class="thelp" style="margin-top:0">Vergi müfettiş yardımcılığı yeterlik sınavına hazırlık için mevzuat soruları. Her soruda doğru cevap ve kanun dayanağı gösterilir. İlerlemeniz bu cihazda tutulur.</div>
+      <div class="tsum"><div><small>Çözülen</small><b>${cevap.length}/${SORU.length}</b></div><div class="tot"><small>Başarı</small><b>${cevap.length ? Math.round(dog * 100 / cevap.length) + "%" : "–"}</b></div></div></div>
+      <div class="tcard"><div class="tt">Test başlat</div><div class="list" style="margin-top:6px">
+        <button class="li" data-sv="__mix"><div class="grow"><b>Karışık 10 soru</b><small>Tüm konulardan</small></div></button>
+        ${cats.map(c => { const a = SORU.filter(x => x.k === c), d = a.filter(x => st[x.id] === 1).length; return `<button class="li" data-sv="${esc(c)}"><div class="grow"><b>${esc(c)}</b><small>${a.length} soru · ${d} doğru</small></div></button>`; }).join("")}
+        ${yan.length ? `<button class="li" data-sv="__yan"><div class="grow"><b>Yanlışlarım</b><small>${yan.length} soru</small></div></button>` : ""}
+      </div>${cevap.length ? `<button class="btn small" id="svClr" style="margin-top:10px;background:var(--fill);color:var(--ink)">İlerlemeyi sıfırla</button>` : ""}</div>`;
+    $("toolBody").onclick = e => {
+      if(e.target.closest("#svClr")){ if(confirm("Tüm ilerleme silinsin mi?")){ svSave({}); toolSinav(); } return; }
+      const b = e.target.closest("[data-sv]"); if(!b) return; const k = b.dataset.sv;
+      let pool = k === "__mix" ? SORU : k === "__yan" ? yan : SORU.filter(x => x.k === k);
+      pool = [...pool].sort(() => Math.random() - .5).slice(0, k === "__mix" ? 10 : 15);
+      sv = { qs: pool.map(q => { const ord = [0, 1, 2, 3].sort(() => Math.random() - .5); return { ...q, ord }; }), i: 0, pick: null, ok: 0 };
+      toolSinav(); scrollTo({ top: 0 });
+    };
+    return;
+  }
+  if(sv.i >= sv.qs.length){
+    $("toolBody").innerHTML = `<div class="tcard" style="text-align:center"><div class="tt" style="justify-content:center">Test bitti</div><b style="font-size:38px;display:block;margin:6px 0">${sv.ok}/${sv.qs.length}</b><div class="thelp">${sv.ok === sv.qs.length ? "Tebrikler, hepsi doğru." : "Yanlış yaptığınız sorular \"Yanlışlarım\" bölümünde toplanır."}</div><button class="btn" id="svBack" style="margin-top:8px">Konulara dön</button></div>`;
+    $("toolBody").onclick = e => { if(e.target.closest("#svBack")){ sv = null; toolSinav(); } }; return;
+  }
+  const q = sv.qs[sv.i], done = sv.pick != null;
+  $("toolBody").innerHTML = `<div class="tcard"><div class="tt">${esc(q.k)} <span>${sv.i + 1}/${sv.qs.length}</span></div>
+    <div style="font-size:16.5px;font-weight:600;line-height:1.45;margin:4px 0 12px">${esc(q.q)}</div>
+    ${q.ord.map((oi, n) => { const right = oi === q.a, mine = sv.pick === oi; const bg = done && right ? "color-mix(in srgb,var(--ok) 22%,transparent)" : done && mine ? "color-mix(in srgb,var(--danger) 18%,transparent)" : "var(--fill)";
+      return `<button data-op="${oi}" ${done ? "disabled" : ""} style="display:flex;gap:10px;width:100%;text-align:left;border:0;border-radius:14px;padding:12px;margin-top:8px;font:inherit;font-size:15px;line-height:1.4;color:var(--ink);background:${bg};cursor:pointer"><b style="color:var(--muted)">${"ABCD"[n]}</b><span>${esc(q.o[oi])}</span></button>`; }).join("")}
+    ${done ? `<div class="thelp" style="margin-top:12px"><b style="color:var(${sv.pick === q.a ? "--ok" : "--danger"})">${sv.pick === q.a ? "Doğru." : "Yanlış."}</b> ${esc(q.e)}</div><button class="btn" id="svNext" style="margin-top:6px">${sv.i + 1 < sv.qs.length ? "Sonraki soru" : "Sonucu gör"}</button>` : ""}
+    <button class="btn small" id="svQuit" style="margin-top:10px;background:var(--fill);color:var(--ink)">Testi bitir</button></div>`;
+  $("toolBody").onclick = e => {
+    const o = e.target.closest("[data-op]");
+    if(o && sv.pick == null){ sv.pick = +o.dataset.op; const st2 = svStat(); st2[q.id] = sv.pick === q.a ? 1 : 0; svSave(st2); if(sv.pick === q.a) sv.ok++; toolSinav(); return; }
+    if(e.target.closest("#svNext")){ sv.i++; sv.pick = null; toolSinav(); scrollTo({ top: 0 }); return; }
+    if(e.target.closest("#svQuit")){ sv = null; toolSinav(); }
+  };
+}
+
 function renderTaslakOut(){
   const el = $("tsOut"); if(!el || !tsOut) return;
   const src = (tsOut.sources || []).map(x => `<li>${x.id ? `<a href="#" data-open="${x.id}">` : `<a href="${esc(x.url || "#")}" target="_blank" rel="noopener">`}[${x.n}] ${esc(x.tur)} · ${esc(x.title)}</a></li>`).join("");

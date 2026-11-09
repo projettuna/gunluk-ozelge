@@ -47,27 +47,32 @@ def split(t):
     return out
 
 
-res, eksik = {}, []
-for kod, (no, tertip, keys) in KANUNLAR.items():
-    try:
-        allm = {}
-        for tt in dict.fromkeys([tertip, 4, 3, 5]):
-            allm = split(text_of(no, tt))
-            if allm:
-                break
-    except Exception as e:  # noqa: BLE001
-        print(kod, "alınamadı:", e)
-        eksik.append(kod)
-        continue
-    print(kod, "toplam madde:", len(allm))
-    for k in keys:
-        m = allm.get(k)
-        if m:
-            res[f"{kod} {k}"] = m
-        else:
-            eksik.append(f"{kod} {k}")
-print("alınan:", len(res), "| eksik:", eksik)
-if len(res) < 25:
-    sys.exit("Yeterli madde alınamadı; dosya yazılmadı")
-json.dump(res, open("worker/maddeler.json", "w", encoding="utf-8"), ensure_ascii=False, indent=0)
-print("yazıldı: worker/maddeler.json")
+def main():
+    res, eksik = {}, []
+    for kod, (no, tertip, keys) in KANUNLAR.items():
+        try:
+            allm = {}
+            for tt in dict.fromkeys([tertip, 4, 3, 5]):
+                allm = split(text_of(no, tt))
+                if allm:
+                    break
+        except Exception as e:  # noqa: BLE001
+            print(kod, "alınamadı:", e)
+            eksik.append(kod)
+            continue
+        print(kod, "toplam madde:", len(allm))
+        for k in keys:
+            m = allm.get(k)
+            if m:
+                res[f"{kod} {k}"] = m
+            else:
+                eksik.append(f"{kod} {k}")
+    print("alınan:", len(res), "| eksik:", eksik)
+    if len(res) < 25:
+        sys.exit("Yeterli madde alınamadı; dosya yazılmadı")
+    json.dump(res, open("worker/maddeler.json", "w", encoding="utf-8"), ensure_ascii=False, indent=0)
+    print("yazıldı: worker/maddeler.json")
+
+
+if __name__ == "__main__":
+    main()

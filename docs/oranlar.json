@@ -73,7 +73,8 @@
     "i376": {
       "oran": 50,
       "kucuk_oran": 75,
-      "kucuk_sinir": 40000
+      "kucuk_sinir": 0,
+      "not": "VUK 376/1-2 (küçük tutarlı cezalarda %75) 7524 s.K. 14. md. ile 28/7/2024 itibarıyla mülga; tüm cezalarda %50"
     }
   }
 }

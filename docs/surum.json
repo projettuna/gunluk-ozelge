@@ -1,6 +1,20 @@
 {
   "surumler": [
     {
+      "surum": "2.8",
+      "tarih": "2026-11-09",
+      "baslik": "Yeni: Rapor Taslağı, İçtihat Yönü, Delil Matrisi, madde takibi ve sınav",
+      "bildir": false,
+      "notlar": [
+        "Araçlar → Rapor Taslağı: konu ve dönem seçin; güncel kanun metinleri ve Danıştay kararlarıyla rapor iskeleti hazırlansın (Word ve PDF). Mükellef bilgisi girilmez, belge yüklenmez.",
+        "Araçlar → İçtihat Yönü: seçtiğiniz konudaki Danıştay kararlarının ne kadarının idare, ne kadarının mükellef lehine sonuçlandığını görün.",
+        "Araçlar → Delil Matrisi: sahte belge dosyalarında Danıştay ve Yargıtay'ın aradığı somut tespitleri işaretleyin; eksikleri görün, rapor paragrafı alın.",
+        "Takip Listem → Kanun maddeleri: KDVK 29, VUK 359 gibi maddeleri takibe alın; maddeye atıf yapan yeni karar çıkınca ve madde metni değişince bildirim gelsin.",
+        "Araçlar → Süreler: ihbarname tebliğinden sonra dava açma, uzlaşma, VUK 376 ve ödeme süreleri; son gün tatile denk gelirse otomatik kaydırma. KDV iade incelemesi süresi eklendi.",
+        "Araçlar → Sınav: yeterlik sınavına hazırlık için kanun dayanaklı mevzuat soruları ve yanlışlarım listesi."
+      ]
+    },
+    {
       "surum": "2.7",
       "tarih": "2026-11-08",
       "baslik": "Yeni: Takip Listem, Döviz ve Altın, ceza hesaplama araçları",

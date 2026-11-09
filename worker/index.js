@@ -357,7 +357,7 @@ Kurallar:
 - Kararlarda "[Kararın sonuç kısmı:]" verilmişse kararın sonucunu (onama, bozma, kabul, red, ısrar vb.) bu kısımdan açıkça yaz; bu durumda sonuç için "(teyit ediniz)" ekleme. Sonuç kısmı verilmemişse sonucu tahmin etme.
 - Madde atıflarında aşağıdaki doğru eşleştirmelerle çelişme:
   VUK 3/B gerçek mahiyet ve ispat; VUK 30 re'sen takdir; VUK 114 tarh zamanaşımı; VUK 134-141 vergi incelemesi (135 yetkililer, 139 işyerinde inceleme, 140 inceleme esasları, 141 tutanak); VUK 227 ve 229-232 belge düzeni/fatura; VUK 336 cezaların içtimaı; VUK 339 tekerrür; VUK 341 vergi ziyaı; VUK 344/1 bir kat, 344/2 VUK 359'daki fiillerle ziyada üç kat vergi ziyaı cezası; VUK 359/a-1 defter ve kayıt hileleri, 359/a-2 muhteviyatı itibarıyla yanıltıcı belge düzenleme veya kullanma, 359/b sahte belge düzenleme veya kullanma; VUK 367 suç duyurusu; VUK 370 izaha davet; VUK 371 pişmanlık ve ıslah; VUK 376 ceza indirimi; VUK Ek 1 vd. uzlaşma; İYUK 7 dava açma süresi. KDVK 29/1 indirim, 34/1 indirimin belgeye dayanması, 32 iade. KVK 11 kanunen kabul edilmeyen giderler, KVK 12 örtülü sermaye, KVK 13 transfer fiyatlandırması yoluyla örtülü kazanç dağıtımı. GVK 41 kabul edilmeyen giderler, GVK 94 tevkifat, GVK mükerrer 80-81 değer artışı kazançları. VUK 258 vd. değerleme.
-- Uygulama gerçekliği: beyanname verilmiş dönemde inceleme sonucu bulunan fark için tarh türü kural olarak ikmalen tarhtır (VUK 29); re'sen tarhı (VUK 30) yalnızca defter ve belgelerin ibraz edilmemesi gibi takdir hâllerinde öner. Sahte veya yanıltıcı belge konularında "Düzenleyici hakkındaki tespitlerin kullanıcı nezdinde somutlaştırılması" başlıklı ayrı bir alt bölüm yaz: Danıştay'ın yerleşik içtihadına göre düzenleyici hakkındaki vergi tekniği raporu tek başına yeterli değildir; kullanıcı nezdinde karşıt inceleme, mal hareketi, stok ve üretim kayıtları, sevk ve taşıma belgeleri, ödemenin akıbeti gibi somut tespitler gerekir. Sahte belge kullanımında özel usulsüzlük cezasını (VUK 353) ayrı başlık yapma. Kaynakta geçse bile konuya özgü olmayan af, yapılandırma veya matrah artırımı kanunlarına değinme.
+- Uygulama gerçekliği: beyanname verilmiş dönemde inceleme sonucu bulunan fark için tarh türü kural olarak ikmalen tarhtır (VUK 29); re'sen tarhı (VUK 30) yalnızca defter ve belgelerin ibraz edilmemesi gibi takdir hâllerinde öner. Sahte veya yanıltıcı belge konularında "Düzenleyici hakkındaki tespitlerin kullanıcı nezdinde somutlaştırılması" başlıklı ayrı bir alt bölüm yaz: Danıştay'ın yerleşik içtihadına göre düzenleyici hakkındaki vergi tekniği raporu tek başına yeterli değildir; kullanıcı nezdinde karşıt inceleme, mal hareketi, stok ve üretim kayıtları, sevk ve taşıma belgeleri, ödemenin akıbeti gibi somut tespitler gerekir. Sahte belge kullanımında özel usulsüzlük cezasını (VUK 353) ayrı başlık yapma. VUK 359'daki fiillerle vergi ziyaına sebebiyet verilmesi hâlinde (üç kat vergi ziyaı cezası) tarhiyat sonrası uzlaşma yapılamaz (VUK Ek 1); bu durumda sonuç bölümünde uzlaşma hakkından söz etme, yalnızca dava yolunu (İYUK 7) belirt. Kaynakta geçse bile konuya özgü olmayan af, yapılandırma veya matrah artırımı kanunlarına değinme.
 - Düz metin yaz; Markdown işareti (#, **, *) kullanma. Resmî ve sade bir dil kullan.`;
   const zorunlu = [
     tur !== "bolum" && konuKey !== "ibraz" ? "Tarhiyat önerisinde \"ikmalen tarh (VUK 29)\" ifadesini kullan; re'sen tarh önerme." : "",
@@ -422,6 +422,51 @@ Kurallar:
 }
 
 // ---- Döviz (TCMB) ve altın: tarayıcı bu kaynaklara doğrudan erişemediği için worker üzerinden, önbellekli
+// ---- İçtihat yönü (/api/ictihat): konudaki Danıştay kararlarının sonucu ve kimin lehine olduğu (metinden kural tabanlı; yapay zekâ yok)
+function hukumOf(t) {
+  t = String(t || "").trim(); const tail = t.slice(-2200);
+  const at = tail.search(/(açıklanan nedenlerle|sonuç ?:|bu nedenlerle|hüküm ?:|gerekçelerle)/i);
+  return at >= 0 ? tail.slice(at).trim() : "";
+}
+function kararYonu(h) {
+  const l = h.toLocaleLowerCase("tr").replace(/\s+/g, " ");
+  let sonuc = "Belirsiz";
+  if (/kısmen (kabul|bozul|onan)/.test(l)) sonuc = "Kısmen";
+  else if (/bozulmasına/.test(l)) sonuc = "Bozma";
+  else if (/onanmasına|temyiz (istem|talep)\w* reddine/.test(l)) sonuc = "Onama";
+  else if (/ısrar/.test(l)) sonuc = "Israr";
+  let lehine = null;
+  const ms = [...l.matchAll(/(davacı\w*|davalı\w*(?: idare\w*)?)[^.;:]{0,70}?temyiz (?:istem|talep)\w* (kısmen )?(kabulüne|reddine)/g)];
+  const ls = [...new Set(ms.map(m => m[2] ? "kismen" : (m[3] === "kabulüne") === /davacı/.test(m[1]) ? "mukellef" : "idare"))];
+  if (ls.length) lehine = ls.length === 1 ? ls[0] : "kismen";
+  return { sonuc, lehine };
+}
+async function ictihat(req, env, url) {
+  const token = (req.headers.get("Authorization") || "").replace(/^Bearer /, "");
+  if (!token) return Response.json({ error: "Yetkisiz" }, { status: 401 });
+  const H = { apikey: SB_KEY, Authorization: "Bearer " + token };
+  const me = await fetch(SB_URL + "/rest/v1/rpc/is_active", { method: "POST", headers: { ...H, "Content-Type": "application/json" }, body: "{}" });
+  if (!me.ok || (await me.json()) !== true) return Response.json({ error: "Yetkisiz" }, { status: 401 });
+  const konu = url.searchParams.get("konu") || "";
+  const ifade = (url.searchParams.get("ifade") || "").replace(/[^\p{L}\p{N} ]/gu, " ").replace(/\s+/g, " ").trim().slice(0, 40);
+  const ps = TASLAK_ARA[konu]?.p || (ifade.length >= 4 ? [ifade] : null);
+  if (!ps) return Response.json({ error: "Konu seçin ya da en az 4 harflik bir ifade yazın" }, { status: 400 });
+  return cached("ictihat2:" + (TASLAK_ARA[konu] ? konu : "q:" + ifade.toLocaleLowerCase("tr")), 1800, async () => {
+    const or = ps.flatMap(w => [`title.ilike.*${w}*`, `metin.ilike.*${w}*`]).join(",");
+    const r = await fetch(`${SB_URL}/rest/v1/items?select=id,tur,title,meta,metin&tur=ilike.Dan*&or=(${encodeURIComponent(or)})&order=id.desc&limit=160`, { headers: H });
+    if (!r.ok) return { error: "Kararlar alınamadı" };
+    const res = ps.map(ilike2re);
+    const rows = (await r.json()).map(x => {
+      const ml = x.metin || "", hits = res.reduce((a, re) => a + (ml.match(re) || []).length + 3 * ((x.title || "").match(re) || []).length, 0);
+      const h = hukumOf(ml);
+      return { id: x.id, tur: x.tur, title: x.title, meta: x.meta, hits, hukum: h.slice(0, 700), ...kararYonu(h) };
+    }).filter(x => x.hits >= 2 && x.hukum);
+    const say = k => rows.filter(x => x.lehine === k).length;
+    return { n: rows.length, ozet: { mukellef: say("mukellef"), idare: say("idare"), kismen: say("kismen"), belirsiz: say(null) },
+      sonuc: ["Onama", "Bozma", "Kısmen", "Israr", "Belirsiz"].map(k => [k, rows.filter(x => x.sonuc === k).length]),
+      list: rows.slice(0, 40).map(({ hits, ...x }) => x) };
+  });
+}
 async function cached(key, ttl, make) {
   const c = caches.default, k = new Request("https://cache.tmpro/" + key);
   const hit = await c.match(k); if (hit) return hit;
@@ -494,6 +539,7 @@ export default {
     }
     if (url.pathname === "/api/ask" && req.method === "POST") return ask(req, env);
     if (url.pathname === "/api/taslak" && req.method === "POST") return taslak(req, env);
+    if (url.pathname === "/api/ictihat") return ictihat(req, env, url);
     if (url.pathname === "/api/zaman") {  // nöbetçi için: zamanlayıcı anahtarı var mı, GitHub kabul ediyor mu (anahtarın kendisi asla dönmez)
       if (!env.GH_DISPATCH_TOKEN) return Response.json({ anahtar: false, github: 0 });
       const r = await fetch(`https://api.github.com/repos/${env.GH_REPO || "projettuna/gunluk-ozelge"}/actions/workflows/gunluk.yml`, {

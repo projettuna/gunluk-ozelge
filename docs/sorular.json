@@ -1,0 +1,838 @@
+{
+"surum": 1,
+"not": "Sorular güncel mevzuat metinlerinden hazırlanmıştır.",
+"sorular": [
+{
+"id": 1,
+"k": "Vergi Usul",
+"q": "Vergi alacağının doğduğu takvim yılını izleyen yılın başından başlayarak kaç yıl içinde tarh ve tebliğ edilmeyen vergiler zamanaşımına uğrar?",
+"o": [
+"3 yıl",
+"5 yıl",
+"8 yıl",
+"10 yıl"
+],
+"a": 1,
+"e": "VUK 114/1: beş yıl."
+},
+{
+"id": 2,
+"k": "Vergi Usul",
+"q": "Vergi dairesince takdir komisyonuna başvurulması tarh zamanaşımını durdurur. Bu durumda işlemeyen süre en fazla ne kadar olabilir?",
+"o": [
+"3 ay",
+"6 ay",
+"1 yıl",
+"2 yıl"
+],
+"a": 2,
+"e": "VUK 114/2: işlemeyen süre her hâlde bir yıldan fazla olamaz."
+},
+{
+"id": 3,
+"k": "Vergi Usul",
+"q": "Bir vergi tarh edildikten sonra ortaya çıkan ve defter, kayıt, belge veya kanuni ölçülere dayanılarak tespit edilen matrah farkı üzerinden yapılan tarh hangisidir?",
+"o": [
+"Re'sen tarh",
+"İkmalen tarh",
+"İdarece tarh",
+"Beyan üzerine tarh"
+],
+"a": 1,
+"e": "VUK 29: ikmalen vergi tarhı."
+},
+{
+"id": 4,
+"k": "Vergi Usul",
+"q": "Vergi beyannamesinin kanuni süresi geçtiği hâlde verilmemesi durumunda hangi tarh türü uygulanır?",
+"o": [
+"İkmalen tarh",
+"İdarece tarh",
+"Re'sen tarh",
+"Tarh yapılmaz"
+],
+"a": 2,
+"e": "VUK 30/1: beyanname kanuni süresi geçtiği hâlde verilmemişse matrahın defter ve belgelerle tespiti mümkün değil sayılır; re'sen tarh yapılır."
+},
+{
+"id": 5,
+"k": "Vergi Usul",
+"q": "VUK 134'e göre vergi incelemesinin amacı nedir?",
+"o": [
+"Mükellefi cezalandırmak",
+"Ödenmesi gereken vergilerin doğruluğunu araştırmak, tespit etmek ve sağlamak",
+"Yalnızca beyannameleri kontrol etmek",
+"Defterlerin tasdikini yapmak"
+],
+"a": 1,
+"e": "VUK 134/1."
+},
+{
+"id": 6,
+"k": "Vergi Usul",
+"q": "Vergi incelemeleri kural olarak nerede yapılır?",
+"o": [
+"Mükellefin iş yerinde",
+"Dairede",
+"Mükellefin muhasebecisinin bürosunda",
+"Vergi mahkemesinde"
+],
+"a": 1,
+"e": "VUK 139/1 (7338 s.K. ile): esas itibarıyla dairede yapılır; mükellef talep eder ve iş yeri müsaitse iş yerinde de yapılabilir."
+},
+{
+"id": 7,
+"k": "Vergi Usul",
+"q": "Vergi incelemesinin ne zaman yapılacağının önceden haber verilmesi hakkında hangisi doğrudur?",
+"o": [
+"15 gün önce bildirilmelidir",
+"Mecburi değildir",
+"Noter aracılığıyla bildirilmelidir",
+"Yalnız tam incelemede mecburidir"
+],
+"a": 1,
+"e": "VUK 138/1."
+},
+{
+"id": 8,
+"k": "Vergi Usul",
+"q": "Vergi incelemesi hangi süre sonuna kadar yapılabilir?",
+"o": [
+"Beyanname verilme tarihinden itibaren 2 yıl",
+"Tarh zamanaşımı süresi sonuna kadar",
+"Hesap dönemi sonuna kadar",
+"Süre sınırı yoktur"
+],
+"a": 1,
+"e": "VUK 138/2: neticesi alınmamış hesap dönemi dahil, tarh zamanaşımı süresi sonuna kadar."
+},
+{
+"id": 9,
+"k": "Vergi Usul",
+"q": "Tam inceleme yapılması hâlinde inceleme en fazla ne kadar sürede bitirilmelidir?",
+"o": [
+"3 ay",
+"6 ay",
+"1 yıl",
+"2 yıl"
+],
+"a": 2,
+"e": "VUK 140/6: tam incelemede en fazla bir yıl."
+},
+{
+"id": 10,
+"k": "Vergi Usul",
+"q": "KDV iade incelemelerinde inceleme süresi ve verilebilecek en fazla ek süre hangisidir?",
+"o": [
+"3 ay + 2 ay",
+"6 ay + 6 ay",
+"1 yıl + 6 ay",
+"3 ay + 6 ay"
+],
+"a": 0,
+"e": "VUK 140/6: KDV iade incelemelerinde en fazla üç ay; ek süre iki ayı geçemez."
+},
+{
+"id": 11,
+"k": "Vergi Usul",
+"q": "Sınırlı incelemede inceleme süresi ve en fazla ek süre hangisidir?",
+"o": [
+"3 ay + 2 ay",
+"6 ay + 6 ay",
+"1 yıl + 6 ay",
+"6 ay + 2 ay"
+],
+"a": 1,
+"e": "VUK 140/6: sınırlı incelemede en fazla altı ay; tam ve sınırlı incelemede ek süre altı ayı geçemez."
+},
+{
+"id": 12,
+"k": "Vergi Usul",
+"q": "İncelemeye başlarken incelemeye tabi olana ne yapılır?",
+"o": [
+"Sözlü bilgi verilir",
+"İncelemenin konusu ve başlandığı bir yazıyla bildirilir",
+"Bildirim yapılmaz",
+"Yalnız vergi dairesine bilgi verilir"
+],
+"a": 1,
+"e": "VUK 140/1: yazıyla bildirilir; yazının bir örneği bağlı birime ve vergi dairesine gönderilir."
+},
+{
+"id": 13,
+"k": "Vergi Usul",
+"q": "Vergi müfettişi, bir genel tebliğin vergi kanununa aykırı olduğu kanaatine varırsa ne yapar?",
+"o": [
+"Tebliği uygulamaz, rapora yazar",
+"Tebliğe aykırı rapor düzenler",
+"Bağlı olduğu birim aracılığıyla Gelir İdaresi Başkanlığına rapor ile bildirir",
+"Danıştay'a dava açar"
+],
+"a": 2,
+"e": "VUK 140/5: CBK, yönetmelik, tebliğ ve sirküler aykırı rapor düzenlenemez; aykırılık kanaati GİB'e rapor ile bildirilir."
+},
+{
+"id": 14,
+"k": "Vergi Usul",
+"q": "Vergi müfettişlerinin vergi inceleme raporlarını değerlendiren rapor değerlendirme komisyonu kimlerden oluşur?",
+"o": [
+"En az iki vergi müfettişi",
+"Meslekte on yılını tamamlamış en az üç vergi müfettişi",
+"Vergi dairesi müdürü ve iki memur",
+"Grup başkanı ve bir müfettiş"
+],
+"a": 1,
+"e": "VUK 140 (KHK-646 ile)."
+},
+{
+"id": 15,
+"k": "Vergi Usul",
+"q": "İnceleme sırasında düzenlenen tutanakların bir nüshası hakkında hangisi doğrudur?",
+"o": [
+"Vergi dairesinde saklanır",
+"Mükellefe veya nezdinde inceleme yapılana bırakılması mecburidir",
+"İstenirse verilir",
+"Yalnız avukata verilir"
+],
+"a": 1,
+"e": "VUK 141/1."
+},
+{
+"id": 16,
+"k": "Vergi Usul",
+"q": "Fatura, malın teslimi veya hizmetin yapıldığı tarihten itibaren en geç kaç gün içinde düzenlenir?",
+"o": [
+"3 gün",
+"5 gün",
+"7 gün",
+"15 gün"
+],
+"a": 2,
+"e": "VUK 231/5: azami yedi gün içinde."
+},
+{
+"id": 17,
+"k": "Vergi Usul",
+"q": "VUK 3/B'ye göre vergiyi doğuran olay ve buna ilişkin muamelelerin gerçek mahiyeti hangi delille ispatlanamaz?",
+"o": [
+"Tanık beyanı",
+"Yemin",
+"Bilirkişi raporu",
+"Ticari defter"
+],
+"a": 1,
+"e": "VUK 3/B: yemin hariç her türlü delille ispatlanabilir."
+},
+{
+"id": 18,
+"k": "Vergi Usul",
+"q": "İktisadi, ticari ve teknik icaplara uymayan veya olayın özelliğine göre normal ve mutat olmayan bir durumu iddia edene ilişkin hangisi doğrudur?",
+"o": [
+"İspat yükü idareye aittir",
+"İspat yükü iddia edene aittir",
+"İspat aranmaz",
+"Yalnız yeminle ispatlanır"
+],
+"a": 1,
+"e": "VUK 3/B."
+},
+{
+"id": 19,
+"k": "Vergi Usul",
+"q": "Vergiyi doğuran olayla ilgisi tabii ve açık bulunmayan şahit ifadesi için hangisi doğrudur?",
+"o": [
+"Tek başına yeterli delildir",
+"İspat vasıtası olarak kullanılamaz",
+"Noter onayıyla kullanılabilir",
+"Yalnız ceza davasında kullanılır"
+],
+"a": 1,
+"e": "VUK 3/B."
+},
+{
+"id": 20,
+"k": "Vergi Usul",
+"q": "Vergi incelemesi bitince nezdinde inceleme yapılana ne verilir?",
+"o": [
+"İnceleme raporunun tamamı",
+"İncelemenin yapıldığını gösteren bir vesika",
+"Vergi ihbarnamesi",
+"Hiçbir belge verilmez"
+],
+"a": 1,
+"e": "VUK 140/4."
+},
+{
+"id": 21,
+"k": "Ceza ve Suç",
+"q": "VUK 341'de yazılı hâllerde vergi ziyaına sebebiyet verilmesi hâlinde kesilecek vergi ziyaı cezası ne kadardır?",
+"o": [
+"Ziyaa uğratılan verginin yarısı",
+"Bir katı",
+"İki katı",
+"Üç katı"
+],
+"a": 1,
+"e": "VUK 344/1."
+},
+{
+"id": 22,
+"k": "Ceza ve Suç",
+"q": "Vergi ziyaına VUK 359'daki fiillerle sebebiyet verilmesi hâlinde vergi ziyaı cezası nasıl uygulanır?",
+"o": [
+"Bir kat",
+"İki kat",
+"Üç kat",
+"Dört kat"
+],
+"a": 2,
+"e": "VUK 344/2: üç kat; bu fiillere iştirak edenlere bir kat."
+},
+{
+"id": 23,
+"k": "Ceza ve Suç",
+"q": "VUK 359'daki fiillere iştirak edenlere vergi ziyaı cezası kaç kat uygulanır?",
+"o": [
+"Uygulanmaz",
+"Bir kat",
+"İki kat",
+"Üç kat"
+],
+"a": 1,
+"e": "VUK 344/2."
+},
+{
+"id": 24,
+"k": "Ceza ve Suç",
+"q": "İncelemeye başlanmadan önce kanuni süresi geçtikten sonra verilen beyannameler için vergi ziyaı cezası nasıl uygulanır?",
+"o": [
+"Ceza kesilmez",
+"Yüzde elli oranında uygulanır",
+"Bir kat uygulanır",
+"İki kat uygulanır"
+],
+"a": 1,
+"e": "VUK 344/3."
+},
+{
+"id": 25,
+"k": "Ceza ve Suç",
+"q": "Mükellefiyet tesis ettirmeden vergi dairesinin ıttılaı dışında faaliyette bulunarak vergi ziyaına sebebiyet verilmesi hâlinde vergi ziyaı cezası nasıl uygulanır?",
+"o": [
+"Değişmez",
+"Yüzde elli artırılır",
+"İki katına çıkar",
+"Yüzde yirmi beş indirilir"
+],
+"a": 1,
+"e": "VUK 344 (7524 s.K. ile eklenen fıkra)."
+},
+{
+"id": 26,
+"k": "Ceza ve Suç",
+"q": "Vergi ziyaı cezasında tekerrür artırımı oranı nedir?",
+"o": [
+"%25",
+"%50",
+"%75",
+"%100"
+],
+"a": 1,
+"e": "VUK 339: vergi ziyaı cezası yüzde elli, usulsüzlük cezası yüzde yirmi beş artırılır."
+},
+{
+"id": 27,
+"k": "Ceza ve Suç",
+"q": "Usulsüzlük cezasında tekerrür için süre nasıl hesaplanır?",
+"o": [
+"Kesinleşmeyi izleyen günden itibaren 5. yılın sonuna kadar",
+"Kesinleşmeyi izleyen günden itibaren 2. yılın isabet ettiği takvim yılı sonuna kadar",
+"Ceza kesildiği yıl sonuna kadar",
+"1 yıl"
+],
+"a": 1,
+"e": "VUK 339: usulsüzlükte ikinci yılın, vergi ziyaında beşinci yılın isabet ettiği takvim yılı sonuna kadar."
+},
+{
+"id": 28,
+"k": "Ceza ve Suç",
+"q": "Cezayı gerektiren tek bir fiil ile vergi ziyaı ve usulsüzlük birlikte işlenirse hangisi uygulanır?",
+"o": [
+"İki ceza birlikte kesilir",
+"Miktar itibarıyla en ağır olanı kesilir",
+"Yalnız usulsüzlük cezası kesilir",
+"Cezalar toplanıp yarısı kesilir"
+],
+"a": 1,
+"e": "VUK 336/1."
+},
+{
+"id": 29,
+"k": "Ceza ve Suç",
+"q": "Sahte belge düzenleme veya kullanma suçunun (VUK 359/b) hapis cezası aralığı nedir?",
+"o": [
+"18 ay - 5 yıl",
+"2 - 5 yıl",
+"3 - 8 yıl",
+"5 - 10 yıl"
+],
+"a": 2,
+"e": "VUK 359/b: üç yıldan sekiz yıla kadar."
+},
+{
+"id": 30,
+"k": "Ceza ve Suç",
+"q": "Muhteviyatı itibarıyla yanıltıcı belge düzenleme veya kullanma suçunun hapis cezası aralığı nedir?",
+"o": [
+"18 ay - 5 yıl",
+"3 - 8 yıl",
+"1 - 3 yıl",
+"2 - 8 yıl"
+],
+"a": 0,
+"e": "VUK 359/a-2: on sekiz aydan beş yıla kadar."
+},
+{
+"id": 31,
+"k": "Ceza ve Suç",
+"q": "VUK'a göre 'sahte belge' nedir?",
+"o": [
+"Gerçek bir işleme dayanmakla birlikte miktarı gerçeğe aykırı belge",
+"Gerçek bir muamele veya durum olmadığı hâlde bunlar varmış gibi düzenlenen belge",
+"Zorunlu bilgileri eksik belge",
+"Süresinde düzenlenmeyen belge"
+],
+"a": 1,
+"e": "VUK 359/b son cümle."
+},
+{
+"id": 32,
+"k": "Ceza ve Suç",
+"q": "Gerçek bir muamele veya duruma dayanmakla birlikte bunu mahiyet veya miktar itibarıyla gerçeğe aykırı yansıtan belge hangisidir?",
+"o": [
+"Sahte belge",
+"Muhteviyatı itibarıyla yanıltıcı belge",
+"Hükümsüz belge",
+"Usulsüz belge"
+],
+"a": 1,
+"e": "VUK 359/a son cümle."
+},
+{
+"id": 33,
+"k": "Ceza ve Suç",
+"q": "Varlığı noter tasdik kayıtlarıyla sabit olduğu hâlde defter ve belgelerin incelemeye yetkili olanlara ibraz edilmemesi VUK 359/a uygulamasında nasıl kabul edilir?",
+"o": [
+"Usulsüzlük",
+"Gizleme",
+"Tahrif",
+"Yok etme"
+],
+"a": 1,
+"e": "VUK 359/a."
+},
+{
+"id": 34,
+"k": "Ceza ve Suç",
+"q": "Bakanlıkla anlaşması olmadığı hâlde belge basanlar veya bilerek kullananlar hangi aralıkta hapis cezası alır?",
+"o": [
+"18 ay - 5 yıl",
+"2 - 8 yıl",
+"3 - 8 yıl",
+"1 - 3 yıl"
+],
+"a": 1,
+"e": "VUK 359/c: iki yıldan sekiz yıla kadar."
+},
+{
+"id": 35,
+"k": "Ceza ve Suç",
+"q": "İnceleme sırasında VUK 359'daki suçları tespit eden vergi müfettişi ne yapar?",
+"o": [
+"Vergi dairesine yazı yazar, dairenin kararını bekler",
+"Rapor değerlendirme komisyonunun mütalaasıyla doğrudan Cumhuriyet başsavcılığına bildirir",
+"Mükellefi uyarır",
+"Ceza mahkemesine dava açar"
+],
+"a": 1,
+"e": "VUK 367/1."
+},
+{
+"id": 36,
+"k": "Ceza ve Suç",
+"q": "VUK 367'ye göre vergi kaçakçılığı suçlarında kamu davasının açılması neye bağlıdır?",
+"o": [
+"Vergi mahkemesi kararının kesinleşmesine",
+"İnceleme neticesinin Cumhuriyet başsavcılığına bildirilmesine",
+"Tarhiyatın kesinleşmesine",
+"Uzlaşma sonucuna"
+],
+"a": 1,
+"e": "VUK 367/3: kamu davasının açılması inceleme neticesinin bildirilmesine talik olunur."
+},
+{
+"id": 37,
+"k": "Ceza ve Suç",
+"q": "VUK 376'ya göre cezada indirimden yararlanmak için başvuru süresi nedir?",
+"o": [
+"İhbarnamenin tebliğinden itibaren 15 gün",
+"İhbarnamenin tebliğinden itibaren 30 gün",
+"60 gün",
+"Vade tarihine kadar"
+],
+"a": 1,
+"e": "VUK 376/1: tebliğ tarihinden itibaren otuz gün içinde başvuru."
+},
+{
+"id": 38,
+"k": "Ceza ve Suç",
+"q": "VUK 376 kapsamında indirilen ceza oranı (7524 s.K. sonrası) nedir?",
+"o": [
+"Üçte biri",
+"Yarısı",
+"Dörtte üçü",
+"Tamamı"
+],
+"a": 1,
+"e": "VUK 376/1: kesilen cezanın yarısı indirilir. Küçük tutarlı cezalardaki %75 indirimi düzenleyen bent 7524 s.K. ile 2024'te kaldırıldı."
+},
+{
+"id": 39,
+"k": "Ceza ve Suç",
+"q": "VUK 376 indiriminden yararlanan mükellef vergi ve kalan cezayı süresinde ödemez veya dava açarsa ne olur?",
+"o": [
+"İndirim devam eder",
+"İndirimden faydalandırılmaz",
+"Ceza iki katına çıkar",
+"Uzlaşmaya gidilir"
+],
+"a": 1,
+"e": "VUK 376/2."
+},
+{
+"id": 40,
+"k": "Ceza ve Suç",
+"q": "İzaha davet yazısının tebliğinden itibaren izah süresi nedir?",
+"o": [
+"15 gün",
+"30 gün",
+"60 gün",
+"3 ay"
+],
+"a": 1,
+"e": "VUK 370/a."
+},
+{
+"id": 41,
+"k": "Ceza ve Suç",
+"q": "Kendisine izaha davet yazısı tebliğ edilen mükellef, davet konusu tespitle sınırlı olarak hangi hükümden yararlanamaz?",
+"o": [
+"Uzlaşma",
+"Pişmanlık ve ıslah (VUK 371)",
+"Cezada indirim (VUK 376)",
+"Dava açma"
+],
+"a": 1,
+"e": "VUK 370/a."
+},
+{
+"id": 42,
+"k": "Ceza ve Suç",
+"q": "VUK 359'daki fiillerle vergi ziyaına sebebiyet verilmesi hâlinde tarhiyat sonrası uzlaşma hakkında hangisi doğrudur?",
+"o": [
+"Uzlaşma yapılabilir",
+"Uzlaşma kapsamı dışındadır",
+"Yalnız cezada uzlaşılır",
+"Yalnız vergi aslında uzlaşılır"
+],
+"a": 1,
+"e": "VUK Ek 1: 359'daki fiillerle vergi ziyaında kesilen ceza uzlaşma kapsamı dışında tutulmuştur."
+},
+{
+"id": 43,
+"k": "Ceza ve Suç",
+"q": "Pişmanlıkla haber verilen ve hiç verilmemiş beyannameler, haber verme tarihinden itibaren kaç gün içinde verilmelidir?",
+"o": [
+"7 gün",
+"15 gün",
+"30 gün",
+"60 gün"
+],
+"a": 1,
+"e": "VUK 371: on beş gün içinde."
+},
+{
+"id": 44,
+"k": "Ceza ve Suç",
+"q": "Gecikme faizi hangi kanun ve maddede düzenlenmiştir?",
+"o": [
+"6183 s.K. md. 51",
+"VUK md. 112",
+"GVK md. 94",
+"KDVK md. 29"
+],
+"a": 1,
+"e": "VUK 112. Gecikme zammı ise 6183 s.K. md. 51'dedir."
+},
+{
+"id": 45,
+"k": "Ceza ve Suç",
+"q": "Amme alacağının vadesinde ödenmemesi hâlinde uygulanan gecikme zammı hangi kanunda düzenlenmiştir?",
+"o": [
+"VUK",
+"6183 sayılı Kanun",
+"İYUK",
+"GVK"
+],
+"a": 1,
+"e": "6183 s.K. md. 51."
+},
+{
+"id": 46,
+"k": "KDV",
+"q": "KDVK 29/1-a'ya göre mükellefler hangi KDV'yi indirebilir?",
+"o": [
+"Ödedikleri her türlü KDV'yi",
+"Kendilerine yapılan teslim ve hizmetler dolayısıyla düzenlenen fatura ve benzeri vesikalarda gösterilen KDV'yi",
+"Yalnız ithalatta ödenen KDV'yi",
+"Yalnız sabit kıymet alımlarındaki KDV'yi"
+],
+"a": 1,
+"e": "KDVK 29/1-a."
+},
+{
+"id": 47,
+"k": "KDV",
+"q": "KDVK 34/1'e göre indirim hakkı hangi şarta bağlıdır?",
+"o": [
+"KDV'nin belgede ayrıca gösterilmesi ve belgenin kanuni defterlere kaydedilmesi",
+"Bedelin bankadan ödenmesi",
+"Satıcının vergisini ödemiş olması",
+"Noter onayı"
+],
+"a": 0,
+"e": "KDVK 34/1."
+},
+{
+"id": 48,
+"k": "KDV",
+"q": "İşletmelere ait binek otomobillerinin alış KDV'si hakkında hangisi doğrudur (kiralama işletmeleri hariç)?",
+"o": [
+"Tamamen indirilebilir",
+"Yarısı indirilebilir",
+"İndirilemez",
+"İade edilir"
+],
+"a": 2,
+"e": "KDVK 30/b."
+},
+{
+"id": 49,
+"k": "KDV",
+"q": "Bir dönemde indirilecek KDV, hesaplanan KDV'den fazla ise kural olarak ne olur?",
+"o": [
+"Fark iade edilir",
+"Fark sonraki dönemlere devrolunur ve iade edilmez",
+"Fark silinir",
+"Gelir vergisinden mahsup edilir"
+],
+"a": 1,
+"e": "KDVK 29/2."
+},
+{
+"id": 50,
+"k": "KDV",
+"q": "KDV indirim hakkı en geç ne zamana kadar kullanılabilir?",
+"o": [
+"Vergiyi doğuran olayın vuku bulduğu takvim yılı içinde",
+"Vergiyi doğuran olayın vuku bulduğu takvim yılını takip eden takvim yılı aşılmamak şartıyla, belgenin kanuni defterlere kaydedildiği dönemde",
+"5 yıl içinde",
+"Süre sınırı yoktur"
+],
+"a": 1,
+"e": "KDVK 29/3."
+},
+{
+"id": 51,
+"k": "KDV",
+"q": "Türkiye'de ikametgâhı, iş yeri, kanuni merkezi ve iş merkezi bulunmayanların işlemlerinde Bakanlık hangi yetkiye sahiptir?",
+"o": [
+"Vergiyi kaldırma",
+"İşleme taraf olanları verginin ödenmesinden sorumlu tutma",
+"İşlemi yasaklama",
+"Vergiyi yarıya indirme"
+],
+"a": 1,
+"e": "KDVK 9/1."
+},
+{
+"id": 52,
+"k": "Gelir ve Kurumlar",
+"q": "Örtülü sermayede borçların öz sermayenin kaç katını aşan kısmı örtülü sermaye sayılır?",
+"o": [
+"İki katını",
+"Üç katını",
+"Dört katını",
+"Beş katını"
+],
+"a": 1,
+"e": "KVK 12/1."
+},
+{
+"id": 53,
+"k": "Gelir ve Kurumlar",
+"q": "Örtülü sermaye karşılaştırmasında esas alınan öz sermaye hangisidir?",
+"o": [
+"Hesap dönemi sonundaki öz sermaye",
+"VUK'a göre tespit edilmiş hesap dönemi başındaki öz sermaye",
+"Ticari bilançodaki ortalama öz sermaye",
+"Ödenmiş sermaye"
+],
+"a": 1,
+"e": "KVK 12/3-b."
+},
+{
+"id": 54,
+"k": "Gelir ve Kurumlar",
+"q": "Örtülü sermayede 'ortakla ilişkili kişi' için aranan asgari pay oranı nedir?",
+"o": [
+"%5",
+"%10",
+"%25",
+"%50"
+],
+"a": 1,
+"e": "KVK 12/3-a."
+},
+{
+"id": 55,
+"k": "Gelir ve Kurumlar",
+"q": "Ortak veya ortakla ilişkili sayılan bankalardan (ana faaliyetine uygun) yapılan borçlanmalar örtülü sermaye karşılaştırmasında nasıl dikkate alınır?",
+"o": [
+"Hiç dikkate alınmaz",
+"%50 oranında",
+"%75 oranında",
+"Tamamı"
+],
+"a": 1,
+"e": "KVK 12/2."
+},
+{
+"id": 56,
+"k": "Gelir ve Kurumlar",
+"q": "Kurumların ilişkili kişilerle emsallere uygunluk ilkesine aykırı fiyatla mal veya hizmet alım-satımı nasıl nitelendirilir?",
+"o": [
+"Örtülü sermaye",
+"Transfer fiyatlandırması yoluyla örtülü kazanç dağıtımı",
+"Kanunen kabul edilmeyen gider",
+"Değer artış kazancı"
+],
+"a": 1,
+"e": "KVK 13/1."
+},
+{
+"id": 57,
+"k": "Gelir ve Kurumlar",
+"q": "KVK 13'e göre ortakların hangi akrabaları ilişkili kişi sayılır?",
+"o": [
+"Yalnız eşleri",
+"Eşleri, ortakların veya eşlerinin üstsoy ve altsoyu ile üçüncü derece dahil yansoy ve kayın hısımları",
+"Yalnız birinci derece akrabaları",
+"Akrabalar ilişkili kişi sayılmaz"
+],
+"a": 1,
+"e": "KVK 13/2."
+},
+{
+"id": 58,
+"k": "Gelir ve Kurumlar",
+"q": "GVK 94'e göre tevkifat ne zaman yapılır?",
+"o": [
+"Yıl sonunda",
+"Ödemeler nakden veya hesaben yapıldığı sırada (avanslar dahil)",
+"Beyanname verilirken",
+"Fatura düzenlenince"
+],
+"a": 1,
+"e": "GVK 94/1."
+},
+{
+"id": 59,
+"k": "Süreler ve Yargı",
+"q": "Vergi mahkemelerinde dava açma süresi (özel kanunlarda ayrı süre yoksa) nedir?",
+"o": [
+"15 gün",
+"30 gün",
+"60 gün",
+"90 gün"
+],
+"a": 1,
+"e": "İYUK 7/1."
+},
+{
+"id": 60,
+"k": "Süreler ve Yargı",
+"q": "İdare mahkemelerinde dava açma süresi (özel kanunlarda ayrı süre yoksa) nedir?",
+"o": [
+"30 gün",
+"45 gün",
+"60 gün",
+"90 gün"
+],
+"a": 2,
+"e": "İYUK 7/1."
+},
+{
+"id": 61,
+"k": "Süreler ve Yargı",
+"q": "Tarhiyat sonrası uzlaşma vaki olmazsa dava hangi süre içinde açılabilir?",
+"o": [
+"Her durumda 30 gün",
+"Kalan dava açma süresi içinde; bu süre 15 günden azsa tutanağın tebliğinden itibaren 15 gün",
+"60 gün",
+"Dava açılamaz"
+],
+"a": 1,
+"e": "VUK Ek 7."
+},
+{
+"id": 62,
+"k": "Süreler ve Yargı",
+"q": "VUK'a göre bir sürenin son günü resmî tatile rastlarsa süre ne zaman biter?",
+"o": [
+"Tatilin ilk günü",
+"Tatili takip eden ilk iş günü",
+"Bir gün önce",
+"Süre uzamaz"
+],
+"a": 1,
+"e": "VUK 18."
+},
+{
+"id": 63,
+"k": "Süreler ve Yargı",
+"q": "Hapis cezasının üst sınırı 5 yılı geçmeyen suçlarda olağan dava zamanaşımı süresi nedir?",
+"o": [
+"5 yıl",
+"8 yıl",
+"10 yıl",
+"15 yıl"
+],
+"a": 1,
+"e": "TCK 66/1-e."
+},
+{
+"id": 64,
+"k": "Süreler ve Yargı",
+"q": "Sahte belge düzenleme suçunda (VUK 359/b, üst sınır 8 yıl) olağan dava zamanaşımı süresi nedir?",
+"o": [
+"8 yıl",
+"10 yıl",
+"15 yıl",
+"20 yıl"
+],
+"a": 2,
+"e": "TCK 66/1-d: beş yıldan fazla ve yirmi yıldan fazla olmamak üzere hapis cezasını gerektiren suçlarda on beş yıl."
+}
+]
+}
