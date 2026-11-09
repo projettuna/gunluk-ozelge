@@ -1,0 +1,48 @@
+"""Rapor taslağı uçtan uca testi: geçici kullanıcı açar, /api/taslak'ı dener, kullanıcıyı siler.
+Depo herkese açık olduğu için yalnızca durum kodları, uzunluklar ve hata metni yazdırılır."""
+import json, os, secrets, time
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError
+
+URL = os.environ["SUPABASE_URL"].rstrip("/")
+KEY = os.environ["SUPABASE_SERVICE_KEY"]
+PUB = os.environ["SUPABASE_PUBLISHABLE_KEY"]
+SITE = "https://tmpro.tmproapp.workers.dev"
+
+
+def call(method, url, body=None, h=None, timeout=30):
+    req = Request(url, data=json.dumps(body).encode() if body is not None else None, headers={"Content-Type": "application/json", **(h or {})}, method=method)
+    try:
+        with urlopen(req, timeout=timeout) as r:
+            t = r.read().decode()
+            return r.status, (json.loads(t) if t else None)
+    except HTTPError as e:
+        t = e.read().decode()
+        try:
+            return e.code, json.loads(t)
+        except ValueError:
+            return e.code, t[:300]
+
+
+S = {"apikey": KEY, "Authorization": f"Bearer {KEY}"} if KEY.startswith("eyJ") else {"apikey": KEY}
+name, pw = "test" + secrets.token_hex(3), secrets.token_urlsafe(12)
+st, u = call("POST", URL + "/auth/v1/admin/users", {"email": f"{name}@tmpro.app", "password": pw, "email_confirm": True, "user_metadata": {"username": name, "full_name": "Test"}}, S)
+uid = u["id"]
+try:
+    call("PATCH", f"{URL}/rest/v1/profiles?id=eq.{uid}", {"status": "active"}, S)
+    st2, tok = call("POST", URL + "/auth/v1/token?grant_type=password", {"email": f"{name}@tmpro.app", "password": pw}, {"apikey": PUB})
+    print("kullanıcı:", st, "giriş:", st2)
+    A = {"Authorization": "Bearer " + tok["access_token"], "User-Agent": "TMPRO-test"}
+    st, r = call("POST", SITE + "/api/taslak", {"tur": "inceleme", "konu": "sahte_kullanma", "aciklama": "ABC Gıda A.Ş."}, A)
+    print("kimlik bilgisiyle:", st, (r or {}).get("error", "")[:80] if isinstance(r, dict) else r, "(beklenen 422)")
+    t0 = time.time()
+    st, r = call("POST", SITE + "/api/taslak", {"tur": "inceleme", "konu": "sahte_kullanma", "donem": "2024", "aciklama": ""}, A, timeout=280)
+    print("taslak:", st, f"{time.time() - t0:.0f} sn")
+    if isinstance(r, dict):
+        print("hata:", r.get("error"))
+        print("uzunluk:", len(r.get("draft") or ""), "kaynak:", len(r.get("sources") or []), "düşülen hak:", r.get("cost"), "kota:", r.get("quota"))
+        print("yer tutucu sayısı:", (r.get("draft") or "").count("["))
+    else:
+        print("yanıt:", str(r)[:200])
+finally:
+    print("silindi:", call("DELETE", f"{URL}/auth/v1/admin/users/{uid}", None, S)[0])
