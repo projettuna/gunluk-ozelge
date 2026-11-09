@@ -72,8 +72,27 @@ def ozet_of(url, desc):
     return (out[:1400].rsplit(" ", 1)[0] + "…" if len(out) > 1400 else out), img
 
 
-def fetch_news(known=frozenset(), max_pages=30):
-    out, seen, pages = [], set(), 0
+STOP = {"ve", "ile", "için", "bir", "bu", "da", "de", "mi", "mı", "son", "dakika", "flaş", "açıklama", "açıkladı", "geldi",
+        "oldu", "olan", "olarak", "yeni", "gibi", "kadar", "daha", "çok", "en", "ne", "nasıl", "neler", "nedir", "işte", "belli"}
+
+
+def stems(title):
+    """Başlığın kaba kök kümesi (Türkçe ekler için ilk 5 harf)."""
+    t = title.replace("İ", "i").replace("I", "ı").lower()
+    return {w[:5] for w in re.findall(r"[a-zçğıöşü0-9]+", t) if len(w) > 2 and w not in STOP}
+
+
+def same_story(a, b):
+    """İki başlık aynı haberi mi anlatıyor? (farklı sitelerde farklı yazılmış başlıklar)"""
+    if not a or not b:
+        return False
+    common = len(a & b)
+    return common >= 3 and common / min(len(a), len(b)) >= 0.6
+
+
+def fetch_news(known=frozenset(), max_pages=30, existing=()):
+    """existing: [(url, kök kümesi)] son günlerde kayıtlı haberler; aynı konudaki başka sitenin haberi eklenmez."""
+    out, seen, pages, kept, dup = [], set(), 0, list(existing), 0
     for src, feed in FEEDS:
         try:
             raw, ct = metin.fetch(feed, timeout=25)
@@ -88,6 +107,11 @@ def fetch_news(known=frozenset(), max_pages=30):
             if not title or not link.startswith("http") or key in seen or SKIP.search(title) or not KEY.search(title + " " + desc):
                 continue
             seen.add(key)
+            st = stems(title)
+            if any(u != link and same_story(st, k) for u, k in kept):
+                dup += 1
+                continue
+            kept.append((link, st))
             try:
                 when = parsedate_to_datetime(clean(g("pubDate"))).astimezone(timezone.utc)
             except (TypeError, ValueError):
@@ -106,7 +130,23 @@ def fetch_news(known=frozenset(), max_pages=30):
                 row["ozet"] = desc or None
                 row["image"] = html.unescape(rimg.group(1))[:500] if rimg else ""
             out.append(row)
+    fetch_news.dup = dup
     return out
+
+
+def merge_dups(db, rows):
+    """Daha önce kaydedilmiş aynı konulu haberlerden yalnızca ilk yayımlananı bırakır."""
+    rows = sorted(rows, key=lambda r: (r.get("published") or "", r["id"]))
+    keep, drop = [], []
+    for r in rows:
+        st = stems(r["title"])
+        if any(same_story(st, k) for k in keep):
+            drop.append(r["id"])
+        else:
+            keep.append(st)
+    for i in range(0, len(drop), 100):
+        db("DELETE", "news?id=in.(" + ",".join(str(x) for x in drop[i:i + 100]) + ")", prefer="return=minimal")
+    return len(drop)
 
 
 def run(db):
@@ -121,7 +161,10 @@ def run(db):
         has_ozet = True
     except Exception:  # noqa: BLE001  (haber_ozet.sql henüz çalıştırılmadı)
         known, has_ozet = set(), False
-    items = fetch_news(known if has_ozet else frozenset(), 30 if has_ozet else 0)
+    recent = db("GET", f"news?select=id,url,title,published&published=gte.{since}&order=published.asc&limit=2000") or []
+    merged = merge_dups(db, recent)
+    alive = (db("GET", f"news?select=url,title&published=gte.{since}&order=published.asc&limit=2000") or []) if merged else recent
+    items = fetch_news(known if has_ozet else frozenset(), 30 if has_ozet else 0, [(r["url"], stems(r["title"])) for r in alive])
     groups = [[x for x in items if "ozet" in x], [x for x in items if "ozet" not in x]]
     for grp in groups:
         drop = ({"ozet"} if not has_ozet else set()) | ({"image"} if not has_img else set())
@@ -133,6 +176,7 @@ def run(db):
     db("DELETE", "news?url=like.*muhasebetr.com*", prefer="return=minimal")  # müfettişler için uygun bulunmadı
     old = (datetime.now(timezone.utc) - timedelta(days=60)).strftime("%Y-%m-%dT%H:%M:%SZ")
     db("DELETE", f"news?published=lt.{old}", prefer="return=minimal")
+    print(f"Haberler: aynı konulu {getattr(fetch_news, 'dup', 0)} yeni haber atlandı, {merged} eski tekrar silindi")
     print(f"Haberler: {len(items)} bulundu, özetli yeni {sum(1 for x in items if x.get('ozet'))}, Dünya: {sum(1 for x in items if x['konu'] == 'Dünya')}"
           + f", görselli {sum(1 for x in items if x.get('image'))}" + ("" if has_ozet else " (özet kolonu yok: haber_ozet.sql)") + ("" if has_img else " (görsel kolonu yok: haber_gorsel.sql)"))
 
