@@ -163,7 +163,16 @@ async function danistayLive(q) {
   return [];
 }
 // Danıştay karar aramasından birden çok kararın tam metni (içtihat yönü için)
+// Canlı Danıştay listesi: aynı ifade 6 saat önbellekte tutulur; boş dönerse bir kez daha denenir (kaynak zaman zaman yanıt vermiyor)
 async function danistayList(q, n) {
+  const c = caches.default, k = new Request("https://cache.tmpro/dl2/" + encodeURIComponent(q.toLocaleLowerCase("tr")) + "/" + n);
+  try { const hit = await c.match(k); if (hit) return await hit.json(); } catch {}
+  let out = await danistayList0(q, n);
+  if (!out.length) { await new Promise(r => setTimeout(r, 800)); out = await danistayList0(q, n); }
+  if (out.length) try { await c.put(k, new Response(JSON.stringify(out), { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=21600" } })); } catch {}
+  return out;
+}
+async function danistayList0(q, n) {
   try {
     const r = await fetch("https://karararama.danistay.gov.tr/aramalist", { method: "POST", headers: { "Content-Type": "application/json; charset=UTF-8", "User-Agent": "Mozilla/5.0" },
       body: JSON.stringify({ data: { andKelimeler: q.split(/\s+/).filter(w => w.length >= 3), pageSize: Math.min(20, n), pageNumber: 1 } }), signal: AbortSignal.timeout(8000) });
@@ -335,7 +344,7 @@ async function emsal(req, env) {
   const yg = x => /Yargıtay/i.test(x.tur || "");
   if (!ara?.ceza) rows = rows.filter(x => !yg(x));
   const liveQ = ara ? (CQ[konuKey] || ara.p.filter(x => !x.includes("_"))[0] || konu) : konu;
-  let live = (await danistayList(liveQ, 6).catch(() => [])) || [];
+  let live = (await danistayList(liveQ, 10).catch(() => [])) || [];
   if (!live.length && ara) live = (await danistayList(ara.p.find(x => !x.includes("_") && x !== liveQ) || konu.split(",")[0], 5).catch(() => [])) || [];
   const score = x => { const tl = x.title || "", ml = x.metin || x.ozet || "";
     if (res.length) return res.reduce((a, re) => a + 8 * (tl.match(re) || []).length + Math.min(12, (ml.match(re) || []).length), 0);
