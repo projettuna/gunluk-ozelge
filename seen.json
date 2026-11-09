@@ -76,5 +76,9 @@
  ],
  "rg_seen": [],
  "no_ozelge_notice": "08.11.2026",
- "last_ozelge_mail": "09.11.2026"
+ "last_ozelge_mail": "09.11.2026",
+ "release_notified": "2.7",
+ "release_day": {
+  "2.7": "2026-11-09"
+ }
 }
