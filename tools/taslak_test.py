@@ -42,7 +42,7 @@ try:
     st, r = call("POST", SITE + "/api/taslak", {"tur": "inceleme", "konu": "sahte_kullanma", "aciklama": "ABC Gıda A.Ş."}, A)
     print("kimlik bilgisiyle:", st, (r or {}).get("error", "")[:80] if isinstance(r, dict) else r, "(beklenen 422)")
     t0 = time.time()
-    st, r = call("POST", SITE + "/api/taslak", {"tur": "inceleme", "konu": "sahte_kullanma", "donem": "2024", "aciklama": ""}, A, timeout=280)
+    st, r = call("POST", SITE + "/api/taslak", {"tur": "inceleme", "konu": "sahte_kullanma", "donem": "2024", "aciklama": ""}, A, timeout=540)
     print("taslak:", st, f"{time.time() - t0:.0f} sn")
     if isinstance(r, dict):
         print("hata:", r.get("error"))

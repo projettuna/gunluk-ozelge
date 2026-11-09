@@ -337,13 +337,23 @@ Kurallar:
     ["sahte_kullanma", "sahte_duzenleme", "yaniltici"].includes(konuKey) ? "Özel usulsüzlük cezasına (VUK 353) yer verme." : "",
   ].filter(Boolean);
   const user = `Rapor türü: ${TASLAK_TURLER[tur]}\nKonu: ${konu}${donem ? `\nİncelenen dönem: ${donem}` : ""}${aciklama ? `\nGenel açıklama (mükellef bilgisi içermez): ${aciklama}` : ""}${zorunlu.length ? "\nZorunlu kurallar:\n- " + zorunlu.join("\n- ") : ""}\n\n(Uygulamadaki ilgili kaynaklar:)\n${ctx || "(Eşleşen kaynak bulunamadı.)"}`;
-  // Sonnet 5.5'te düşünme varsayılan açık ve tüm çıktı bütçesini harcayabiliyor: taslak için kapatılır (between_tools = en düşük düşünme)
-  const body = { model: env.ASK_MODEL || "claude-sonnet-5-5", max_tokens: 10000, thinking: { type: "between_tools" }, system, messages: [{ role: "user", content: user }] };
+  // En yüksek doğruluk: Opus 5.5, uyarlamalı düşünme, yüksek efor. Uzun sürebildiği için akış (stream) ile alınır.
+  const body = { model: env.TASLAK_MODEL || "claude-opus-5-5", max_tokens: 32000, stream: true, output_config: { effort: env.TASLAK_EFFORT || "high" }, system, messages: [{ role: "user", content: user }] };
   const call = b => fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify(b) });
   let r = await call(body);
-  if (r.status === 400) { delete body.thinking; body.max_tokens = 16000; r = await call(body); }  // model bu ayarı desteklemiyorsa düşünmeyle, geniş bütçeyle dene
+  if (r.status === 400) { delete body.output_config; r = await call(body); }
   if (!r.ok) { let m = ""; try { m = (await r.json())?.error?.message || ""; } catch {} return Response.json({ error: "Yapay zekâ yanıt vermedi (" + r.status + ") " + m.slice(0, 120) }, { status: 502 }); }
-  const d = await r.json();
+  const d = { content: [{ type: "text", text: "" }], model: "", stop_reason: "", usage: {} }, kinds = new Set();
+  { const rd = r.body.getReader(), dec = new TextDecoder(); let buf = "";
+    for (;;) { const { value, done } = await rd.read(); if (done) break; buf += dec.decode(value, { stream: true });
+      let k; while ((k = buf.indexOf("\n\n")) >= 0) { const ev = buf.slice(0, k); buf = buf.slice(k + 2);
+        const line = ev.split("\n").find(x => x.startsWith("data: ")); if (!line) continue; let e; try { e = JSON.parse(line.slice(6)); } catch { continue; }
+        if (e.type === "message_start") { d.model = e.message?.model; d.usage.input_tokens = e.message?.usage?.input_tokens; }
+        else if (e.type === "content_block_start") kinds.add(e.content_block?.type);
+        else if (e.type === "content_block_delta" && e.delta?.type === "text_delta") d.content[0].text += e.delta.text;
+        else if (e.type === "message_delta") { d.stop_reason = e.delta?.stop_reason || d.stop_reason; d.usage.output_tokens = e.usage?.output_tokens; }
+        else if (e.type === "error") return Response.json({ error: "Yapay zekâ yanıtı yarıda kesildi, tekrar deneyin (" + (e.error?.type || "hata") + ")" }, { status: 502 }); } } }
+  if (!d.content[0].text) d.content = [...kinds].map(t => ({ type: t }));
   let draft = (d.content || []).filter(b => b.type === "text").map(b => b.text).join("").replace(/\*\*|^#+\s*/gm, "").trim();
   if (draft && d.stop_reason === "max_tokens") draft += "\n\n(Taslak uzunluk sınırında kesildi; kalan kısmı için konuyu daraltıp \"Tek Bölüm\" seçeneğiyle tekrar deneyebilirsiniz.)";
   if (!draft) return Response.json({ error: `Taslak üretilemedi, tekrar deneyin (${d.stop_reason || "?"}; ${(d.content || []).map(b => b.type).join(",") || "boş"})` }, { status: 502 });
