@@ -1,5 +1,5 @@
 {
- "last_id": 39068,
+ "last_id": 39102,
  "updated": "2026-11-07T14:58:44+03:00",
  "karar_seen": [
   "1222018300",
@@ -75,5 +75,6 @@
   "a197642b-592f-0273-fcf4-c14f6dd49c2c"
  ],
  "rg_seen": [],
- "no_ozelge_notice": "08.11.2026"
+ "no_ozelge_notice": "08.11.2026",
+ "last_ozelge_mail": "09.11.2026"
 }
