@@ -701,6 +701,7 @@ body.home::before{opacity:.85}
     <label class="field"><span>Şifre (En Az 8 Karakter)</span><input placeholder="Şifre (En Az 8 Karakter)" aria-label="Şifre (En Az 8 Karakter)" name="password" type="password" autocomplete="new-password" minlength="8" required></label>
     <label class="field"><span>Ünvan (İsteğe Bağlı)</span><input placeholder="Ünvan (İsteğe Bağlı)" aria-label="Ünvan" name="unvan" list="unvanlar" maxlength="60"></label>
     <label class="field"><span>Telefon (İsteğe Bağlı)</span><input placeholder="Telefon (İsteğe Bağlı)" aria-label="Telefon (İsteğe Bağlı)" name="phone" type="tel" autocomplete="tel"></label>
+    <label class="field"><span>Davet Kodu (Varsa)</span><input placeholder="Davet Kodu (Varsa)" aria-label="Davet Kodu" name="invite" id="inviteIn" maxlength="6" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:1px"></label>
     </div>
     <label class="kchk"><input type="checkbox" name="k1" required><span><a href="hukuki.html#sartlar" target="_blank">Kullanım Şartları</a>, <a href="hukuki.html#satis" target="_blank">Ön Bilgilendirme</a> ve <a href="hukuki.html#aydinlatma" target="_blank">Aydınlatma Metni</a>'ni okudum, kabul ediyorum. Hizmetin ödeme onayıyla hemen başlamasını ve bu nedenle cayma hakkım olmadığını kabul ediyorum.</span></label>
     <label class="kchk"><input type="checkbox" name="k2" required><span>Kişisel verilerimin <a href="hukuki.html#riza" target="_blank">Açık Rıza Metni</a>'nde belirtilen yurt dışındaki hizmet sağlayıcılara aktarılmasına açık rıza veriyorum.</span></label>
@@ -912,8 +913,13 @@ $("signupForm").addEventListener("submit", async e => {
   btn.disabled = false;
   if(error){ $("signupErr").textContent = error.message.includes("Password") ? "Şifre en az 8 karakter olmalı." : "Talep oluşturulamadı: " + error.message; return; }
   try{ await sb.rpc("accept_terms", { v: KVKK_V, yd: true, ua: navigator.userAgent }); }catch{}
+  const inv = String(f.get("invite") || "").trim();
+  if(inv){ try{ await sb.rpc("set_referrer", { code: inv }); }catch{} }
   boot();
 });
+// Davet bağlantısı: ?davet=KOD → kayıt formu açılır, kod hazır yazılır
+{ const dv = new URLSearchParams(location.search).get("davet");
+  if(dv && /^[A-Za-z0-9]{6}$/.test(dv)){ $("inviteIn").value = dv.toUpperCase(); setTimeout(async () => { const { data: { session } } = await sb.auth.getSession(); if(!session) authMode("signupForm"); }, 300); } }
 
 /* ---------------- açılış ---------------- */
 async function loadSettings(){
@@ -2485,6 +2491,10 @@ async function renderAccount(){
     <div class="foot">Sabah bildiriminde bulunduğunuz yerin hava durumu, buzlanma ve yağış uyarıları, resmî tatiller ve takviminize eklediğiniz günler yer alır.</div>
     <div class="sect">Bildirim Gelecek Türler</div>
     <div class="list" id="typeList">${ORDER.map(t => `<div class="li"><div class="tdot" style="--c:var(${TYPES[t]})">${icon(t, 17)}</div><div class="grow"><b>${esc(t)}</b></div><label class="switch"><input type="checkbox" data-type="${esc(t)}" ${types.includes(t) ? "checked" : ""}><span></span></label></div>`).join("")}</div>
+    <div class="sect">Davet Et, 1 Ay Kazan</div>
+    <div class="list"><div class="li" style="display:block;padding:14px 16px"><div class="row" style="display:flex;align-items:center;gap:12px"><div class="grow" style="flex:1"><small style="color:var(--muted)">Davet kodunuz</small><b style="display:block;font-size:24px;letter-spacing:3px">${esc(me.friend_code || "······")}</b></div><button class="btn small" id="refShare" style="width:auto;padding:0 18px">Paylaş</button></div>
+      <small id="refStat" style="display:block;margin-top:8px;color:var(--muted)"></small></div></div>
+    <div class="foot">Meslektaşınız kayıt olurken bu kodu yazsın. Aboneliği onaylanınca sizin aboneliğinize <b>30 gün hediye</b> eklenir. Davet sayısı sınırsız.</div>
     <div class="sect">Görünüm</div>
     <div class="seg" id="themeSeg">${["auto:Otomatik","light:Açık","dark:Koyu"].map(x => { const [k, l] = x.split(":"); return `<button data-th="${k}" class="${getTheme() === k ? "on" : ""}">${l}</button>`; }).join("")}</div>
     <div class="foot" style="margin-top:0">Otomatik, telefonunuzun açık/koyu ayarını izler.</div>
@@ -2519,6 +2529,12 @@ async function renderAccount(){
   };
   $("chatNotify").onchange = async e => { const on = e.target.checked; const { error } = await sb.rpc("set_chat_notify", { enabled: on }); if(error){ e.target.checked = !on; toast("Kaydedilemedi"); return; } me.chat_notify = on; toast(on ? "Sohbet Bildirimleri açık" : "Sohbet Bildirimleri kapalı"); };
   $("weekPeek").onclick = openWeekly;
+  sb.rpc("my_referrals").then(({ data }) => { if(data && $("refStat")) $("refStat").textContent = data.katilan || data.bekleyen ? `Davetinizle katılan: ${data.katilan || 0}${data.bekleyen ? ` · onay bekleyen: ${data.bekleyen}` : ""}${data.katilan ? ` · kazanılan: ${data.katilan * 30} gün` : ""}` : "Henüz davetle katılan yok."; }, () => {});
+  $("refShare").onclick = async () => {
+    const link = location.origin + "/?davet=" + (me.friend_code || ""), text = `Vergi müfettişleri için mevzuat, özelge ve karar takibi: TMPRO. Kayıt olurken davet kodumu yazın: ${me.friend_code}`;
+    try{ if(navigator.share){ await navigator.share({ title: "TMPRO", text, url: link }); track("davet"); return; } }catch(e){ if(e?.name === "AbortError") return; }
+    try{ await navigator.clipboard.writeText(text + " " + link); toast("Davet metni kopyalandı"); }catch{ toast(link, 5000); }
+  };
   $("weeklyOn").onchange = async e => { const on = e.target.checked; const { error } = await sb.rpc("set_weekly", { enabled: on }); if(error){ e.target.checked = !on; toast("Kaydedilemedi"); return; } me.weekly_on = on; toast(on ? "Haftalık özet açık" : "Haftalık özet kapalı"); };
   $("morningOn").onchange = async e => { const on = e.target.checked; const { error } = await sb.rpc("set_morning", { enabled: on }); if(error){ e.target.checked = !on; toast("Kaydedilemedi"); return; } me.morning_on = on; toast(on ? "Günaydın bildirimi açık" : "Günaydın bildirimi kapalı"); };
   $("locSet").onclick = () => askLocation();
@@ -2563,6 +2579,7 @@ async function renderAdmin(){
   const person = (u, actions) => `<div class="li" style="display:block"><div class="row"><div class="grow"><b>${esc(u.full_name || u.username)}</b>
       <small>${u.unvan ? esc(u.unvan) + " · " : ""}@${esc(u.username)}${u.email ? " · " + esc(u.email) : ""}${u.phone ? " · " + esc(u.phone) : ""} · Kod: ${esc(u.pay_code || "")}</small>
       <small>Talep: ${fmtDate(u.created_at)}${u.expires_at ? " · Bitiş: " + fmtDate(u.expires_at) : u.status === "active" ? " · Süresiz" : ""}</small>
+      ${u.referred_by ? `<small style="color:var(--gold)">🎁 Davet eden: ${esc((users.find(x => x.id === u.referred_by) || {}).full_name || "üye")}${u.referral_rewarded ? " · 30 gün hediye eklendi" : " · onaylayınca davet edene 30 gün eklenir"}</small>` : ""}
       ${u.status === "active" || u.role === "admin" ? verLine(u) : ""}</div>
       ${statusPill(u)}</div><div class="acts2">${actions(u)}${u.role === "admin" ? "" : `<button class="btn small ghost" data-act="pw" data-id="${u.id}">Şifre Belirle</button><button class="btn small ghost" data-act="del" data-id="${u.id}">Sil</button><button class="btn small danger" data-act="ban" data-id="${u.id}">Engelle</button>`}</div></div>`;
   let body = "";
