@@ -311,7 +311,9 @@ async function taslak(req, env) {
     return ws.reduce((a, w) => a + 6 * (tll.split(w).length - 1) + Math.min(15, mll.split(w).length - 1), 0); };
   const MIN = res.length ? 9 : 20;
   const local = rows.map(x => ({ x, sc: score(x) })).filter(o => o.sc >= MIN).sort((a, b) => b.sc - a.sc).map(o => o.x);
-  const picked = [...live.slice(0, 3), ...local.filter(x => KARAR.test(x.tur)).slice(0, 4), ...local.filter(x => !KARAR.test(x.tur)).slice(0, 2)].slice(0, 8);
+  const yg = x => /Yargıtay/i.test(x.tur || "");  // inceleme raporu/VTR'de ceza kararı en fazla 1, suç raporunda öncelikli
+  const kar = local.filter(x => KARAR.test(x.tur) && !yg(x)), ceza = local.filter(yg);
+  const picked = [...(tur === "suc" ? ceza.slice(0, 4) : []), ...live.slice(0, 3), ...kar.slice(0, 4), ...(tur === "suc" ? [] : ceza.slice(0, 1)), ...local.filter(x => !KARAR.test(x.tur)).slice(0, 2)].slice(0, 8);
   const sources = picked.map((x, i) => ({ n: i + 1, id: x.id || null, url: x.id ? null : x.url, tur: x.tur, title: x.title, meta: x.meta }));
   const exWs = res.length ? ara.p.map(p => p.split("_")[0].toLocaleLowerCase("tr")).filter(w => w.length > 3) : ws;
   const ctx = picked.map((x, i) => `[${i + 1}] ${x.tur} · ${x.title}${x.meta ? " · " + x.meta : ""}\n${excerpt(x.metin || x.ozet || "", exWs, 2500)}`).join("\n\n---\n\n");
