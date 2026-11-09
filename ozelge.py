@@ -1010,6 +1010,12 @@ def main():
         except Exception as e:  # noqa: BLE001
             print(f"Sürüm hatırlatması gönderilemedi: {type(e).__name__}")
         try:
+            import haftalik
+            haftalik.run(db, state, test="--weekly-test" in sys.argv, muted=muted)
+            save_state(state)
+        except Exception as e:  # noqa: BLE001
+            print(f"Haftalık özet gönderilemedi: {type(e).__name__}")
+        try:
             send_member_mails()
         except Exception as e:  # noqa: BLE001
             print(f"Üye e-postaları gönderilemedi: {str(e)[:200]}")

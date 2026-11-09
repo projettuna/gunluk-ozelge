@@ -57,6 +57,10 @@ on:
         description: "Kayıtlı cihazlara deneme bildirimi gönder"
         type: boolean
         default: false
+      weekly_test:
+        description: "Haftalık özet: şimdi yalnızca yöneticilere deneme gönder"
+        type: boolean
+        default: false
       morning_test:
         description: "Günaydın bildirimi: önizleme + yöneticilere deneme"
         type: boolean
@@ -116,7 +120,7 @@ jobs:
             echo; exit 0
           fi
           if [ "${{ inputs.chat_test }}" = "true" ]; then SUPABASE_PUBLISHABLE_KEY=sb_publishable_tlfwqtscxxv2vdSHe3PstQ_XO1db8p9 python tools/chat_test.py; exit 0; fi
-          python ozelge.py ${{ inputs.seed && '--seed' || '' }} ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.resend && '--resend' || '' }} ${{ inputs.resend_karar && '--resend-karar' || '' }} ${{ inputs.migrate && '--migrate' || '' }} ${{ inputs.test_push && '--test-push' || '' }} ${{ inputs.diag && '--diag' || '' }} ${{ (github.event.schedule == '*/5 21 * * *' || inputs.auto == 'rg') && '--only-rg' || '' }}
+          python ozelge.py ${{ inputs.seed && '--seed' || '' }} ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.resend && '--resend' || '' }} ${{ inputs.resend_karar && '--resend-karar' || '' }} ${{ inputs.migrate && '--migrate' || '' }} ${{ inputs.test_push && '--test-push' || '' }} ${{ inputs.diag && '--diag' || '' }} ${{ inputs.weekly_test && '--weekly-test' || '' }} ${{ (github.event.schedule == '*/5 21 * * *' || inputs.auto == 'rg') && '--only-rg' || '' }}
       - name: Durumu kaydet
         run: |
           [ -f seen.json ] || [ -f docs/feed.json ] || exit 0

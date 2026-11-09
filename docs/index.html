@@ -1036,6 +1036,7 @@ async function boot(){
   const qb = new URLSearchParams(location.search).get("bildirim");
   if(qb){ history.replaceState(null, "", location.pathname); showNtfAt(qb); }
   if(new URLSearchParams(location.search).has("takip")){ history.replaceState(null, "", location.pathname); tab = "watch"; render(); }
+  if(new URLSearchParams(location.search).has("hafta")){ history.replaceState(null, "", location.pathname); openWeekly(); }
   if(tab === "chat") render();
 }
 function renderPending(){
@@ -1818,8 +1819,32 @@ function ntfKind(n){
   return ["--t-teblig", '<path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'];
 }
 function agoText(t){ const m = Math.round((Date.now() - t) / 60e3); if(m < 1) return "Şimdi"; if(m < 60) return m + " dk"; const h = Math.round(m / 60); if(h < 24) return h + " sa"; return new Date(t).toLocaleDateString("tr-TR", { day: "numeric", month: "short" }); }
+/* ---------------- haftalık özet ---------------- */
+const WEEK_PRI = ["Kanun", "CB Kararı", "Tebliğ", "Sirküler", "İç Genelge", "Anayasa Mahkemesi", "Danıştay (VUK 359)", "Yargıtay (Ceza)", "Resmî Gazete", "Özelge"];
+function openWeekly(){
+  closeSheet();
+  const since = Date.now() - 7 * 864e5;
+  const wk = items.filter(x => x.eklendi && new Date(x.created_at || x.eklendi).getTime() >= since);
+  const counts = {}; wk.forEach(x => counts[x.tur] = (counts[x.tur] || 0) + 1);
+  const pri = t => { const i = WEEK_PRI.indexOf(t); return i < 0 ? 99 : i; };
+  const order = Object.keys(counts).sort((a, b) => pri(a) - pri(b));
+  const top = [...wk].sort((a, b) => pri(a.tur) - pri(b.tur) || b.id - a.id).slice(0, 8);
+  const el = document.createElement("div"); el.className = "sheetwrap"; el.id = "sheet";
+  el.innerHTML = `<div class="sheet"><div class="stitle">Haftanın Özeti</div>
+    <div class="foot" style="margin:-4px 4px 10px">Son 7 günde eklenen ${wk.length} kayıt</div>
+    ${wk.length ? `<div class="list">${order.map(t => `<button data-t="${esc(t)}" class="li" style="padding:10px 12px"><div class="tdot" style="--c:var(${TYPES[t] || "--accent"})">${icon(t, 16)}</div><div class="grow"><b>${esc(t)}</b></div><span class="pill">${counts[t]}</span></button>`).join("")}</div>
+      <div class="sect">Öne Çıkanlar</div><div class="list">${top.map(x => `<button data-id="${x.id}" class="li" style="padding:10px 12px;display:block"><small style="color:var(--muted)">${esc(x.tur)}</small><b style="display:block;font-weight:550;line-height:1.35">${esc(x.title)}</b></button>`).join("")}</div>`
+      : `<div class="empty">Bu hafta yeni kayıt yok.</div>`}
+    <button data-a="x" class="cancel">Kapat</button></div>`;
+  document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
+  el.onclick = e => { if(e.target === el) return closeSheet(); const b = e.target.closest("button"); if(!b) return;
+    if(b.dataset.a === "x") return closeSheet();
+    if(b.dataset.id){ closeSheet(); openReader(+b.dataset.id); }
+    if(b.dataset.t){ closeSheet(); tab = "feed"; filter = b.dataset.t; render(); scrollTo({ top: 0 }); } };
+}
+
 /* ---------------- süreli susturma ---------------- */
-const MUTE_KEYS = () => [["hepsi", "Tüm bildirimler"], ["mevzuat", "Mevzuat ve kararlar (hepsi)"], ...ORDER.map(t => [t, t]), ["takip", "Takip Listem"], ["sohbet", "Sohbet"], ["gunaydin", "Günaydın"]];
+const MUTE_KEYS = () => [["hepsi", "Tüm bildirimler"], ["mevzuat", "Mevzuat ve kararlar (hepsi)"], ...ORDER.map(t => [t, t]), ["takip", "Takip Listem"], ["sohbet", "Sohbet"], ["gunaydin", "Günaydın"], ["haftalik", "Haftalık Özet"]];
 const muteLabel = k => (MUTE_KEYS().find(x => x[0] === k) || [k, k])[1];
 const activeMutes = () => Object.entries(me?.mute || {}).filter(([, v]) => new Date(v) > new Date()).sort((a, b) => a[0] === "hepsi" ? -1 : 0);
 const untilText = v => { const d = new Date(v), today = new Date().toDateString() === d.toDateString();
@@ -1883,6 +1908,7 @@ async function renderInbox(){
 function ntfTarget(n){
   let u; try{ u = new URL(n.url || "./", location.href); }catch{ return null; }
   if(u.searchParams.get("room")) return ["Sohbete git", async () => { await fetchNewMsgs(); tab = "chat"; room = u.searchParams.get("room"); render(); }];
+  if(u.searchParams.has("hafta")) return ["Haftanın Özetini Aç", () => openWeekly()];
   if(u.searchParams.has("takip")) return ["Takip Listemi aç", () => { tab = "watch"; render(); scrollTo({ top: 0 }); }];
   if(u.searchParams.has("yenilikler")) return ["Yenilikleri gör", () => openVersionSheet("all")];
   if(n.tag === "tmpro-gunaydin") return ["Takvimi aç", () => { tab = "cal"; render(); scrollTo({ top: 0 }); }];
@@ -2376,6 +2402,8 @@ async function renderAccount(){
     <div class="foot">Tek tek sohbetleri, sohbetin içindeki <b>Sessize Al</b> ile kapatabilirsiniz.</div>
     <div class="list" style="margin-top:16px"><div class="li"><div class="tdot" style="--c:#ff9500"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></div><div class="grow"><b>Günaydın Bildirimi</b><small>Her sabah 08:30</small></div>
       <label class="switch"><input type="checkbox" id="morningOn" ${me.morning_on !== false ? "checked" : ""}><span></span></label></div>
+      <div class="li"><div class="tdot" style="--c:var(--accent)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4M7 14h4M7 17h7"/></svg></div><div class="grow"><b>Haftalık Özet</b><small>Her Cuma 17:00 · <button class="linkbtn" id="weekPeek" style="font-size:13px;padding:0">Bu haftayı gör</button></small></div>
+      <label class="switch"><input type="checkbox" id="weeklyOn" ${me.weekly_on !== false ? "checked" : ""}><span></span></label></div>
       <button class="li" id="locSet" style="width:100%;border:0;background:none;text-align:left;cursor:pointer;color:inherit;font:inherit"><div class="tdot" style="--c:var(--ok)"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M21 3 3 10.5l7.5 3L14 21z"/></svg></div><div class="grow"><b>Hava Durumu Konumu</b><small>${esc(me.wx_city || "Ankara (Varsayılan)")}</small></div><span class="linkbtn" style="color:var(--accent);font-size:15px">Konumumu Kullan</span></button></div>
     <div class="foot">Sabah bildiriminde bulunduğunuz yerin hava durumu, buzlanma ve yağış uyarıları, resmî tatiller ve takviminize eklediğiniz günler yer alır.</div>
     <div class="sect">Bildirim Gelecek Türler</div>
@@ -2413,6 +2441,8 @@ async function renderAccount(){
     me.unvan = data || null; me.birim = b || null; me.promosyon = p || null; toast("Kaydedildi"); renderAccount();
   };
   $("chatNotify").onchange = async e => { const on = e.target.checked; const { error } = await sb.rpc("set_chat_notify", { enabled: on }); if(error){ e.target.checked = !on; toast("Kaydedilemedi"); return; } me.chat_notify = on; toast(on ? "Sohbet Bildirimleri açık" : "Sohbet Bildirimleri kapalı"); };
+  $("weekPeek").onclick = openWeekly;
+  $("weeklyOn").onchange = async e => { const on = e.target.checked; const { error } = await sb.rpc("set_weekly", { enabled: on }); if(error){ e.target.checked = !on; toast("Kaydedilemedi"); return; } me.weekly_on = on; toast(on ? "Haftalık özet açık" : "Haftalık özet kapalı"); };
   $("morningOn").onchange = async e => { const on = e.target.checked; const { error } = await sb.rpc("set_morning", { enabled: on }); if(error){ e.target.checked = !on; toast("Kaydedilemedi"); return; } me.morning_on = on; toast(on ? "Günaydın bildirimi açık" : "Günaydın bildirimi kapalı"); };
   $("locSet").onclick = () => askLocation();
   $("themeSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; setTheme(b.dataset.th); renderAccount(); };
