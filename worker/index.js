@@ -387,7 +387,10 @@ Kurallar:
   let unverified = 0;
   if (draft) {
     const known = ctx + " " + mText + " " + picked.map(x => `${x.title || ""} ${x.meta || ""}`).join(" ");
-    draft = draft.replace(/\b((?:19|20)\d{2}\/\d{1,6}(?:-\d{1,6})?)\b(?![^\n]{0,40}teyit)/g, (m0, num) => known.includes(num) ? m0 : (unverified++, `${m0} [KAYNAKTA YOK, TEYİT EDİNİZ]`));
+    // yalnızca esas/karar numarası bağlamındakiler (E. 2024/12, K. 2025/5, 2024/11-280 E.); dönem ifadeleri (2024/12 dönemi) denetlenmez
+    const flag = (m0, num) => known.includes(num) ? m0 : (unverified++, `${m0} [KAYNAKTA YOK, TEYİT EDİNİZ]`);
+    draft = draft.replace(/\b(?:E|K|Esas|Karar)(?:\s*No)?\s*[.:]?\s*((?:19|20)\d{2}\/\d{1,6}(?:-\d{1,6})?)\b(?![^\n]{0,40}teyit)/g, flag)
+                 .replace(/\b((?:19|20)\d{2}\/\d{1,6}(?:-\d{1,6})?)\s*(?:E|K)\.(?![^\n]{0,40}(?:teyit|KAYNAKTA))/g, flag);
   }
   // Kaynakça yalnızca metinde atıf yapılan kaynakları gösterir
   const cited = new Set([...draft.matchAll(/\[(\d{1,2})\]/g)].map(m => +m[1]));
