@@ -99,6 +99,10 @@ def setup():
             db(f"profiles?select={col}&limit=1")
         except RuntimeError:
             bad("kurulum_" + col, "uyari", f"Veritabanında {what} kurulumu eksik görünüyor")
+    try:
+        db("news?select=ozet&limit=1")
+    except RuntimeError:
+        bad("kurulum_haber_ozet", "uyari", "Veritabanında haber özeti kurulumu eksik (haber_ozet.sql çalıştırılmalı)")
     for tbl, what in (("feedback", "Sorun Bildir"), ("usage_daily", "kullanım istatistiği"), ("password_resets", "şifre sıfırlama"), ("watch_hits", "takip listesi")):
         try:
             db(f"{tbl}?select=*&limit=1")
