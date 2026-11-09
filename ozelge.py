@@ -605,6 +605,8 @@ def release_push(state):
     body = r.get("baslik") or "Yeni özellikler eklendi."
     if r.get("yeniden_ekle"):
         body += " Bu sürüm için uygulamayı ana ekrana yeniden eklemeniz gerekiyor; dokunun, adımları gösterelim."
+    else:
+        body += " Yenilikleri görmek için uygulamayı arka plandan tamamen kapatıp yeniden açın ya da bu bildirime dokunun."
     payload = json.dumps({"title": f"TMPRO güncellendi · Sürüm {r['surum']}", "body": body[:220],
                           "url": APP_URL + "?yenilikler=1", "tag": "tmpro-surum"})
     sent = 0
