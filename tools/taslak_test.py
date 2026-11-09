@@ -31,6 +31,9 @@ if os.environ.get("KONTROL"):
                          ("SINAV paketi", "ai_packages?select=code&code=eq.SINAV"), ("mevzuat_arsiv", "mevzuat_arsiv?select=gid&limit=1")]:
         st_, r_ = call("GET", f"{URL}/rest/v1/{path_}", None, S0)
         print(name_, ":", st_, ("var" if st_ == 200 else "yok"), (len(r_) if isinstance(r_, list) else ""))
+    for q_ in ("sahte:* & (fatura:* | belge:*)", "örtülü:* & sermaye:*", "iade:* & (kdv:* | katma:*)"):
+        t0_ = time.time(); st_, r_ = call("POST", f"{URL}/rest/v1/rpc/arsiv_ara", {"q": q_, "turler": ["Özelge"], "lim": 30}, {**S0, "Content-Type": "application/json"}, timeout=60)
+        print("arşiv arama", q_, ":", st_, f"{time.time() - t0_:.1f} sn", len(r_) if isinstance(r_, list) else str(r_)[:200])
     for tur_ in ("Özelge", "Tebliğ", "Sirküler"):
         req_ = Request(f"{URL}/rest/v1/mevzuat_arsiv?select=gid&tur=eq.{quote(tur_)}", headers={**S0, "Prefer": "count=exact", "Range": "0-0"})
         try:
