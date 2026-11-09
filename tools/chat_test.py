@@ -48,10 +48,26 @@ try:
     a, ta = user(); ids.append(a)
     b, tb = user(); ids.append(b)
     c, tc = user(); ids.append(c)
-    # Özel mesaj
+    # Özel mesaj: arkadaş olmadan yazılamaz; kodla istek + kabul sonrası yazılır
     dm = "dm:" + ":".join(sorted([a, b]))
-    print("dm yaz A:", as_(ta, "POST", "/rest/v1/messages", {"body": "x", "room": dm})[0])
+    print("dm arkadaş değilken A yazar:", as_(ta, "POST", "/rest/v1/messages", {"body": "x", "room": dm})[0], "(beklenen 403)")
+    st, code = as_(tb, "POST", "/rest/v1/rpc/my_friend_code", {})
+    print("B kodu alındı:", st, "uzunluk:", len(code or "") if isinstance(code, str) else code)
+    print("A istek:", as_(ta, "POST", "/rest/v1/rpc/friend_request", {"code": code})[1], "(beklenen gonderildi)")
+    print("A tekrar istek:", as_(ta, "POST", "/rest/v1/rpc/friend_request", {"code": code})[1], "(beklenen bekliyor)")
+    print("C yanlış kod:", as_(tc, "POST", "/rest/v1/rpc/friend_request", {"code": "000000"})[1], "(beklenen bulunamadi)")
+    print("istek kabul edilmeden A yazar:", as_(ta, "POST", "/rest/v1/messages", {"body": "x", "room": dm})[0], "(beklenen 403)")
+    print("B kabul:", as_(tb, "POST", "/rest/v1/rpc/friend_respond", {"other": a, "accept": True})[0])
+    st, fl = as_(ta, "POST", "/rest/v1/rpc/list_friends", {})
+    print("A arkadaş listesinde B:", isinstance(fl, list) and any(x["id"] == b and x["kind"] == "friend" for x in fl),
+          "ad yıldızlı:", isinstance(fl, list) and all("*" in (x.get("name") or "*") for x in fl))
+    print("dm yaz A:", as_(ta, "POST", "/rest/v1/messages", {"body": "x", "room": dm})[0], "(beklenen 201)")
     print("dm oku A/B/C:", count(ta, dm), count(tb, dm), count(tc, dm), "(beklenen 1 1 0)")
+    st, ms = as_(tb, "GET", f"/rest/v1/messages?select=username&room=eq.{dm}")
+    print("mesajda gönderen adı yıldızlı:", isinstance(ms, list) and all("*" in (m.get("username") or "") for m in ms))
+    print("C (arkadaş değil) dm'ye yazar:", as_(tc, "POST", "/rest/v1/messages", {"body": "x", "room": dm})[0], "(beklenen 403)")
+    print("arkadaşlıktan çık:", as_(ta, "POST", "/rest/v1/rpc/friend_remove", {"other": b})[0],
+          "sonra A yazar:", as_(ta, "POST", "/rest/v1/messages", {"body": "x", "room": dm})[0], "(beklenen 403)")
     # Şifreli grup
     st, gid = as_(ta, "POST", "/rest/v1/rpc/create_group", {"gname": "Test", "gpass": "gizli1"})
     print("grup kur:", st)
