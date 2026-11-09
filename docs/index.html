@@ -439,6 +439,23 @@ body.aichat #tools>.foot{display:none}
 /* ---- haberler ---- */
 .ncard{display:block;text-decoration:none;color:inherit;margin:10px 0;padding:14px 16px;border-radius:20px;background:var(--surface);border:.5px solid var(--glass-line);box-shadow:var(--glass-shadow);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)}
 .ncard:active{transform:scale(.99)}
+.tw{display:flex;gap:11px;padding:14px 14px 8px;margin:0 -4px;border-bottom:.5px solid var(--glass-line);cursor:pointer}
+.tw:active{background:var(--fill)}
+.tav{flex:none;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;color:#fff;letter-spacing:-.02em;background:linear-gradient(135deg,hsl(var(--h) 70% 52%),hsl(calc(var(--h) + 40) 70% 40%));box-shadow:0 2px 8px hsl(var(--h) 60% 40% / .35)}
+.tbd{flex:1;min-width:0}
+.tmeta{display:flex;align-items:center;gap:5px;font-size:13.5px;color:var(--muted);white-space:nowrap;overflow:hidden}
+.tmeta b{color:var(--ink);font-weight:750;overflow:hidden;text-overflow:ellipsis}
+.tmeta span{flex:none}
+.tmeta em{margin-left:auto;flex:none;font-style:normal;font-size:10.5px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.06em}
+.ttl{font-size:16px;font-weight:650;line-height:1.35;margin-top:3px;letter-spacing:-.01em}
+.tw.seen .ttl{font-weight:550;color:var(--ink2,var(--muted))}
+.tsn{font-size:15px;line-height:1.45;margin-top:4px;color:var(--ink);opacity:.86;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.timg{margin-top:10px;border-radius:16px;overflow:hidden;border:.5px solid var(--glass-line);background:var(--fill);aspect-ratio:16/9}
+.timg img{width:100%;height:100%;object-fit:cover;display:block}
+.tact{display:flex;justify-content:space-between;max-width:330px;margin-top:6px}
+.tact button{display:flex;align-items:center;gap:5px;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;padding:7px 8px 7px 0;cursor:pointer}
+.tact button.on{color:var(--gold)}
+.tact button:active{opacity:.6}
 .nt{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px}
 .nsrc{font-weight:700;color:var(--accent);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
 .nk{font-weight:650;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;font-size:10.5px}
@@ -1521,33 +1538,48 @@ async function sendAi(){
 
 /* ---------------- haberler ---------------- */
 let news = null, newsAt = 0, newsFil = "Tümü";
-const NEWS_KONU = ["Tümü", "VDK", "Bakanlık", "GİB", "Kaçakçılık", "Vergi", "Dünya"];
+const NEWS_KONU = ["Tümü", "Kaydedilen", "VDK", "Bakanlık", "GİB", "Kaçakçılık", "Vergi", "Dünya"];
 async function renderNews(force){
   $("sub").textContent = "Vergi denetimi, Bakanlık ve GİB gündemi";
   if(!news || force || Date.now() - newsAt > 5 * 60e3){
     if(!news) $("news").innerHTML = `<div class="rload"><i></i><i></i><i></i></div>`;
-    const { data, error } = await sb.from("news").select("id,title,url,source,konu,published").order("published", { ascending: false }).limit(300);
+    let { data, error } = await sb.from("news").select("id,title,url,source,konu,published,ozet,image").order("published", { ascending: false }).limit(250);
+    if(error) ({ data, error } = await sb.from("news").select("id,title,url,source,konu,published").order("published", { ascending: false }).limit(250));
     if(error){ $("news").innerHTML = `<div class="empty">Haberler henüz hazır değil.</div>`; return; }
     news = data || []; newsAt = Date.now();
   }
   if(tab !== "news") return;
   const seen = new Set(store.get("newsSeen", []));
   const cnt = {}; news.forEach(n => cnt[n.konu] = (cnt[n.konu] || 0) + 1);
-  const list = news.filter(n => newsFil === "Tümü" || n.konu === newsFil);
+  const svd = new Set(store.get("newsSaved", [])); cnt["Kaydedilen"] = news.filter(n => svd.has(n.id)).length;
+  const list = news.filter(n => newsFil === "Tümü" || (newsFil === "Kaydedilen" ? svd.has(n.id) : n.konu === newsFil));
   let html = `<div class="chips" id="newsChips" style="padding-top:2px">${NEWS_KONU.filter(k => k === "Tümü" || cnt[k]).map(k => `<button class="chip ${k === newsFil ? "on" : ""}" data-k="${k}">${k}<em>${k === "Tümü" ? news.length : cnt[k]}</em></button>`).join("")}</div>`, last = "";
+  const saved = new Set(store.get("newsSaved", []));
   for(const n of list.slice(0, 200)){
     const dl = n.published ? dayLabel(n.published) : "";
     if(dl !== last){ html += `<div class="day">${esc(dl)}</div>`; last = dl; }
-    const t = n.published ? new Date(n.published).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) : "";
-    html += `<a class="ncard ${seen.has(n.id) ? "seen" : ""}" href="#" data-id="${n.id}">
-      <div class="nt"><span class="nsrc">${esc(n.source || "Haber")}</span><span class="nk">${esc(n.konu || "")}</span><span class="when">${esc(t)}</span></div>
-      <div class="nh">${esc(n.title)}</div></a>`;
+    const host = (() => { try{ return new URL(n.url).hostname.replace(/^www\./, ""); }catch{ return ""; } })();
+    const src = n.source || host || "Haber", ini = src.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toLocaleUpperCase("tr");
+    const hue = [...src].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
+    const snip = (n.ozet || "").split(/\n{2,}/)[0] || "";
+    html += `<article class="tw ${seen.has(n.id) ? "seen" : ""}" data-id="${n.id}">
+      <div class="tav" style="--h:${hue}">${esc(ini)}</div>
+      <div class="tbd">
+        <div class="tmeta"><b>${esc(src)}</b><span>@${esc(host.split(".")[0] || "haber")}</span><span>· ${esc(ago(n.published))}</span>${n.konu ? `<em>${esc(n.konu)}</em>` : ""}</div>
+        <div class="ttl">${esc(n.title)}</div>
+        ${snip && snip.slice(0, 60) !== n.title.slice(0, 60) ? `<div class="tsn">${esc(snip)}</div>` : ""}
+        ${n.image ? `<div class="timg"><img loading="lazy" referrerpolicy="no-referrer" src="${esc(n.image)}" alt="" onerror="this.parentNode.remove()"></div>` : ""}
+        <div class="tact"><button data-act="read">${ICON_BOOK}<span>Oku</span></button><button data-act="save" class="${saved.has(n.id) ? "on" : ""}">${ICON_STAR(saved.has(n.id))}<span>${saved.has(n.id) ? "Kaydedildi" : "Kaydet"}</span></button><button data-act="share">${ICON_SHARE}<span>Paylaş</span></button></div>
+      </div></article>`;
   }
   $("news").innerHTML = list.length ? html : html + `<div class="empty">Son günlerde bu başlıkta haber yok.</div>`;
 }
 $("news").addEventListener("click", e => {
   const c = e.target.closest(".chip"); if(c){ newsFil = c.dataset.k; renderNews(); return; }
-  const a = e.target.closest(".ncard"); if(a){ e.preventDefault(); const s = new Set(store.get("newsSeen", [])); s.add(+a.dataset.id); store.set("newsSeen", [...s].slice(-800)); setTimeout(() => a.classList.add("seen"), 300); openNews(+a.dataset.id); }
+  const a = e.target.closest(".tw"); if(!a) return; const id = +a.dataset.id, act = e.target.closest("[data-act]")?.dataset.act;
+  if(act === "save"){ const sv = new Set(store.get("newsSaved", [])); sv.has(id) ? sv.delete(id) : sv.add(id); store.set("newsSaved", [...sv].slice(-300)); renderNews(); toast(sv.has(id) ? "Haber kaydedildi" : "Kayıt kaldırıldı"); return; }
+  if(act === "share"){ const n = (news || []).find(x => x.id === id); if(!n) return; const d = { title: n.title, text: n.title + "\n" + n.url }; (async () => { try{ if(navigator.share) await navigator.share(d); else { await navigator.clipboard.writeText(d.text); toast("Bağlantı kopyalandı"); } }catch{} })(); return; }
+  const s = new Set(store.get("newsSeen", [])); s.add(id); store.set("newsSeen", [...s].slice(-800)); setTimeout(() => a.classList.add("seen"), 300); openNews(id);
 });
 
 /* ---------------- argo denetimi (veritabanında da aynı kural var) ---------------- */
@@ -1579,6 +1611,9 @@ async function openReader(id){
     : `${i.ozet ? `<div class="rtext"><p>${esc(i.ozet)}</p></div>` : ""}<div class="rwait">${metin === "" ? "Bu kaynağın tam metni otomatik alınamıyor. Aşağıdaki bağlantıdan resmî metne ulaşabilirsiniz." : "Tam metin hazırlanıyor. Birkaç dakika içinde burada olacak."}</div>`;
   $("rBody").innerHTML = head + note + body + ref;
 }
+const ICON_BOOK = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>';
+const ago = iso => { if(!iso) return ""; const m = Math.max(0, Math.round((Date.now() - new Date(iso)) / 6e4)); return m < 1 ? "şimdi" : m < 60 ? `${m} dk` : m < 1440 ? `${Math.round(m / 60)} sa` : new Date(iso).toLocaleDateString("tr-TR", { day: "numeric", month: "short" }); };
+const ICON_SHARE = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>';
 async function openNews(id){
   track("haber_oku");
   const n = (news || []).find(x => x.id === id); if(!n) return; rItem = n;
@@ -1593,7 +1628,8 @@ async function openNews(id){
   let oz = n.ozet;
   if(oz === undefined){ try{ const { data, error } = await sb.from("news").select("ozet").eq("id", id).single(); oz = error ? null : data.ozet; n.ozet = oz; }catch{ oz = null; } }
   if(rItem !== n) return;
-  const body = oz ? `<div class="rtext">${oz.split(/\n{2,}/).map(p => `<p>${esc(p)}</p>`).join("")}</div>` : `<div class="rwait">Bu haberin özeti henüz hazır değil. Haberin tamamını aşağıdaki bağlantıdan okuyabilirsiniz.</div>`;
+  const pic = n.image ? `<div class="timg" style="margin:0 0 14px"><img referrerpolicy="no-referrer" src="${esc(n.image)}" alt="" onerror="this.parentNode.remove()"></div>` : "";
+  const body = pic + (oz ? `<div class="rtext">${oz.split(/\n{2,}/).map(p => `<p>${esc(p)}</p>`).join("")}</div>` : `<div class="rwait">Bu haberin özeti henüz hazır değil. Haberin tamamını aşağıdaki bağlantıdan okuyabilirsiniz.</div>`);
   $("rBody").innerHTML = head + body + ref;
 }
 function closeReader(fromPop){ const R = $("reader"); if(R.hidden) return; R.classList.remove("on"); document.body.classList.remove("noscroll"); setTimeout(() => { R.hidden = true; }, 220); rItem = null; if(!fromPop && history.state?.reader){ skipPop++; history.back(); } if(tab !== "news") render(); }

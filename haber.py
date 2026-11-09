@@ -47,12 +47,20 @@ def lead(page):
     return (clean(og.group(1)) if og else ""), ps
 
 
+def og_image(page):
+    m = re.search(r'<meta[^>]+(?:property|name)=["\'](?:og:image|twitter:image)["\'][^>]+content=["\'](https?://[^"\']+)', page, re.I) \
+        or re.search(r'<meta[^>]+content=["\'](https?://[^"\']+)["\'][^>]+(?:property|name)=["\']og:image', page, re.I)
+    return html.unescape(m.group(1))[:500] if m else ""
+
+
 def ozet_of(url, desc):
-    """Kısa alıntı: başlık altı özet + ilk 3 paragraf, en çok ~1400 karakter (tam metin kopyalanmaz)."""
-    parts = []
+    """Kısa alıntı: başlık altı özet + ilk 3 paragraf, en çok ~1400 karakter (tam metin kopyalanmaz). (özet, görsel) döner."""
+    parts, img = [], ""
     try:
         raw, ct = metin.fetch(url, timeout=20)
-        og, ps = lead(metin.decode(raw, ct))
+        page = metin.decode(raw, ct)
+        og, ps = lead(page)
+        img = og_image(page)
     except Exception:  # noqa: BLE001
         og, ps = "", []
     for p in [og or desc] + ps:
@@ -61,7 +69,7 @@ def ozet_of(url, desc):
         if sum(len(q) for q in parts) > 1100 or len(parts) >= 4:
             break
     out = "\n\n".join(parts)
-    return out[:1400].rsplit(" ", 1)[0] + "…" if len(out) > 1400 else out
+    return (out[:1400].rsplit(" ", 1)[0] + "…" if len(out) > 1400 else out), img
 
 
 def fetch_news(known=frozenset(), max_pages=30):
@@ -74,6 +82,7 @@ def fetch_news(known=frozenset(), max_pages=30):
             continue
         for it in re.findall(r"<item>(.*?)</item>", metin.decode(raw, ct), re.S):
             g = lambda tag: (re.search(rf"<{tag}[^>]*>(.*?)</{tag}>", it, re.S) or [None, ""])[1]
+            rimg = re.search(r'<(?:enclosure|media:content|media:thumbnail)[^>]+url=["\'](https?://[^"\']+)', it) or re.search(r'<img[^>]+src=["\'](https?://[^"\']+)', html.unescape(it))
             title, link, desc = clean(g("title")), clean(g("link")), clean(g("description"))[:600]
             key = re.sub(r"\W+", "", title.lower())[:80]
             if not title or not link.startswith("http") or key in seen or SKIP.search(title) or not KEY.search(title + " " + desc):
@@ -90,10 +99,12 @@ def fetch_news(known=frozenset(), max_pages=30):
                 konu = "Dünya"
             row = {"title": title[:300], "url": link[:500], "source": src, "konu": konu, "published": when.isoformat()}
             if link not in known and pages < max_pages:
-                row["ozet"] = ozet_of(link, desc)
+                row["ozet"], img = ozet_of(link, desc)
+                row["image"] = img or (html.unescape(rimg.group(1))[:500] if rimg else "")
                 pages += 1
             elif link not in known:
                 row["ozet"] = desc or None
+                row["image"] = html.unescape(rimg.group(1))[:500] if rimg else ""
             out.append(row)
     return out
 
@@ -101,22 +112,28 @@ def fetch_news(known=frozenset(), max_pages=30):
 def run(db):
     since = (datetime.now(timezone.utc) - timedelta(days=5)).strftime("%Y-%m-%dT%H:%M:%SZ")
     try:
-        known = {r["url"] for r in db("GET", f"news?select=url&ozet=not.is.null&published=gte.{since}&limit=2000") or []}
+        db("GET", "news?select=image&limit=1")
+        has_img = True
+    except Exception:  # noqa: BLE001  (haber_gorsel.sql henüz çalıştırılmadı)
+        has_img = False
+    try:
+        known = {r["url"] for r in db("GET", f"news?select=url&ozet=not.is.null{'&image=not.is.null' if has_img else ''}&published=gte.{since}&limit=2000") or []}
         has_ozet = True
     except Exception:  # noqa: BLE001  (haber_ozet.sql henüz çalıştırılmadı)
         known, has_ozet = set(), False
     items = fetch_news(known if has_ozet else frozenset(), 30 if has_ozet else 0)
     groups = [[x for x in items if "ozet" in x], [x for x in items if "ozet" not in x]]
     for grp in groups:
-        if not has_ozet:
-            grp = [{k: v for k, v in x.items() if k != "ozet"} for x in grp]
+        drop = ({"ozet"} if not has_ozet else set()) | ({"image"} if not has_img else set())
+        if drop:
+            grp = [{k: v for k, v in x.items() if k not in drop} for x in grp]
         for i in range(0, len(grp), 200):
             db("POST", "news?on_conflict=url", grp[i:i + 200], prefer="resolution=merge-duplicates,return=minimal")
     db("DELETE", "news?url=like.https://news.google.com/*", prefer="return=minimal")
     old = (datetime.now(timezone.utc) - timedelta(days=60)).strftime("%Y-%m-%dT%H:%M:%SZ")
     db("DELETE", f"news?published=lt.{old}", prefer="return=minimal")
     print(f"Haberler: {len(items)} bulundu, özetli yeni {sum(1 for x in items if x.get('ozet'))}, Dünya: {sum(1 for x in items if x['konu'] == 'Dünya')}"
-          + ("" if has_ozet else " (özet kolonu yok: haber_ozet.sql)"))
+          + f", görselli {sum(1 for x in items if x.get('image'))}" + ("" if has_ozet else " (özet kolonu yok: haber_ozet.sql)") + ("" if has_img else " (görsel kolonu yok: haber_gorsel.sql)"))
 
 
 

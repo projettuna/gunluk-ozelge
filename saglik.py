@@ -103,6 +103,10 @@ def setup():
         db("news?select=ozet&limit=1")
     except RuntimeError:
         bad("kurulum_haber_ozet", "uyari", "Veritabanında haber özeti kurulumu eksik (haber_ozet.sql çalıştırılmalı)")
+    try:
+        db("news?select=image&limit=1")
+    except RuntimeError:
+        bad("kurulum_haber_gorsel", "uyari", "Veritabanında haber görseli kurulumu eksik (haber_gorsel.sql çalıştırılmalı)")
     for tbl, what in (("feedback", "Sorun Bildir"), ("usage_daily", "kullanım istatistiği"), ("password_resets", "şifre sıfırlama"), ("watch_hits", "takip listesi")):
         try:
             db(f"{tbl}?select=*&limit=1")
