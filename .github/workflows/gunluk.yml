@@ -132,7 +132,7 @@ jobs:
             echo; exit 0
           fi
           if [ "${{ inputs.madde_cek }}" = "true" ]; then python tools/madde_cek.py; exit 0; fi
-          if [ "${{ inputs.taslak_test }}" = "true" ]; then SUPABASE_PUBLISHABLE_KEY=sb_publishable_tlfwqtscxxv2vdSHe3PstQ_XO1db8p9 python tools/taslak_test.py; exit 0; fi
+          if [ "${{ inputs.taslak_test }}" = "true" ]; then SUPABASE_PUBLISHABLE_KEY=sb_publishable_tlfwqtscxxv2vdSHe3PstQ_XO1db8p9 TALL=${{ inputs.dry_run && '1' || '' }} python tools/taslak_test.py; exit 0; fi
           if [ "${{ inputs.chat_test }}" = "true" ]; then SUPABASE_PUBLISHABLE_KEY=sb_publishable_tlfwqtscxxv2vdSHe3PstQ_XO1db8p9 python tools/chat_test.py; exit 0; fi
           python ozelge.py ${{ inputs.seed && '--seed' || '' }} ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.resend && '--resend' || '' }} ${{ inputs.resend_karar && '--resend-karar' || '' }} ${{ inputs.migrate && '--migrate' || '' }} ${{ inputs.test_push && '--test-push' || '' }} ${{ inputs.diag && '--diag' || '' }} ${{ inputs.weekly_test && '--weekly-test' || '' }} ${{ inputs.remind_test && '--remind-test' || '' }} ${{ (github.event.schedule == '*/5 21 * * *' || inputs.auto == 'rg') && '--only-rg' || '' }}
       - name: Durumu kaydet

@@ -41,17 +41,19 @@ try:
     A = {"Authorization": "Bearer " + tok["access_token"], "User-Agent": "TMPRO-test"}
     st, r = call("POST", SITE + "/api/taslak", {"tur": "inceleme", "konu": "sahte_kullanma", "aciklama": "ABC Gıda A.Ş."}, A)
     print("kimlik bilgisiyle:", st, (r or {}).get("error", "")[:80] if isinstance(r, dict) else r, "(beklenen 422)")
-    t0 = time.time()
-    st, r = call("POST", SITE + "/api/taslak", {"tur": "inceleme", "konu": "sahte_kullanma", "donem": "2024", "aciklama": ""}, A, timeout=540)
-    print("taslak:", st, f"{time.time() - t0:.0f} sn")
-    if isinstance(r, dict):
-        print("hata:", r.get("error"))
-        print("uzunluk:", len(r.get("draft") or ""), "kaynak (atıf yapılan):", len(r.get("sources") or []), "metindeki farklı atıf:", len(set(re.findall(r"\[(\d{1,2})\]", r.get("draft") or ""))), "düşülen hak:", r.get("cost"), "kota:", r.get("quota"))
-        print("model:", r.get("model"), r.get("stop"), r.get("usage"), "doğrulanamayan atıf:", r.get("unverified"), "madde metni:", r.get("maddeler"), "teyit notu:", (r.get("draft") or "").lower().count("teyit ediniz")); print("yer tutucu sayısı:", (r.get("draft") or "").count("[")); print("kaynak türleri:", [x.get("tur") for x in r.get("sources") or []]); d_ = (r.get("draft") or "").replace("İ", "i").replace("I", "ı").lower()
-        for k in ("ikmalen", "re'sen", "353", "usul inceleme", "hesap inceleme", "eleştirilen husus", "değerlendirme komisyon", "tek başına"):
-            at = d_.find(k); print(f"{k}:", d_.count(k), "|", d_[max(0, at - 60):at + 60].replace("\n", " ") if at >= 0 else "")
-        print("kesildi:", "kesildi" in (r.get("draft") or "")); print("ön not:", (r.get("draft") or "")[:60].count("not"))
-    else:
-        print("yanıt:", str(r)[:200])
+    for tur_, konu_ in [(os.environ.get("TT", "inceleme"), os.environ.get("TK", "sahte_kullanma"))] if not os.environ.get("TALL") else [("vtr", "kdv_iade"), ("suc", "sahte_duzenleme"), ("bolum", "ortulu_sermaye")]:
+        print("=== tür:", tur_, "konu:", konu_)
+        t0 = time.time()
+        st, r = call("POST", SITE + "/api/taslak", {"tur": tur_, "konu": konu_, "donem": "2024", "aciklama": ""}, A, timeout=540)
+        print("taslak:", st, f"{time.time() - t0:.0f} sn")
+        if isinstance(r, dict):
+            print("hata:", r.get("error"))
+            print("uzunluk:", len(r.get("draft") or ""), "kaynak (atıf yapılan):", len(r.get("sources") or []), "metindeki farklı atıf:", len(set(re.findall(r"\[(\d{1,2})\]", r.get("draft") or ""))), "düşülen hak:", r.get("cost"), "kota:", r.get("quota"))
+            print("model:", r.get("model"), r.get("stop"), r.get("usage"), "doğrulanamayan atıf:", r.get("unverified"), "madde metni:", r.get("maddeler"), "teyit notu:", (r.get("draft") or "").lower().count("teyit ediniz")); print("yer tutucu sayısı:", (r.get("draft") or "").count("[")); print("kaynak türleri:", [x.get("tur") for x in r.get("sources") or []]); d_ = (r.get("draft") or "").replace("İ", "i").replace("I", "ı").lower()
+            for k in ("ikmalen", "re'sen", "353", "usul inceleme", "hesap inceleme", "eleştirilen husus", "değerlendirme komisyon", "tek başına"):
+                at = d_.find(k); print(f"{k}:", d_.count(k), "|", d_[max(0, at - 60):at + 60].replace("\n", " ") if at >= 0 else "")
+            print("kesildi:", "kesildi" in (r.get("draft") or "")); print("ön not:", (r.get("draft") or "")[:60].count("not"))
+        else:
+            print("yanıt:", str(r)[:200])
 finally:
     print("silindi:", call("DELETE", f"{URL}/auth/v1/admin/users/{uid}", None, S)[0])
