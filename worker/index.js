@@ -347,8 +347,8 @@ Kurallar:
 - Gerçek bir mükellef hakkında hiçbir bilgi bilmiyorsun ve uydurmayacaksın. Mükellefe, döneme, tutara, tarihe, belgeye ilişkin her somut bilgi yerine KÖŞELİ PARANTEZ içinde BÜYÜK HARFLE yer tutucu kullan: [MÜKELLEF], [VKN], [DÖNEM], [TUTAR], [FATURA SAYISI], [TESPİT TARİHİ], [TUTANAK TARİHİ] gibi.
 - Yasal dayanakları (kanun ve madde), tebliğ ve sirkülerleri, yargı kararlarını esas al. Verilen kaynaklara dayandığın yerde [1], [2] biçiminde kaynak göster. Kaynaklarda olmayan bir madde, karar numarası veya oran yazarsan sonuna "(teyit ediniz)" ekle; karar numarası uydurma, emin değilsen numara yazma.
 - Yapı: numaralı ana başlıklar (1., 2., ...) ve alt başlıklar (1.1, 1.2) kullan; her başlık altında müfettişin doldurabileceği kalıp paragraflar ve gerekli yerlerde doldurulacak boş tablo satırları (sütunları | ile ayırarak) yaz.
-- Rapor türüne göre olağan bölümleri kapsa: giriş/inceleme nedeni ve yetki, mükellef hakkında genel bilgiler (yalnızca yer tutucu), incelemenin yapılışı, tespitler, yasal dayanak ve değerlendirme, yargı kararları, matrah farkı ve vergi hesabı, ceza değerlendirmesi (VUK 344, 359, 370 vb. uygun olanlar), sonuç ve öneri. Vergi suçu raporunda suçun unsurları, fiil-dönem ilişkisi, kast değerlendirmesi ve suç duyurusu sonucu bölümlerini ekle. Tek bölüm istenmişse yalnızca değerlendirme bölümünü yaz.
-- Sonda "Kontrol listesi" başlığı altında raporu tamamlamadan önce müfettişin teyit etmesi gereken 6-10 maddelik kısa bir liste ver (zamanaşımı, tebliğ, ilgili dönem mevzuatı, kurumun güncel rapor yazım esasları vb.).
+- Bölüm düzeni: aşağıda "Rapor düzeni" olarak verilen ana bölümleri bu sırayla ve bu adlarla kullan.
+- Raporun bitiminden sonra "KONTROL LİSTESİ (rapora dahil değildir)" başlığı altında raporu tamamlamadan önce müfettişin teyit etmesi gereken 6-10 maddelik kısa bir liste ver (zamanaşımı, tebliğ, ilgili dönem mevzuatı, kurumun güncel rapor yazım esasları vb.).
 - Kaynakların ilgili olup olmadığı hakkında yorum veya ön not yazma; konuyla ilgisiz bir kaynak varsa hiç anma. Doğrudan rapor başlığıyla başla.
 - Vergi İnceleme Raporu ve VTR'de vergi suçu değerlendirmesini ayrı bölüm olarak yazma; yalnızca sonuç bölümünde "VUK 359 kapsamındaki fiiller için ayrıca Vergi Suçu Raporu düzenlenmiştir/düzenlenecektir (VUK 367)" cümlesine yer ver.
 - Taslak eksiksiz bitmeli: toplam uzunluğu yaklaşık 9.000 karakteri geçmesin, tabloları 1-2 örnek satırla sınırla, tekrar yapma. Kontrol listesini mutlaka tamamla.
@@ -364,7 +364,25 @@ Kurallar:
     ["sahte_kullanma", "sahte_duzenleme", "yaniltici"].includes(konuKey) ? "\"Düzenleyici hakkındaki tespitlerin kullanıcı nezdinde somutlaştırılması\" başlıklı alt bölüm yaz ve içinde düzenleyici hakkındaki raporun tek başına yeterli olmadığını belirten Danıştay ilkesini açıkla." : "",
     ["sahte_kullanma", "sahte_duzenleme", "yaniltici"].includes(konuKey) ? "Özel usulsüzlük cezasına (VUK 353) yer verme." : "",
   ].filter(Boolean);
-  const user = `Rapor türü: ${TASLAK_TURLER[tur]}\nKonu: ${konu}${donem ? `\nİncelenen dönem: ${donem}` : ""}${aciklama ? `\nGenel açıklama (mükellef bilgisi içermez): ${aciklama}` : ""}${zorunlu.length ? "\nZorunlu kurallar:\n- " + zorunlu.join("\n- ") : ""}${mText ? `\n\n(Güncel kanun metinleri, mevzuat.gov.tr:)\n${mText}` : ""}\n\n(Uygulamadaki ilgili kaynaklar:)\n${ctx || "(Eşleşen kaynak bulunamadı.)"}`;
+  // Vergi İncelemelerinde Uyulacak Usul ve Esaslar Hakkında Yönetmelik md. 19/4: tarhiyat/ceza önerili raporlar giriş, usul incelemeleri, hesap incelemeleri, eleştirilen hususlar ve sonuç bölümlerinden oluşur
+  const DUZEN = {
+    inceleme: `1. GİRİŞ: inceleme nedeni ve görevlendirme, incelenen vergi türü ve dönem (rapor vergi türü ve dönemi itibarıyla ayrı düzenlenir), mükellef hakkında genel bilgiler (yer tutucularla), incelemenin yapılışı
+2. USUL İNCELEMELERİ: defter ve belgelerin istenmesi ve ibrazı, defterlerin tasdiki ve kayıt düzeni, beyannamelerin verilme durumu, belge düzenine uygunluk
+3. HESAP İNCELEMELERİ: konuyla ilgili hesapların ve kayıtların incelenmesi, tespitler, karşıt inceleme ve yoklama sonuçları (tablolar)
+4. ELEŞTİRİLEN HUSUSLAR: eleştiri konusu tespitler, yasal dayanak, yargı kararları, mükellefin itiraz ve mülahazaları ile bunların değerlendirilmesi, matrah ve vergi farkının hesaplanması
+5. SONUÇ: önerilen vergi ve ceza tutarları tereddüde yer vermeyecek açıklıkta (tablo), tarh şekli, ceza türü ve oranı, raporun rapor değerlendirme komisyonuna sunulacağı, varsa ayrıca düzenlenecek Vergi Suçu Raporu`,
+    vtr: `1. GİRİŞ: raporun düzenlenme nedeni, incelenen kişi ve dönem (yer tutucularla)
+2. TESPİTLER: yoklama, karşıt inceleme, banka ve ödeme, kapasite, beyan ve bildirim analizleri
+3. DEĞERLENDİRME: yasal dayanak, yargı kararları, belgelerin niteliği (sahte / muhteviyatı itibarıyla yanıltıcı) ve dönem bazında sonuçlar
+4. SONUÇ: düzenlenen/kullanılan belgelerin niteliği ve dönemleri, ilgili birimlere gönderilecek bilgiler (tablo)`,
+    suc: `1. GİRİŞ: raporun düzenlenme nedeni, ilgili inceleme veya vergi tekniği raporu (yer tutucularla)
+2. FAİL VE FİİLLER: fail(ler), sorumlu kişiler, fiiller ve dönemleri
+3. TESPİTLER VE DELİLLER
+4. SUÇUN YASAL UNSURLARI VE DEĞERLENDİRME: VUK 359 ilgili bent, maddi ve manevi unsur (kast), fiil-dönem ilişkisi, yargı kararları
+5. SONUÇ: suç duyurusu önerisi (VUK 367), ilgili Cumhuriyet başsavcılığı`,
+    bolum: `Yalnızca tek bir "ELEŞTİRİLEN HUSUSLAR / DEĞERLENDİRME" bölümü: tespit, yasal dayanak, yargı kararları, itiraz ve mülahazaların değerlendirmesi, sonuç paragrafı`,
+  };
+  const user = `Rapor türü: ${TASLAK_TURLER[tur]}\nRapor düzeni:\n${DUZEN[tur]}\nKonu: ${konu}${donem ? `\nİncelenen dönem: ${donem}` : ""}${aciklama ? `\nGenel açıklama (mükellef bilgisi içermez): ${aciklama}` : ""}${zorunlu.length ? "\nZorunlu kurallar:\n- " + zorunlu.join("\n- ") : ""}${mText ? `\n\n(Güncel kanun metinleri, mevzuat.gov.tr:)\n${mText}` : ""}\n\n(Uygulamadaki ilgili kaynaklar:)\n${ctx || "(Eşleşen kaynak bulunamadı.)"}`;
   // En yüksek doğruluk: Opus 5.5, uyarlamalı düşünme, yüksek efor. Uzun sürebildiği için akış (stream) ile alınır.
   const body = { model: env.TASLAK_MODEL || "claude-opus-5-5", max_tokens: 32000, stream: true, output_config: { effort: env.TASLAK_EFFORT || "high" }, system, messages: [{ role: "user", content: user }] };
   const call = b => fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify(b) });
