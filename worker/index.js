@@ -467,7 +467,7 @@ async function ictihat(req, env, url) {
   const ifade = (url.searchParams.get("ifade") || "").replace(/[^\p{L}\p{N} ]/gu, " ").replace(/\s+/g, " ").trim().slice(0, 40);
   const ps = TASLAK_ARA[konu]?.p || (ifade.length >= 4 ? [ifade] : null);
   if (!ps) return Response.json({ error: "Konu seçin ya da en az 4 harflik bir ifade yazın" }, { status: 400 });
-  return cached("ictihat6:" + (TASLAK_ARA[konu] ? konu : "q:" + ifade.toLocaleLowerCase("tr")), 1800, async () => {
+  return cached("ictihat7:" + (TASLAK_ARA[konu] ? konu : "q:" + ifade.toLocaleLowerCase("tr")), 1800, async () => {
     const or = ps.flatMap(w => [`title.ilike.*${w}*`, `metin.ilike.*${w}*`]).join(",");
     const r = await fetch(`${SB_URL}/rest/v1/items?select=id,tur,title,meta,metin&tur=ilike.Dan*&or=(${encodeURIComponent(or)})&order=id.desc&limit=160`, { headers: H });
     if (!r.ok) return { error: "Kararlar alınamadı" };
@@ -480,7 +480,8 @@ async function ictihat(req, env, url) {
     // Veritabanındaki kararlar azsa Danıştay karar aramasından güncel kararlarla tamamla
     let canli = 0;
     if (rows.length < 25) {
-      const q = ps.find(x => !x.includes("_")) || ps[0].replace(/_/g, "");
+      const CQ = { ortulu_sermaye: "örtülü sermaye", transfer: "transfer fiyatlandırması", hasilat: "hasılat gizleme", yaniltici: "yanıltıcı belge", ortaklar_cari: "ortaklar cari", degerleme: "değerleme", gayrimenkul: "değer artışı kazancı", sahte_duzenleme: "sahte fatura düzenleme" };
+      const q = CQ[konu] || ps.find(x => !x.includes("_")) || ps[0].replace(/_/g, "");
       const live = await danistayList(q, 25 - rows.length); canli = live.length;
       const seen = new Set(rows.map(x => (x.title || "").replace(/\s+/g, "")));
       for (const x of live) { const h = hukumOf(x.metin); if (!h || seen.has(x.title.replace(/\s+/g, ""))) continue;
