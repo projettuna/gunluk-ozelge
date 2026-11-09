@@ -325,17 +325,18 @@ async function emsal(req, env) {
   const pats = ara ? ara.p : ws, res = ara ? ara.p.map(ilike2re) : [];
   let rows = [];
   if (pats.length) {
-    const or = pats.flatMap(w => [`title.ilike.*${w}*`, `metin.ilike.*${w}*`]).join(",");
+    const or = pats.flatMap(w => [`title.ilike.*${w}*`, `metin.ilike.*${w}*`]).join(","), or2 = pats.flatMap(w => [`title.ilike.*${w}*`, `metin.ilike.*${w}*`, `ozet.ilike.*${w}*`]).join(",");
     // Özelge/tebliğ/sirküler kararların arasında kaybolmasın diye ayrıca aranır
     const [r, r2] = await Promise.all([
       fetch(`${SB_URL}/rest/v1/items?select=id,tur,title,meta,url,metin,ozet&or=(${encodeURIComponent(or)})&order=id.desc&limit=150`, { headers: H }),
-      fetch(`${SB_URL}/rest/v1/items?select=id,tur,title,meta,url,metin,ozet&or=(${encodeURIComponent(or)})&and=(${encodeURIComponent("tur.not.ilike.Dan*,tur.not.ilike.Yarg*,tur.not.ilike.Anayasa*,tur.not.ilike.AYM*")})&order=id.desc&limit=120`, { headers: H })]);
+      fetch(`${SB_URL}/rest/v1/items?select=id,tur,title,meta,url,metin,ozet&or=(${encodeURIComponent(or2)})&and=(${encodeURIComponent("tur.not.ilike.Dan*,tur.not.ilike.Yarg*,tur.not.ilike.Anayasa*,tur.not.ilike.AYM*")})&order=id.desc&limit=120`, { headers: H })]);
     rows = [...(r.ok ? await r.json() : []), ...(r2.ok ? await r2.json() : [])];
   }
   const yg = x => /Yargıtay/i.test(x.tur || "");
   if (!ara?.ceza) rows = rows.filter(x => !yg(x));
   const liveQ = ara ? (CQ[konuKey] || ara.p.filter(x => !x.includes("_"))[0] || konu) : konu;
-  const live = (await danistayList(liveQ, 6).catch(() => [])) || [];
+  let live = (await danistayList(liveQ, 6).catch(() => [])) || [];
+  if (!live.length && ara) live = (await danistayList(ara.p.find(x => !x.includes("_") && x !== liveQ) || konu.split(",")[0], 5).catch(() => [])) || [];
   const score = x => { const tl = x.title || "", ml = x.metin || x.ozet || "";
     if (res.length) return res.reduce((a, re) => a + 8 * (tl.match(re) || []).length + Math.min(12, (ml.match(re) || []).length), 0);
     const tll = tl.toLocaleLowerCase("tr"), mll = ml.toLocaleLowerCase("tr");
@@ -381,7 +382,7 @@ Metinde olmayan bilgi, karar numarası veya tarih uydurma. Mükellef adı verme.
   const list = clean(all).map(x => { const o = by.get(x.n) || {}; return { ...x, ilgili: o.ilgili !== false, ilke: String(o.ilke || "").slice(0, 400), ozet: String(o.ozet || "").slice(0, 600), kullanim: String(o.kullanim || "").slice(0, 500) }; })
     .filter(x => x.ilgili);
   let n = 0;
-  for (let i = 0; i < EMSAL_COST; i++) { const u = await fetch(SB_URL + "/rest/v1/rpc/use_ai_quota", { method: "POST", headers: J, body: "{}" }).catch(() => null); if (u?.ok && (await u.json()) === true) n++; }
+  if (list.length) for (let i = 0; i < EMSAL_COST; i++) { const u = await fetch(SB_URL + "/rest/v1/rpc/use_ai_quota", { method: "POST", headers: J, body: "{}" }).catch(() => null); if (u?.ok && (await u.json()) === true) n++; }
   if (quota && quota.limit != null) { const free = Math.max(0, quota.limit - quota.used), f = Math.min(free, n); quota.used += f; quota.credits = Math.max(0, (quota.credits || 0) - (n - f)); }
   return Response.json({ list, maddeler, quota, cost: n, elenen: all.length - list.length, aday: { karar: kararlar.length, idari: idari.length, db: rows.length } });
 }
