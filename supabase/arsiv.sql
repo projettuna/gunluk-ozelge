@@ -21,17 +21,21 @@ language sql immutable parallel safe as $$ select lower(translate(coalesce(t, ''
 create index if not exists mevzuat_arsiv_fts on public.mevzuat_arsiv
   using gin (to_tsvector('simple', arsiv_norm(title || ' ' || coalesce(metin, ''))));
 
--- q: to_tsquery ifadesi (ör. 'sahte:* & fatura:*'); en yeni kayıtlar önce
+-- q: to_tsquery ifadesi (ör. 'sahte:* & fatura:*'); en yeni kayıtlar önce.
+-- security definer: üyelik bir kez kontrol edilir (satır başına RLS kontrolü zaman aşımına yol açıyordu)
 create or replace function public.arsiv_ara(q text, turler text[] default null, lim int default 30)
 returns table (tur text, gid bigint, title text, meta text, url text, metin text)
-language sql stable security invoker set search_path = public as $$
+language plpgsql stable security definer set search_path = public as $$
+begin
+  if not is_active() then raise exception 'yetkisiz'; end if;
+  return query
   select a.tur, a.gid, a.title, a.meta, a.url, left(a.metin, 12000)
   from mevzuat_arsiv a
   where to_tsvector('simple', arsiv_norm(a.title || ' ' || coalesce(a.metin, ''))) @@ to_tsquery('simple', arsiv_norm(q))
     and (turler is null or a.tur = any(turler))
   order by a.gid desc
-  limit least(greatest(lim, 1), 60)
-$$;
+  limit least(greatest(lim, 1), 60);
+end $$;
 grant execute on function public.arsiv_ara(text, text[], int) to authenticated;
 
 notify pgrst, 'reload schema';
