@@ -41,7 +41,10 @@ try:
     if isinstance(r, dict):
         print("hata:", r.get("error"))
         print("uzunluk:", len(r.get("draft") or ""), "kaynak:", len(r.get("sources") or []), "düşülen hak:", r.get("cost"), "kota:", r.get("quota"))
-        print("yer tutucu sayısı:", (r.get("draft") or "").count("[")); print("kaynak türleri:", [x.get("tur") for x in r.get("sources") or []]); d_ = (r.get("draft") or ""); print("ikmalen:", "ikmalen" in d_.lower(), "| re'sen:", "re'sen" in d_.lower(), "| 353:", "353" in d_, "| 7326:", "7326" in d_, "| tek başına:", "tek başına" in d_); print("kesildi:", "kesildi" in (r.get("draft") or "")); print("ön not:", (r.get("draft") or "")[:60].count("not"))
+        print("yer tutucu sayısı:", (r.get("draft") or "").count("[")); print("kaynak türleri:", [x.get("tur") for x in r.get("sources") or []]); d_ = (r.get("draft") or "").replace("İ", "i").replace("I", "ı").lower()
+        for k in ("ikmalen", "re'sen", "353", "7326", "tek başına"):
+            at = d_.find(k); print(f"{k}:", d_.count(k), "|", d_[max(0, at - 60):at + 60].replace("\n", " ") if at >= 0 else "")
+        print("kesildi:", "kesildi" in (r.get("draft") or "")); print("ön not:", (r.get("draft") or "")[:60].count("not"))
     else:
         print("yanıt:", str(r)[:200])
 finally:
