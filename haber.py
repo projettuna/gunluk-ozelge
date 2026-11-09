@@ -64,25 +64,50 @@ def run(db):
     print(f"Haberler: {len(items)} bulundu/güncellendi, Dünya: {sum(1 for x in items if x['konu'] == 'Dünya')}")
 
 
+FEEDS_TRY = [
+    "https://www.aa.com.tr/tr/rss/default?cat=ekonomi", "https://www.ntv.com.tr/ekonomi.rss",
+    "https://www.haberturk.com/rss/ekonomi.xml", "https://www.dunya.com/rss", "https://www.ekonomim.com/rss",
+    "https://www.bloomberght.com/rss", "https://www.hurriyet.com.tr/rss/ekonomi",
+    "https://www.milliyet.com.tr/rss/rssnew/ekonomirss.xml", "https://www.sabah.com.tr/rss/ekonomi.xml",
+    "https://www.trthaber.com/ekonomi_articles.rss", "https://www.sozcu.com.tr/feeds-rss-category-ekonomi",
+    "https://www.alomaliye.com/feed/", "https://www.yeniakit.com.tr/rss/haber/ekonomi",
+    "https://www.cnnturk.com/feed/rss/ekonomi/news", "https://www.star.com.tr/rss/ekonomi.xml",
+    "https://www.aksam.com.tr/rss/ekonomi.xml", "https://www.paraanaliz.com/feed/", "https://www.muhasebetr.com/rss/",
+]
+KEY = re.compile(r"vergi|maliye|gelir idaresi|GİB|müfettiş|kaçakçılı|fatura|denetim|beyanname|KDV|ÖTV|harç|SGK prim|yapılandırma", re.I)
+
+
+def lead(page):
+    """Haber sayfasından giriş: og:description ve ilk paragraflar."""
+    og = re.search(r'<meta[^>]+(?:property|name)=["\'](?:og:description|description)["\'][^>]+content=["\']([^"\']+)', page, re.I)
+    body = re.search(r"<article.*?</article>", page, re.S | re.I)
+    ps = [html.unescape(re.sub(r"<[^>]+>", " ", p)).strip() for p in re.findall(r"<p[^>]*>(.*?)</p>", body.group(0) if body else page, re.S | re.I)]
+    ps = [re.sub(r"\s+", " ", p) for p in ps if len(p) > 60]
+    return (html.unescape(og.group(1)).strip() if og else ""), ps
+
+
 def diag():
-    """Teşhis: haber bağlantılarının çözülüp metnin alınabildiğini dener (yalnızca alan adı ve sayılar yazdırılır)."""
-    import base64
+    """Teşhis: yayıncı RSS akışları ve haber girişlerinin alınabildiği (yalnızca alan adı ve sayılar)."""
     from urllib.parse import urlparse
-    raw, ct = metin.fetch(RSS.format(q=quote(QUERIES[2][1] + " when:3d")), timeout=30)
-    links = re.findall(r"<link>(https://news\.google\.com/[^<]+)</link>", metin.decode(raw, ct))[:6]
-    print(f"Haber teşhis: {len(links)} bağlantı")
-    for ln in links:
-        aid = ln.split("/articles/")[-1].split("?")[0]
+    for f in FEEDS_TRY:
+        host = urlparse(f).netloc
         try:
-            b = base64.urlsafe_b64decode(aid + "=" * (-len(aid) % 4))
-            m = re.search(rb"https?://[\x21-\x7e]+", b)
-            dec = urlparse(m.group(0).decode()).netloc if m else "-"
-        except Exception:  # noqa: BLE001
-            dec = "çözülemedi"
-        try:
-            r2, c2 = metin.fetch(ln, timeout=20)
-            page = metin.decode(r2, c2)
-            sg = bool(re.search(r'data-n-a-sg="', page))
-            print(f"  id {aid[:6]}… b64: {dec} · sayfa {len(page)} krk · imza: {sg}")
+            raw, ct = metin.fetch(f, timeout=20)
+            x = metin.decode(raw, ct)
         except Exception as e:  # noqa: BLE001
-            print(f"  id {aid[:6]}… b64: {dec} · sayfa hata {type(e).__name__} {getattr(e, 'code', '')}")
+            print(f"  {host}: akış hata {type(e).__name__} {getattr(e, 'code', '')}")
+            continue
+        its = re.findall(r"<item>(.*?)</item>", x, re.S) or re.findall(r"<entry>(.*?)</entry>", x, re.S)
+        hits = [i for i in its if KEY.search(re.sub(r"<[^>]+>", " ", i))]
+        desc = sum(1 for i in its if re.search(r"<description>.{80,}", i, re.S))
+        msg = f"  {host}: {len(its)} haber, {len(hits)} vergi ilgili, açıklamalı {desc}"
+        if its:
+            ln = re.search(r"<link>(?:<!\[CDATA\[)?\s*([^<\]\s]+)", (hits or its)[0]) or re.search(r'<link[^>]+href="([^"]+)"', (hits or its)[0])
+            if ln:
+                try:
+                    r2, c2 = metin.fetch(ln.group(1).strip(), timeout=20)
+                    og, ps = lead(metin.decode(r2, c2))
+                    msg += f" · sayfa: og {len(og)} krk, {len(ps)} paragraf, ilk3 {sum(len(p) for p in ps[:3])} krk"
+                except Exception as e:  # noqa: BLE001
+                    msg += f" · sayfa hata {type(e).__name__} {getattr(e, 'code', '')}"
+        print(msg)
