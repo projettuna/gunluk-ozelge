@@ -1,113 +1,127 @@
 """Haberler sekmesi: Hazine ve Maliye Bakanlığı, GİB, VDK ve vergi müfettişlerini ilgilendiren haberler.
 
-Kaynak Google Haberler RSS (bakanlık siteleri betikle yüklendiği için doğrudan okunamıyor).
+Kaynak: yayıncıların kendi RSS akışları. Uygulamada kısa özet gösterilir (tam metin kopyalanmaz), en altta kaynağa bağlantı.
 Depo herkese açık: haber başlıkları yazdırılmaz, yalnızca sayılar.
 """
 import html
 import re
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
-from urllib.parse import quote
 
 import metin
 
-QUERIES = [
-    ("VDK", '"vergi müfettişi" OR "vergi müfettişleri" OR "Vergi Denetim Kurulu"'),
-    ("Bakanlık", '"Hazine ve Maliye Bakanlığı" OR "Hazine ve Maliye Bakanı"'),
-    ("GİB", '"Gelir İdaresi Başkanlığı" OR "Gelir İdaresi"'),
-    ("Kaçakçılık", '"vergi kaçakçılığı" OR "sahte fatura" OR "naylon fatura" OR "vergi incelemesi"'),
-    ("Vergi", '"vergi düzenlemesi" OR "vergi paketi" OR "vergi affı" OR "yapılandırma" vergi'),
-    ("Dünya", 'OECD vergi OR "küresel asgari vergi" OR "uluslararası vergi" OR "vergi cenneti" OR "dijital hizmet vergisi"'),
-]
 # Başlık yabancı bir ülkeyi/kurumu anıyorsa "Dünya" başlığına alınır
 FOREIGN = re.compile(r"\b(ABD|Amerika|Avrupa|AB'|AB |Avrupa Birliği|Britanya|İngiltere|Almanya|Fransa|İtalya|İspanya|Hollanda|Belçika|İsviçre|Avusturya|Yunanistan|Rusya|Ukrayna|Çin|Japonya|Hindistan|Kanada|Avustralya|Brezilya|Arjantin|Meksika|Malezya|Endonezya|Kore|İsrail|İran|Irak|Suriye|Mısır|Suudi|Katar|Dubai|BAE|Azerbaycan|Kazakistan|Özbekistan|Gürcistan|Bulgaristan|Romanya|Polonya|Macaristan|Trump|Biden|Washington|Londra|Berlin|Paris|Brüksel|Moskova|Pekin|OECD|IMF|G20|G7|Dünya Bankası|BM |Birleşmiş Milletler|küresel|uluslararası|global)", re.I)
 
-RSS = "https://news.google.com/rss/search?q={q}&hl=tr&gl=TR&ceid=TR:tr"
+# Yayıncıların kendi RSS akışları (bağlantılar doğrudan habere gider; Google Haberler bağlantıları çözülemiyor)
+FEEDS = [
+    ("TRT Haber", "https://www.trthaber.com/ekonomi_articles.rss"), ("Milliyet", "https://www.milliyet.com.tr/rss/rssnew/ekonomirss.xml"),
+    ("NTV", "https://www.ntv.com.tr/ekonomi.rss"), ("Sözcü", "https://www.sozcu.com.tr/feeds-rss-category-ekonomi"),
+    ("Habertürk", "https://www.haberturk.com/rss/ekonomi.xml"), ("Anadolu Ajansı", "https://www.aa.com.tr/tr/rss/default?cat=ekonomi"),
+    ("Sabah", "https://www.sabah.com.tr/rss/ekonomi.xml"), ("CNN Türk", "https://www.cnnturk.com/feed/rss/ekonomi/news"),
+    ("Yeni Akit", "https://www.yeniakit.com.tr/rss/haber/ekonomi"), ("Bloomberg HT", "https://www.bloomberght.com/rss"),
+    ("Star", "https://www.star.com.tr/rss/ekonomi.xml"), ("Dünya", "https://www.dunya.com/rss"),
+    ("Ekonomim", "https://www.ekonomim.com/rss"), ("MuhasebeTR", "https://www.muhasebetr.com/rss/"),
+]
+KEY = re.compile(r"vergi|maliye|gelir idaresi|\bGİB\b|müfettiş|kaçakçılı|sahte fatura|naylon fatura|beyanname|\bKDV\b|\bÖTV\b|"
+                 r"yapılandırma|matrah|stopaj|tahsilat|Hazine ve Maliye|Vergi Denetim|kayıt dışı|e-fatura|e-defter", re.I)
+KONU = [("VDK", re.compile(r"müfettiş|Vergi Denetim|VDK", re.I)), ("GİB", re.compile(r"Gelir İdaresi|\bGİB\b", re.I)),
+        ("Kaçakçılık", re.compile(r"kaçakçılı|sahte fatura|naylon fatura|kayıt dışı|operasyon|vergi incelemesi|gözaltı", re.I)),
+        ("Bakanlık", re.compile(r"Hazine ve Maliye|Maliye Bakan", re.I))]
 SKIP = re.compile(r"\b(burç|maç|transfer|dizi|magazin|altın fiyat|hava durumu)\b", re.I)
+JUNK = re.compile(r"abone ol|tıklay|haberin devamı|©|tüm hakları|çerez|cookie|whatsapp|google news|takip edin|reklam", re.I)
 
 
-def fetch_news():
-    out, seen = [], set()
-    for konu, q in QUERIES:
+def clean(t):
+    t = html.unescape(re.sub(r"<!\[CDATA\[|\]\]>", "", t or ""))
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", t)).strip()
+
+
+def lead(page):
+    """Haber sayfasından giriş: og:description ve ilk birkaç temiz paragraf."""
+    og = re.search(r'<meta[^>]+(?:property|name)=["\'](?:og:description|description)["\'][^>]+content=["\']([^"\']+)', page, re.I)
+    body = re.search(r"<article.*?</article>", page, re.S | re.I)
+    ps = [clean(p) for p in re.findall(r"<p[^>]*>(.*?)</p>", body.group(0) if body else page, re.S | re.I)]
+    ps = [p for p in ps if 60 < len(p) < 1200 and "{" not in p and not JUNK.search(p)]
+    return (clean(og.group(1)) if og else ""), ps
+
+
+def ozet_of(url, desc):
+    """Kısa alıntı: başlık altı özet + ilk 3 paragraf, en çok ~1400 karakter (tam metin kopyalanmaz)."""
+    parts = []
+    try:
+        raw, ct = metin.fetch(url, timeout=20)
+        og, ps = lead(metin.decode(raw, ct))
+    except Exception:  # noqa: BLE001
+        og, ps = "", []
+    for p in [og or desc] + ps:
+        if p and not any(p[:60] in q or q[:60] in p for q in parts):
+            parts.append(p)
+        if sum(len(q) for q in parts) > 1100 or len(parts) >= 4:
+            break
+    out = "\n\n".join(parts)
+    return out[:1400].rsplit(" ", 1)[0] + "…" if len(out) > 1400 else out
+
+
+def fetch_news(known=frozenset(), max_pages=30):
+    out, seen, pages = [], set(), 0
+    for src, feed in FEEDS:
         try:
-            raw, ct = metin.fetch(RSS.format(q=quote(q + " when:3d")), timeout=30)
+            raw, ct = metin.fetch(feed, timeout=25)
         except Exception as e:  # noqa: BLE001
-            print(f"Haber kaynağı okunamadı ({konu}): {type(e).__name__}")
+            print(f"Haber kaynağı okunamadı ({src}): {type(e).__name__} {getattr(e, 'code', '')}")
             continue
-        x = metin.decode(raw, ct)
-        for it in re.findall(r"<item>(.*?)</item>", x, re.S):
-            g = lambda tag: html.unescape(re.sub(r"<!\[CDATA\[|\]\]>", "", (re.search(rf"<{tag}[^>]*>(.*?)</{tag}>", it, re.S) or [None, ""])[1])).strip()
-            title, link, pub, src = g("title"), g("link"), g("pubDate"), g("source")
-            if src and title.endswith(" - " + src):
-                title = title[: -len(src) - 3].strip()
+        for it in re.findall(r"<item>(.*?)</item>", metin.decode(raw, ct), re.S):
+            g = lambda tag: (re.search(rf"<{tag}[^>]*>(.*?)</{tag}>", it, re.S) or [None, ""])[1]
+            title, link, desc = clean(g("title")), clean(g("link")), clean(g("description"))[:600]
             key = re.sub(r"\W+", "", title.lower())[:80]
-            if not title or not link or key in seen or SKIP.search(title):
+            if not title or not link.startswith("http") or key in seen or SKIP.search(title) or not KEY.search(title + " " + desc):
                 continue
             seen.add(key)
             try:
-                when = parsedate_to_datetime(pub).astimezone(timezone.utc).isoformat()
+                when = parsedate_to_datetime(clean(g("pubDate"))).astimezone(timezone.utc)
             except (TypeError, ValueError):
-                when = None
-            out.append({"title": title[:300], "url": link, "source": src[:80] or None,
-                        "konu": "Dünya" if konu != "VDK" and FOREIGN.search(title) else konu, "published": when})
+                when = datetime.now(timezone.utc)
+            if datetime.now(timezone.utc) - when > timedelta(days=4):
+                continue
+            konu = next((k for k, rx in KONU if rx.search(title + " " + desc)), "Vergi")
+            if konu not in ("VDK", "GİB") and FOREIGN.search(title):
+                konu = "Dünya"
+            row = {"title": title[:300], "url": link[:500], "source": src, "konu": konu, "published": when.isoformat()}
+            if link not in known and pages < max_pages:
+                row["ozet"] = ozet_of(link, desc)
+                pages += 1
+            elif link not in known:
+                row["ozet"] = desc or None
+            out.append(row)
     return out
 
 
 def run(db):
-    items = fetch_news()
-    added = 0
-    for i in range(0, len(items), 200):
-        res = db("POST", "news?on_conflict=url", items[i:i + 200], prefer="resolution=merge-duplicates,return=representation")
-        added += len(res or [])
+    since = (datetime.now(timezone.utc) - timedelta(days=5)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    try:
+        known = {r["url"] for r in db("GET", f"news?select=url&ozet=not.is.null&published=gte.{since}&limit=2000") or []}
+        has_ozet = True
+    except Exception:  # noqa: BLE001  (haber_ozet.sql henüz çalıştırılmadı)
+        known, has_ozet = set(), False
+    items = fetch_news(known if has_ozet else frozenset(), 30 if has_ozet else 0)
+    groups = [[x for x in items if "ozet" in x], [x for x in items if "ozet" not in x]]
+    for grp in groups:
+        if not has_ozet:
+            grp = [{k: v for k, v in x.items() if k != "ozet"} for x in grp]
+        for i in range(0, len(grp), 200):
+            db("POST", "news?on_conflict=url", grp[i:i + 200], prefer="resolution=merge-duplicates,return=minimal")
+    db("DELETE", "news?url=like.https://news.google.com/*", prefer="return=minimal")
     old = (datetime.now(timezone.utc) - timedelta(days=60)).strftime("%Y-%m-%dT%H:%M:%SZ")
     db("DELETE", f"news?published=lt.{old}", prefer="return=minimal")
-    print(f"Haberler: {len(items)} bulundu/güncellendi, Dünya: {sum(1 for x in items if x['konu'] == 'Dünya')}")
+    print(f"Haberler: {len(items)} bulundu, özetli yeni {sum(1 for x in items if x.get('ozet'))}, Dünya: {sum(1 for x in items if x['konu'] == 'Dünya')}"
+          + ("" if has_ozet else " (özet kolonu yok: haber_ozet.sql)"))
 
-
-FEEDS_TRY = [
-    "https://www.aa.com.tr/tr/rss/default?cat=ekonomi", "https://www.ntv.com.tr/ekonomi.rss",
-    "https://www.haberturk.com/rss/ekonomi.xml", "https://www.dunya.com/rss", "https://www.ekonomim.com/rss",
-    "https://www.bloomberght.com/rss", "https://www.hurriyet.com.tr/rss/ekonomi",
-    "https://www.milliyet.com.tr/rss/rssnew/ekonomirss.xml", "https://www.sabah.com.tr/rss/ekonomi.xml",
-    "https://www.trthaber.com/ekonomi_articles.rss", "https://www.sozcu.com.tr/feeds-rss-category-ekonomi",
-    "https://www.alomaliye.com/feed/", "https://www.yeniakit.com.tr/rss/haber/ekonomi",
-    "https://www.cnnturk.com/feed/rss/ekonomi/news", "https://www.star.com.tr/rss/ekonomi.xml",
-    "https://www.aksam.com.tr/rss/ekonomi.xml", "https://www.paraanaliz.com/feed/", "https://www.muhasebetr.com/rss/",
-]
-KEY = re.compile(r"vergi|maliye|gelir idaresi|GİB|müfettiş|kaçakçılı|fatura|denetim|beyanname|KDV|ÖTV|harç|SGK prim|yapılandırma", re.I)
-
-
-def lead(page):
-    """Haber sayfasından giriş: og:description ve ilk paragraflar."""
-    og = re.search(r'<meta[^>]+(?:property|name)=["\'](?:og:description|description)["\'][^>]+content=["\']([^"\']+)', page, re.I)
-    body = re.search(r"<article.*?</article>", page, re.S | re.I)
-    ps = [html.unescape(re.sub(r"<[^>]+>", " ", p)).strip() for p in re.findall(r"<p[^>]*>(.*?)</p>", body.group(0) if body else page, re.S | re.I)]
-    ps = [re.sub(r"\s+", " ", p) for p in ps if len(p) > 60]
-    return (html.unescape(og.group(1)).strip() if og else ""), ps
 
 
 def diag():
-    """Teşhis: yayıncı RSS akışları ve haber girişlerinin alınabildiği (yalnızca alan adı ve sayılar)."""
-    from urllib.parse import urlparse
-    for f in FEEDS_TRY:
-        host = urlparse(f).netloc
-        try:
-            raw, ct = metin.fetch(f, timeout=20)
-            x = metin.decode(raw, ct)
-        except Exception as e:  # noqa: BLE001
-            print(f"  {host}: akış hata {type(e).__name__} {getattr(e, 'code', '')}")
-            continue
-        its = re.findall(r"<item>(.*?)</item>", x, re.S) or re.findall(r"<entry>(.*?)</entry>", x, re.S)
-        hits = [i for i in its if KEY.search(re.sub(r"<[^>]+>", " ", i))]
-        desc = sum(1 for i in its if re.search(r"<description>.{80,}", i, re.S))
-        msg = f"  {host}: {len(its)} haber, {len(hits)} vergi ilgili, açıklamalı {desc}"
-        if its:
-            ln = re.search(r"<link>(?:<!\[CDATA\[)?\s*([^<\]\s]+)", (hits or its)[0]) or re.search(r'<link[^>]+href="([^"]+)"', (hits or its)[0])
-            if ln:
-                try:
-                    r2, c2 = metin.fetch(ln.group(1).strip(), timeout=20)
-                    og, ps = lead(metin.decode(r2, c2))
-                    msg += f" · sayfa: og {len(og)} krk, {len(ps)} paragraf, ilk3 {sum(len(p) for p in ps[:3])} krk"
-                except Exception as e:  # noqa: BLE001
-                    msg += f" · sayfa hata {type(e).__name__} {getattr(e, 'code', '')}"
-        print(msg)
+    items = fetch_news(frozenset(), 3)
+    print(f"Haber teşhis: {len(items)} haber, kaynak sayısı {len({x['source'] for x in items})}, "
+          f"özet uzunlukları {[len(x.get('ozet') or '') for x in items if 'ozet' in x][:3]}")
+    for x in [x for x in items if x.get("ozet")][:3]:  # kamuya açık haber metninden kısa örnek
+        print("  örnek:", x["source"], "·", x["konu"], "·", x["ozet"][:220].replace("\n", " / "))
