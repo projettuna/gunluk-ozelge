@@ -1060,6 +1060,13 @@ if __name__ == "__main__":
                 save_state(st)
             except Exception as e:  # noqa: BLE001
                 print(f"Madde takibi atlandı: {type(e).__name__} {getattr(e, 'code', '')}")
+            try:
+                import soru_taslak
+                st = load_state()
+                soru_taslak.run(db, st)
+                save_state(st)
+            except Exception as e:  # noqa: BLE001
+                print(f"Soru taslağı turu atlandı: {type(e).__name__} {getattr(e, 'code', '')}")
         nt = datetime.now(TR)
         busy = nt.weekday() < 5 and 8 <= nt.hour < 19  # bu saatlerde tarama 5 dakikada bir, dışında saatlik
         if not busy or nt.minute % 15 < 5 or "--news" in sys.argv or (os.environ.get("GITHUB_EVENT_NAME") == "workflow_dispatch" and not os.environ.get("TMPRO_AUTO")):

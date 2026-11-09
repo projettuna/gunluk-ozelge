@@ -98,4 +98,6 @@ begin
 end $$;
 grant execute on function public.decide_credit(bigint, boolean) to authenticated;
 
+grant execute on function public.notify_admins(text, text) to service_role;
+
 notify pgrst, 'reload schema';
