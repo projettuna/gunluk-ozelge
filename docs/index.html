@@ -1411,12 +1411,13 @@ const left = iso => { const n = daysTo(iso); return n < 0 ? `<span class="tleft 
 const resRow = (lbl, iso, sub, evTitle) => `<div class="tres"><div class="grow"><small>${lbl}</small><b>${trD(iso)}</b>${sub ? `<em>${sub}</em>` : ""}</div><div class="tside">${left(iso)}${evTitle ? `<button class="tadd" data-t="${esc(evTitle)}" data-d="${iso}">Takvime Ekle</button>` : ""}</div></div>`;
 function renderTools(){
   $("sub").textContent = "Süre, ceza, faiz ve mevzuat yardımcıları";
-  const segs = [["asistan", "Asistan"], ["taslak", "Rapor Taslağı"], ["ictihat", "İçtihat Yönü"], ["ceza", "Ceza ve Faiz"], ["piyasa", "Döviz ve Altın"]];
+  const segs = [["asistan", "Asistan"], ["emsal", "Emsal Bul"], ["ictihat", "İçtihat Yönü"], ["ceza", "Ceza ve Faiz"], ["piyasa", "Döviz ve Altın"]];
   if(toolSeg === "sinav" || toolSeg === "delil" || toolSeg === "sure") toolSeg = "asistan";
+  if(toolSeg === "taslak") toolSeg = "emsal";
   $("tools").innerHTML = `<div class="sfil" id="toolSeg">${segs.map(([k, l]) => `<button data-s="${k}" class="${toolSeg === k ? "on" : ""}">${l}</button>`).join("")}</div><div id="toolBody"></div>
     <div class="foot" style="margin-top:14px">Hesaplamalar yardımcı amaçlıdır; sonuçları mevzuat ve güncel içtihatla teyit edin.</div>`;
   $("toolSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; toolSeg = b.dataset.s; renderTools(); syncNav(); };
-  if(toolSeg === "ictihat") toolIctihat(); else if(toolSeg === "delil") toolDelil(); else if(toolSeg === "sure") toolSure(); else if(toolSeg === "ceza") toolCeza(); else if(toolSeg === "piyasa") toolPiyasa(); else if(toolSeg === "taslak") toolTaslak(); else toolAsk();
+  if(toolSeg === "ictihat") toolIctihat(); else if(toolSeg === "delil") toolDelil(); else if(toolSeg === "sure") toolSure(); else if(toolSeg === "ceza") toolCeza(); else if(toolSeg === "piyasa") toolPiyasa(); else if(toolSeg === "emsal") toolEmsal(); else toolAsk();
 }
 // VUK 18 / İYUK 8: son gün hafta sonu veya tam gün resmî tatile denk gelirse ilk iş gününe kayar
 function isWorkday(iso){ const g = parseIso(iso).getDay(); if(g === 0 || g === 6) return false;
@@ -1587,10 +1588,7 @@ const quotaText = () => { if(!aiQuota || aiQuota.limit == null) return "";
     + (aiQuota.credits ? ` · Kredi: <b>${aiQuota.credits}</b>` : ""); };
 const ICON_CLIP = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.4 11.1-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg>';
 
-// ---- Rapor taslağı asistanı: yalnızca konu ve genel açıklama; mükellef bilgisi gönderilmez, taslak saklanmaz
-const TS_TUR = [["inceleme", "Vergi İnceleme Raporu"], ["vtr", "Vergi Tekniği Raporu (VTR)"], ["suc", "Vergi Suçu Raporu (VUK 359)"], ["bolum", "Tek Bölüm / Değerlendirme"]];
 const TS_KONU = [["sahte_kullanma", "Sahte belge kullanımı"], ["sahte_duzenleme", "Sahte belge düzenleme"], ["yaniltici", "Muhteviyatı itibarıyla yanıltıcı belge"], ["kdv_iade", "KDV iadesi"], ["ortulu_sermaye", "Örtülü sermaye"], ["transfer", "Transfer fiyatlandırması (örtülü kazanç)"], ["hasilat", "Kayıt dışı hasılat"], ["ibraz", "Defter-belge ibraz etmeme"], ["ortaklar_cari", "Ortaklar cari hesabı / adat"], ["kkeg", "Kanunen kabul edilmeyen giderler"], ["degerleme", "Değerleme hataları"], ["gayrimenkul", "Gayrimenkul satış kazancı"], ["stopaj", "Eksik tevkifat (stopaj)"], ["diger", "Diğer (açıklamada belirtin)"]];
-let tsOut = null, tsBusy = false, tsForm = { tur: "inceleme", konu: "sahte_kullanma", donem: "", aciklama: "" };
 function piiFound(t){
   const s = String(t || "");
   if(/(?<!\d)\d{10,11}(?!\d)/.test(s.replace(/(\d) (?=\d)/g, "$1"))) return "10-11 haneli numara (VKN/TCKN)";
@@ -1602,95 +1600,62 @@ function piiFound(t){
   if(/\b(mahalle|mah\.|sokak|sok\.|cadde|cad\.|bulvar|apt\.?)\b|\bno\s?:\s?\d/iu.test(s)) return "adres";
   return "";
 }
-async function toolTaslak(){
-  if(!aiQuota){ try{ const q = await sb.rpc("ai_quota"); aiQuota = q.error ? null : q.data; }catch{} if(toolSeg !== "taslak") return; }
+// ---- Konuya emsal bul: konudaki yargı kararları ve özelge/tebliğ/sirküler; yalnızca konu ve genel açıklama gönderilir, sonuç saklanmaz
+let emOut = null, emBusy = false, emForm = { konu: "sahte_kullanma", aciklama: "" };
+const atifOf = x => `${x.title}${x.meta ? ", " + x.meta : ""}`;
+async function toolEmsal(){
+  if(!aiQuota){ try{ const q = await sb.rpc("ai_quota"); aiQuota = q.error ? null : q.data; }catch{} if(toolSeg !== "emsal") return; }
   const opt = (a, v) => a.map(([k, l]) => `<option value="${k}"${k === v ? " selected" : ""}>${l}</option>`).join("");
-  const y = new Date().getFullYear(), years = [["", "Belirtmeyin"], ...Array.from({ length: 7 }, (_, i) => [String(y - i), String(y - i)])];
   const qt = quotaText();
-  $("toolBody").innerHTML = `<div class="tcard"><div class="tt">Rapor Taslağı <span>Yapay zekâ</span></div>
-      <div class="kwarn" style="margin:0 0 10px"><b>Mükellefe ait hiçbir bilgi yazmayınız</b> (ad/unvan, VKN/TCKN, adres, IBAN, plaka, belge numarası). Belge yüklenemez. Taslak yalnızca konu ve genel açıklamadan hazırlanır, sunucuda saklanmaz. Kurumunuzun bilgi güvenliği kurallarına uyunuz.</div>
-      <div class="thelp" style="margin-top:0">Seçtiğiniz konu için yasal dayanak, yargı kararları ve kalıp paragraflarla rapor iskeleti hazırlar. Somut bilgiler [MÜKELLEF], [TUTAR] gibi boşluk olarak gelir; bunları resmî ortamda siz doldurursunuz.</div>
-      <div class="tf"><label>Rapor türü<select id="tsTur">${opt(TS_TUR, tsForm.tur)}</select></label></div>
-      <div class="tf"><label>Konu<select id="tsKonu">${opt(TS_KONU, tsForm.konu)}</select></label></div>
-      <div class="tf"><label>İncelenen dönem (isteğe bağlı)<select id="tsDonem">${opt(years, tsForm.donem)}</select></label></div>
-      <div class="tf"><label>Genel açıklama (isteğe bağlı)<textarea id="tsAc" rows="3" maxlength="800" placeholder="Örn. Kurum, iade talebinde bulunduğu dönemde indirim konusu yaptığı faturaların bir kısmının sahte belge düzenleyicisi raporlu mükelleflerden alındığı tespit edildi.">${esc(tsForm.aciklama)}</textarea></label></div>
-      <div id="tsWarn" class="kwarn" style="margin:0 0 10px" hidden></div>
-      <div class="thelp" style="margin:0 0 8px">Her taslak <b>6 asistan hakkı</b> kullanır.${qt ? "<br>" + qt : ""}</div>
-      <button class="btn" id="tsGo" ${tsBusy ? "disabled" : ""}>${tsBusy ? "Hazırlanıyor… (2-4 dakika sürebilir, ekranı kapatmayın)" : "Taslak Hazırla"}</button></div>
-    <div id="tsOut"></div>`;
-  const ac = $("tsAc"), warn = $("tsWarn");
+  $("toolBody").innerHTML = `<div class="tcard"><div class="tt">Emsal Bul <span>Karar · Özelge · Tebliğ</span></div>
+      <div class="thelp" style="margin-top:0">Seçtiğiniz konudaki Danıştay, AYM ve Yargıtay kararlarını, özelge, tebliğ ve sirkülerleri bulur. Her biri için sonucu, ortaya koyduğu ilkeyi ve raporda nasıl kullanılabileceğini kısaca yazar.</div>
+      <div class="kwarn" style="margin:0 0 10px"><b>Mükellefe ait hiçbir bilgi yazmayınız</b> (ad/unvan, VKN/TCKN, adres, IBAN, plaka, belge numarası). Belge yüklenemez; sonuç sunucuda saklanmaz.</div>
+      <div class="tf"><label>Konu<select id="emKonu">${opt(TS_KONU, emForm.konu)}</select></label></div>
+      <div class="tf"><label>Ayrıntı (isteğe bağlı)<textarea id="emAc" rows="2" maxlength="600" placeholder="Örn. mal teslimi olmadan düzenlenen faturalarda ispat yükü ve KDV indiriminin reddi">${esc(emForm.aciklama)}</textarea></label></div>
+      <div id="emWarn" class="kwarn" style="margin:0 0 10px" hidden></div>
+      <div class="thelp" style="margin:0 0 8px">Her arama <b>2 asistan hakkı</b> kullanır; hakkınız yetmezse kaynaklar özetsiz listelenir.${qt ? "<br>" + qt : ""}</div>
+      <button class="btn" id="emGo" ${emBusy ? "disabled" : ""}>${emBusy ? "Kaynaklar taranıyor… (30-60 sn)" : "Emsal Bul"}</button></div>
+    <div id="emOut"></div>`;
+  const ac = $("emAc"), warn = $("emWarn");
   const check = () => { const p = piiFound(ac.value); warn.hidden = !p; warn.textContent = p ? `Açıklamada ${p} olabilecek bir bilgi var. Lütfen kaldırın; genel ifade kullanın.` : ""; return !p; };
-  ac.oninput = () => { tsForm.aciklama = ac.value; check(); };
-  ["tsTur", "tsKonu", "tsDonem"].forEach(id => $(id).onchange = e => { tsForm[{ tsTur: "tur", tsKonu: "konu", tsDonem: "donem" }[id]] = e.target.value; });
-  check(); renderTaslakOut();
-  $("tsGo").onclick = async () => {
-    if(tsBusy || !check()) return;
-    if(tsForm.konu === "diger" && tsForm.aciklama.trim().length < 10){ warn.hidden = false; warn.textContent = "\"Diğer\" seçildiyse konuyu açıklamada kısaca yazın."; return; }
-    tsBusy = true; tsOut = null; toolTaslak();
+  ac.oninput = () => { emForm.aciklama = ac.value; check(); };
+  $("emKonu").onchange = e => emForm.konu = e.target.value;
+  check(); renderEmsalOut();
+  $("emGo").onclick = async () => {
+    if(emBusy || !check()) return;
+    if(emForm.konu === "diger" && emForm.aciklama.trim().length < 10){ warn.hidden = false; warn.textContent = "\"Diğer\" seçildiyse konuyu kısaca yazın."; return; }
+    emBusy = true; emOut = null; toolEmsal();
     try{
       const { data: { session } } = await sb.auth.getSession();
-      const res = await fetch("/api/taslak", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session?.access_token }, body: JSON.stringify(tsForm) });
+      const res = await fetch("/api/emsal", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session?.access_token }, body: JSON.stringify(emForm) });
       const r = await res.json().catch(() => ({ error: "Yanıt okunamadı" }));
       if(r.quota) aiQuota = r.quota;
-      if(r.error) toast(r.error, 6000); else { tsOut = r; track("taslak"); }
+      if(r.error) toast(r.error, 6000); else { emOut = r; track("emsal"); }
     }catch{ toast("Bağlantı hatası, tekrar deneyin"); }
-    tsBusy = false; if(tab === "tools" && toolSeg === "taslak"){ await toolTaslak(); if(tsOut) $("tsOut").scrollIntoView({ behavior: "smooth", block: "start" }); }
+    emBusy = false; if(tab === "tools" && toolSeg === "emsal"){ await toolEmsal(); if(emOut) $("emOut").scrollIntoView({ behavior: "smooth", block: "start" }); }
   };
 }
-// Taslak metnini Word'ün açtığı HTML belgesine çevirir: numaralı başlıklar, | ile ayrılmış satırlar gerçek tablo, [YER TUTUCU] sarı
-function taslakDoc(text){
-  const ph = t => esc(t).replace(/\[(?!\d+\])([^\]\n]{1,80})\]/g, '<span style="background:#fff2a8">[$1]</span>');
-  const lines = text.split("\n"), out = [];
-  for(let i = 0; i < lines.length; i++){
-    const l = lines[i].trim();
-    if(!l){ continue; }
-    if(/^tablo:?$/i.test(l)) continue;
-    if(l.includes("|") && (lines[i + 1] || "").includes("|")){
-      const rows = []; while(i < lines.length && lines[i].includes("|")){ const c = lines[i].trim().replace(/^\||\|$/g, "").split("|").map(x => x.trim()); if(!c.every(x => /^:?-{2,}:?$/.test(x) || !x)) rows.push(c); i++; } i--;
-      out.push(`<table border="1" cellspacing="0" cellpadding="4" style="border-collapse:collapse;width:100%;margin:6pt 0">${rows.map((r, k) => `<tr>${r.map(c => k ? `<td>${ph(c)}</td>` : `<th style="background:#eeeeee;text-align:left">${ph(c)}</th>`).join("")}</tr>`).join("")}</table>`);
-      continue;
-    }
-    if(i === 0 || /^[A-ZÇĞİÖŞÜ][A-ZÇĞİÖŞÜ ()\-–]{6,}$/.test(l) && !/\d/.test(l.slice(0, 2))){ out.push(`<p style="text-align:center;font-weight:bold;font-size:13pt;margin:12pt 0 6pt">${ph(l)}</p>`); continue; }
-    if(/^\d+\.\s+\S/.test(l) && !/[a-zçğıöşü]/.test(l)){ out.push(`<p style="font-weight:bold;font-size:12pt;margin:12pt 0 4pt">${ph(l)}</p>`); continue; }
-    if(/^\d+\.\d+(\.\d+)*\.?\s+\S/.test(l) && l.length < 120){ out.push(`<p style="font-weight:bold;margin:8pt 0 3pt">${ph(l)}</p>`); continue; }
-    if(/^[-•]\s+/.test(l)){ out.push(`<p style="margin:0 0 3pt 18pt;text-indent:-12pt">• ${ph(l.replace(/^[-•]\s+/, ""))}</p>`); continue; }
-    if(/^kaynaklar:?$/i.test(l)){ out.push(`<p style="font-weight:bold;margin:14pt 0 4pt">Kaynaklar</p>`); continue; }
-    out.push(`<p style="text-align:justify;margin:0 0 6pt">${ph(l)}</p>`);
-  }
-  return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Rapor taslağı</title>
-<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
-<style>@page{size:21cm 29.7cm;margin:2.5cm 2cm}body{font-family:"Times New Roman",serif;font-size:12pt;line-height:1.4}td,th{font-size:10.5pt;vertical-align:top}</style></head><body>${out.join("\n")}
-<p style="margin-top:18pt;font-size:9pt;color:#777">TMPRO ile hazırlanan yardımcı taslaktır. Madde, karar ve oranları teyit ediniz.</p></body></html>`;
-}
-// PDF: pdfmake (Türkçe karakterli Roboto yazı tipiyle) yalnızca ilk kullanımda yüklenir
-let pdfMakeP = null;
-function loadPdfMake(){
-  if(window.pdfMake?.vfs) return Promise.resolve();
-  const add = src => new Promise((ok, no) => { const sc = document.createElement("script"); sc.src = src; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
-  return pdfMakeP ||= add("https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/pdfmake.min.js").then(() => add("https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/vfs_fonts.js")).catch(e => { pdfMakeP = null; throw e; });
-}
-function taslakPdfDef(text){
-  const ph = t => String(t).split(/(\[(?!\d+\])[^\]\n]{1,80}\])/).filter(Boolean).map(x => /^\[.*\]$/.test(x) && !/^\[\d+\]$/.test(x) ? { text: x, background: "#fff2a8" } : x);
-  const lines = text.split("\n"), c = [];
-  for(let i = 0; i < lines.length; i++){
-    const l = lines[i].trim();
-    if(!l || /^tablo:?$/i.test(l)) continue;
-    if(l.includes("|") && (lines[i + 1] || "").includes("|")){
-      const rows = []; while(i < lines.length && lines[i].includes("|")){ const r = lines[i].trim().replace(/^\||\|$/g, "").split("|").map(x => x.trim()); if(!r.every(x => /^:?-{2,}:?$/.test(x) || !x)) rows.push(r); i++; } i--;
-      const n = Math.max(...rows.map(r => r.length)); rows.forEach(r => { while(r.length < n) r.push(""); });
-      c.push({ table: { headerRows: 1, widths: Array(n).fill("*"), body: rows.map((r, k) => r.map(x => k ? { text: ph(x), fontSize: 9 } : { text: x, bold: true, fontSize: 9, fillColor: "#eeeeee" })) }, layout: { hLineWidth: () => .5, vLineWidth: () => .5, hLineColor: () => "#888", vLineColor: () => "#888" }, margin: [0, 3, 0, 8] });
-      continue;
-    }
-    if(i === 0 || /^[A-ZÇĞİÖŞÜ][A-ZÇĞİÖŞÜ ()\-–]{6,}$/.test(l)){ c.push({ text: l, bold: true, fontSize: 13, alignment: "center", margin: [0, 10, 0, 6] }); continue; }
-    if(/^\d+\.\s+\S/.test(l) && !/[a-zçğıöşü]/.test(l)){ c.push({ text: l, bold: true, fontSize: 12, margin: [0, 10, 0, 4] }); continue; }
-    if(/^\d+\.\d+(\.\d+)*\.?\s+\S/.test(l) && l.length < 120){ c.push({ text: ph(l), bold: true, margin: [0, 6, 0, 3] }); continue; }
-    if(/^[-•]\s+/.test(l)){ c.push({ text: ["• ", ...ph(l.replace(/^[-•]\s+/, ""))], margin: [12, 0, 0, 3] }); continue; }
-    if(/^kaynaklar:?$/i.test(l)){ c.push({ text: "Kaynaklar", bold: true, margin: [0, 12, 0, 4] }); continue; }
-    c.push({ text: ph(l), alignment: "justify", margin: [0, 0, 0, 5] });
-  }
-  c.push({ text: "TMPRO ile hazırlanan yardımcı taslaktır. Madde, karar ve oranları teyit ediniz.", fontSize: 8, color: "#777", margin: [0, 14, 0, 0] });
-  return { pageSize: "A4", pageMargins: [56, 60, 56, 60], content: c, defaultStyle: { font: "Roboto", fontSize: 10.5, lineHeight: 1.25 },
-    footer: (p, n) => ({ text: `${p} / ${n}`, alignment: "center", fontSize: 8, color: "#777", margin: [0, 20, 0, 0] }), info: { title: "Rapor taslağı" } };
+function renderEmsalOut(){
+  const el = $("emOut"); if(!el || !emOut) return;
+  const L = emOut.list || [], K = L.filter(x => x.karar), I = L.filter(x => !x.karar), M = emOut.maddeler || [];
+  const card = x => `<div class="li" style="display:block;padding:12px">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="pill">${esc(x.tur || "")}</span>${x.sonuc && x.sonuc !== "Belirsiz" ? `<span class="pill">${esc(x.sonuc)}</span>` : ""}${x.lehine ? `<span class="pill" style="color:var(${LEH[x.lehine][1]})">${LEH[x.lehine][0]}</span>` : ""}<small style="color:var(--muted)">${esc(x.meta || "")}</small></div>
+      <b style="display:block;font-weight:600;margin-top:5px">${esc(x.title || "")}</b>
+      ${x.ilke ? `<div style="margin-top:6px;line-height:1.45"><b>İlke:</b> ${esc(x.ilke)}</div>` : ""}
+      ${x.ozet ? `<div style="margin-top:4px;line-height:1.45;color:var(--muted)">${esc(x.ozet)}</div>` : !x.ilke && x.hukum ? `<div style="margin-top:4px;line-height:1.45;color:var(--muted)">${esc(x.hukum.slice(0, 260))}…</div>` : ""}
+      ${x.kullanim ? `<div style="margin-top:6px;line-height:1.45"><b>Raporda:</b> ${esc(x.kullanim)}</div>` : ""}
+      <div class="row" style="gap:8px;margin-top:9px">${x.id ? `<button class="btn ghost" data-emid="${x.id}" style="flex:1">Tam metin</button>` : x.url ? `<a class="btn ghost" href="${esc(x.url)}" target="_blank" rel="noopener" style="flex:1;text-align:center">Tam metin</a>` : ""}<button class="btn ghost" data-emcp="${x.n}" style="flex:1">Atfı kopyala</button></div></div>`;
+  const ozetsiz = emOut.ozetsiz ? `<div class="kwarn" style="margin:0 0 10px">${emOut.ozetsiz === "hak" ? "Asistan hakkınız yetmediği için kaynaklar özetsiz listelendi; hak düşmedi." : "Özetler şu an hazırlanamadı, kaynaklar özetsiz listelendi; hak düşmedi."}</div>` : "";
+  el.innerHTML = !L.length && !M.length ? `<div class="tcard"><div class="rwait">Bu konuda kaynak bulunamadı. Konuyu değiştirip ya da ayrıntıyı sadeleştirip tekrar deneyin.</div></div>` : `${ozetsiz}
+    ${K.length ? `<div class="sect" style="margin:14px 0 6px">Yargı kararları (${K.length})</div><div class="list">${K.map(card).join("")}</div>` : ""}
+    ${I.length ? `<div class="sect" style="margin:14px 0 6px">Özelge, tebliğ ve sirküler (${I.length})</div><div class="list">${I.map(card).join("")}</div>` : ""}
+    ${M.length ? `<div class="sect" style="margin:14px 0 6px">İlgili kanun maddeleri</div><div class="list">${M.map((m, i) => `<details class="li" style="display:block;padding:11px 12px"><summary style="cursor:pointer"><b style="font-weight:600">${esc(m.k)}</b>${m.baslik ? ` · ${esc(m.baslik)}` : ""}</summary><div style="white-space:pre-wrap;line-height:1.45;margin-top:8px;font-size:14px">${esc(m.metin)}</div></details>`).join("")}</div>` : ""}
+    <div class="thelp">Karar sonucu (onama/bozma, kimin lehine) kararın hüküm kısmından otomatik çıkarılır; özetleri yapay zekâ yazar. Raporda kullanmadan önce tam metni okuyun. Özelgeler yalnızca talep edeni bağlar.${emOut.elenen ? ` Konuyla ilgisiz bulunan ${emOut.elenen} kaynak gösterilmedi.` : ""}</div>`;
+  el.onclick = async e => {
+    const o = e.target.closest("[data-emid]"); if(o){ openReader(+o.dataset.emid); return; }
+    const c = e.target.closest("[data-emcp]"); if(c){ const x = L.find(y => y.n === +c.dataset.emcp); if(!x) return;
+      try{ await navigator.clipboard.writeText(atifOf(x)); toast("Atıf kopyalandı"); }catch{ toast("Kopyalanamadı"); } }
+  };
 }
 /* ---- İçtihat yönü: konudaki Danıştay kararlarının sonucu (metinden otomatik, maliyetsiz) ---- */
 let icForm = { konu: "sahte_kullanma", ifade: "" }, icRes = null, icBusy = false;
@@ -1791,34 +1756,6 @@ function toolDelil(){
 }
 
 /* ---- Yeterlik sınavı soru bankası (ilerleme yalnızca cihazda) ---- */
-function renderTaslakOut(){
-  const el = $("tsOut"); if(!el || !tsOut) return;
-  const src = (tsOut.sources || []).map(x => `<li>${x.id ? `<a href="#" data-open="${x.id}">` : `<a href="${esc(x.url || "#")}" target="_blank" rel="noopener">`}[${x.n}] ${esc(x.tur)} · ${esc(x.title)}</a></li>`).join("");
-  el.innerHTML = `<div class="tcard"><div class="tt">Taslak <span>Kontrol ederek kullanın</span></div>
-    <div class="tsdraft">${esc(tsOut.draft).replace(/\[(?!\d+\])([^\]\n]{2,80})\]/g, '<mark class="tsph">[$1]</mark>')}</div>
-    ${src ? `<div class="sect" style="margin:14px 0 6px">Dayanılan kaynaklar</div><ol class="tssrc">${src}</ol>` : ""}
-    <div class="row" style="gap:8px;margin-top:12px"><button class="btn" id="tsCopy" style="flex:1">Kopyala</button><button class="btn ghost" id="tsDl" style="flex:1">Word</button><button class="btn ghost" id="tsPdf" style="flex:1">PDF</button></div>
-    <div class="thelp">Yapay zekâ hata yapabilir; madde, karar ve oranları mutlaka teyit edin. "(teyit ediniz)" ile işaretli yerler kaynaklarda bulunamamıştır. Bu taslak kapatınca silinir.</div></div>`;
-  el.onclick = e => { const a = e.target.closest("[data-open]"); if(a){ e.preventDefault(); openReader(+a.dataset.open); } };
-  const txt = () => tsOut.draft + ((tsOut.sources || []).length ? "\n\nKaynaklar:\n" + tsOut.sources.map(x => `[${x.n}] ${x.tur} · ${x.title}${x.meta ? " · " + x.meta : ""}`).join("\n") : "");
-  $("tsCopy").onclick = async () => { try{ await navigator.clipboard.writeText(txt()); toast("Taslak kopyalandı"); }catch{ toast("Kopyalanamadı"); } };
-  $("tsPdf").onclick = async () => {
-    const b = $("tsPdf"); b.disabled = true; b.textContent = "Hazırlanıyor…";
-    try{
-      await loadPdfMake();
-      const name = `rapor-taslagi-${todayIso()}.pdf`;
-      const blob = await new Promise(res => pdfMake.createPdf(taslakPdfDef(txt())).getBlob(res));
-      try{ const f = new File([blob], name, { type: "application/pdf" }); if(navigator.canShare && navigator.canShare({ files: [f] })){ await navigator.share({ files: [f], title: "Rapor taslağı" }); return; } }catch(e){ if(e?.name === "AbortError") return; }
-      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    }catch{ toast("PDF hazırlanamadı, bağlantınızı kontrol edin"); }
-    finally{ b.disabled = false; b.textContent = "PDF"; }
-  };
-  $("tsDl").onclick = async () => {
-    const name = `rapor-taslagi-${todayIso()}.doc`, blob = new Blob(["\ufeff" + taslakDoc(txt())], { type: "application/msword" });
-    try{ const f = new File([blob], name, { type: "application/msword" }); if(navigator.canShare && navigator.canShare({ files: [f] })){ await navigator.share({ files: [f], title: "Rapor taslağı" }); return; } }catch(e){ if(e?.name === "AbortError") return; }
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-  };
-}
 async function toolAsk(){
   if(aiChats === null){
     $("toolBody").innerHTML = `<div class="rload"><i></i><i></i><i></i></div>`;

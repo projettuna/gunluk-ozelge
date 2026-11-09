@@ -3,10 +3,10 @@
     {
       "surum": "2.8",
       "tarih": "2026-11-09",
-      "baslik": "Yeni: Rapor Taslağı, İçtihat Yönü ve kanun maddesi takibi",
+      "baslik": "Yeni: Emsal Bul, İçtihat Yönü ve kanun maddesi takibi",
       "bildir": false,
       "notlar": [
-        "Araçlar → Rapor Taslağı: konu ve dönem seçin; güncel kanun metinleri ve Danıştay kararlarıyla rapor iskeleti hazırlansın (Word ve PDF). Mükellef bilgisi girilmez, belge yüklenmez.",
+        "Araçlar → Emsal Bul: konuyu seçin; Danıştay, AYM ve Yargıtay kararlarını, özelge, tebliğ ve sirkülerleri sonucu, ilkesi ve raporda nasıl kullanılabileceğiyle birlikte listelesin. Mükellef bilgisi girilmez.",
         "Araçlar → İçtihat Yönü: seçtiğiniz konudaki Danıştay kararlarının ne kadarının idare, ne kadarının mükellef lehine sonuçlandığını görün.",
         "Takip Listem → Kanun maddeleri: KDVK 29, VUK 359 gibi maddeleri takibe alın; maddeye atıf yapan yeni karar çıkınca ve madde metni değişince bildirim gelsin."
       ]
