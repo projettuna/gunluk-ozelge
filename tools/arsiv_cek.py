@@ -48,6 +48,33 @@ def row(tur, kind, r):
             "url": r.get("siteLink") or f"https://gib.gov.tr/mevzuat/{kind}/{r['id']}", "metin": txt[:30000]}
 
 
+def write(rows):
+    """Toplu yazar; hata olursa parçalara böler, yine olmazsa tek tek dener (sorunlu kayıt atlanır)."""
+    for x in rows:
+        for k in ("title", "meta", "metin"):
+            x[k] = (x.get(k) or "").replace("\x00", "")
+    for k in range(3):
+        try:
+            ozelge.db("POST", "mevzuat_arsiv?on_conflict=tur,gid", rows, prefer="resolution=merge-duplicates,return=minimal")
+            return 0
+        except Exception:  # noqa: BLE001
+            time.sleep(5 * (k + 1))
+    if len(rows) > 1:
+        h = len(rows) // 2
+        return write(rows[:h]) + write(rows[h:])
+    return 1
+
+
+def mevcut(tur):
+    try:
+        req = ozelge.Request(f"{ozelge.SUPABASE_URL}/rest/v1/mevzuat_arsiv?select=gid&tur=eq.{ozelge.quote(tur)}",
+                             headers={"apikey": ozelge.SUPABASE_KEY, "Authorization": f"Bearer {ozelge.SUPABASE_KEY}", "Prefer": "count=exact", "Range": "0-0"})
+        with ozelge.urlopen(req, timeout=60) as r:
+            return int((r.headers.get("Content-Range") or "*/0").split("/")[-1])
+    except Exception:  # noqa: BLE001
+        return 0
+
+
 def main():
     if MODE == "probe":
         for tur, path, kind in KINDS:
@@ -60,7 +87,8 @@ def main():
                   "kısa (<120):", sum(1 for x in ls if x < 120))
         return
     for tur, path, kind in KINDS:
-        p, n, kisa, fail, t0 = 0, 0, 0, 0, time.time()
+        var = mevcut(tur)
+        p, n, kisa, fail, atla, t0 = max(0, var // 200 - 1), 0, 0, 0, 0, time.time()  # yarım kalan yüklemeyi sürdür
         while True:
             d = page(path, p, 200)
             if d is None:
@@ -82,12 +110,12 @@ def main():
                     kisa += 1
                 rows.append(x)
             if rows:
-                ozelge.db("POST", "mevzuat_arsiv?on_conflict=tur,gid", rows, prefer="resolution=merge-duplicates,return=minimal")
+                atla += write(rows)
                 n += len(rows)
             p += 1
             if p >= (d.get("totalPages") or 1):
                 break
-        print(f"{tur}: {n} kayıt yüklendi, {kisa} kısa metinli, {fail} sayfa alınamadı, {time.time() - t0:.0f} sn")
+        print(f"{tur}: önceden {var}, bu turda {n} kayıt işlendi, {atla} kayıt yazılamadı, {kisa} kısa metinli, {fail} sayfa alınamadı, {time.time() - t0:.0f} sn")
 
 
 if __name__ == "__main__":
