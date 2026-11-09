@@ -21,7 +21,7 @@ FEEDS = [
     ("Sabah", "https://www.sabah.com.tr/rss/ekonomi.xml"), ("CNN Türk", "https://www.cnnturk.com/feed/rss/ekonomi/news"),
     ("Yeni Akit", "https://www.yeniakit.com.tr/rss/haber/ekonomi"), ("Bloomberg HT", "https://www.bloomberght.com/rss"),
     ("Star", "https://www.star.com.tr/rss/ekonomi.xml"), ("Dünya", "https://www.dunya.com/rss"),
-    ("Ekonomim", "https://www.ekonomim.com/rss"), ("MuhasebeTR", "https://www.muhasebetr.com/rss/"),
+    ("Ekonomim", "https://www.ekonomim.com/rss"),
 ]
 KEY = re.compile(r"vergi|maliye|gelir idaresi|\bGİB\b|müfettiş|kaçakçılı|sahte fatura|naylon fatura|beyanname|\bKDV\b|\bÖTV\b|"
                  r"yapılandırma|matrah|stopaj|tahsilat|Hazine ve Maliye|Vergi Denetim|kayıt dışı|e-fatura|e-defter", re.I)
@@ -130,6 +130,7 @@ def run(db):
         for i in range(0, len(grp), 200):
             db("POST", "news?on_conflict=url", grp[i:i + 200], prefer="resolution=merge-duplicates,return=minimal")
     db("DELETE", "news?url=like.https://news.google.com/*", prefer="return=minimal")
+    db("DELETE", "news?url=like.*muhasebetr.com*", prefer="return=minimal")  # müfettişler için uygun bulunmadı
     old = (datetime.now(timezone.utc) - timedelta(days=60)).strftime("%Y-%m-%dT%H:%M:%SZ")
     db("DELETE", f"news?published=lt.{old}", prefer="return=minimal")
     print(f"Haberler: {len(items)} bulundu, özetli yeni {sum(1 for x in items if x.get('ozet'))}, Dünya: {sum(1 for x in items if x['konu'] == 'Dünya')}"
