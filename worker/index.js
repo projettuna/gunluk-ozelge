@@ -295,8 +295,11 @@ Kurallar:
 - Sonda "Kontrol listesi" başlığı altında raporu tamamlamadan önce müfettişin teyit etmesi gereken 6-10 maddelik kısa bir liste ver (zamanaşımı, tebliğ, ilgili dönem mevzuatı, kurumun güncel rapor yazım esasları vb.).
 - Düz metin yaz; Markdown işareti (#, **, *) kullanma. Resmî ve sade bir dil kullan.`;
   const user = `Rapor türü: ${TASLAK_TURLER[tur]}\nKonu: ${konu}${donem ? `\nİncelenen dönem: ${donem}` : ""}${aciklama ? `\nGenel açıklama (mükellef bilgisi içermez): ${aciklama}` : ""}\n\n(Uygulamadaki ilgili kaynaklar:)\n${ctx || "(Eşleşen kaynak bulunamadı.)"}`;
-  const body = { model: env.ASK_MODEL || "claude-sonnet-5-5", max_tokens: 5000, system, messages: [{ role: "user", content: user }] };
-  const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify(body) });
+  // Sonnet 5.5'te düşünme varsayılan açık ve tüm çıktı bütçesini harcayabiliyor: taslak için kapatılır (between_tools = en düşük düşünme)
+  const body = { model: env.ASK_MODEL || "claude-sonnet-5-5", max_tokens: 8000, thinking: { type: "between_tools" }, system, messages: [{ role: "user", content: user }] };
+  const call = b => fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify(b) });
+  let r = await call(body);
+  if (r.status === 400) { delete body.thinking; body.max_tokens = 16000; r = await call(body); }  // model bu ayarı desteklemiyorsa düşünmeyle, geniş bütçeyle dene
   if (!r.ok) { let m = ""; try { m = (await r.json())?.error?.message || ""; } catch {} return Response.json({ error: "Yapay zekâ yanıt vermedi (" + r.status + ") " + m.slice(0, 120) }, { status: 502 }); }
   const d = await r.json();
   const draft = (d.content || []).filter(b => b.type === "text").map(b => b.text).join("").replace(/\*\*|^#+\s*/gm, "").trim();
