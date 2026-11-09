@@ -221,6 +221,39 @@ Bu bir sohbettir: önceki mesajları dikkate al, kısa ve net yaz, gerektiğinde
   return Response.json({ answer, sources, live: live.length, quota });
 }
 
+// ---- Döviz (TCMB) ve altın: tarayıcı bu kaynaklara doğrudan erişemediği için worker üzerinden, önbellekli
+async function cached(key, ttl, make) {
+  const c = caches.default, k = new Request("https://cache.tmpro/" + key);
+  const hit = await c.match(k); if (hit) return hit;
+  const body = await make();
+  const res = new Response(JSON.stringify(body), { headers: { "Content-Type": "application/json", "Cache-Control": `public, max-age=${ttl}` } });
+  if (!body.error) await c.put(k, res.clone());
+  return res;
+}
+const num = v => { const n = parseFloat(String(v || "").replace(",", ".")); return isFinite(n) && n > 0 ? n : null; };
+async function tcmb(iso) {
+  // Hafta sonu / tatil: geriye doğru en fazla 10 gün aranır
+  const d0 = iso ? new Date(iso + "T12:00:00Z") : null;
+  for (let i = 0; i < 11; i++) {
+    let u;
+    if (!d0 && i === 0) u = "https://www.tcmb.gov.tr/kurlar/today.xml";
+    else { const d = new Date((d0 || new Date()).getTime() - (d0 ? i : i) * 864e5); const dd = String(d.getUTCDate()).padStart(2, "0"), mm = String(d.getUTCMonth() + 1).padStart(2, "0"), yy = d.getUTCFullYear();
+      u = `https://www.tcmb.gov.tr/kurlar/${yy}${mm}/${dd}${mm}${yy}.xml`; }
+    let r; try { r = await fetch(u, { headers: { "User-Agent": "TMPRO-kur" }, cf: { cacheTtl: 900 } }); } catch { continue; }
+    if (!r.ok) continue;
+    const x = await r.text(); const t = (x.match(/Tarih="([\d.]+)"/) || [])[1]; if (!t) continue;
+    const kurlar = [...x.matchAll(/<Currency[^>]*Kod="([A-Z]+)"[^>]*>([\s\S]*?)<\/Currency>/g)].map(([, kod, b]) => {
+      const g = tag => (b.match(new RegExp(`<${tag}>([^<]*)</${tag}>`)) || [])[1];
+      return { kod, ad: g("Isim"), birim: +g("Unit") || 1, alis: num(g("ForexBuying")), satis: num(g("ForexSelling")), efAlis: num(g("BanknoteBuying")), efSatis: num(g("BanknoteSelling")) };
+    }).filter(k => k.alis || k.satis);
+    if (kurlar.length) return { tarih: t, kurlar };
+  }
+  return { error: "kur alınamadı" };
+}
+async function metal(sym) {
+  try { const r = await fetch(`https://api.gold-api.com/price/${sym}`, { headers: { "User-Agent": "TMPRO-kur" } }); if (!r.ok) return null; const j = await r.json(); return num(j.price) ? { usd: num(j.price), at: j.updatedAt || null } : null; } catch { return null; }
+}
+
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
@@ -237,6 +270,18 @@ export default {
       return Response.json(await morning(j, env));
     }
     if (url.pathname === "/api/ask" && req.method === "POST") return ask(req, env);
+    if (url.pathname === "/api/kur") {
+      const t = url.searchParams.get("tarih"); const iso = /^\d{4}-\d{2}-\d{2}$/.test(t || "") ? t : null;
+      return cached("kur-" + (iso || "bugun"), iso ? 86400 : 1800, () => tcmb(iso));
+    }
+    if (url.pathname === "/api/altin") {
+      return cached("altin", 300, async () => {
+        const [xau, xag, k] = await Promise.all([metal("XAU"), metal("XAG"), tcmb(null)]);
+        const usd = k.kurlar?.find(x => x.kod === "USD")?.satis || null;
+        if (!xau || !usd) return { error: "altın fiyatı alınamadı" };
+        return { onsUsd: xau.usd, gumusOnsUsd: xag?.usd || null, usdTry: usd, kurTarih: k.tarih, at: xau.at || new Date().toISOString() };
+      });
+    }
     return env.ASSETS.fetch(req);
   }
 };

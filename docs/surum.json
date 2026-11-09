@@ -3,9 +3,10 @@
     {
       "surum": "2.7",
       "tarih": "2026-11-08",
-      "baslik": "Yeni: Takip Listem ve ceza hesaplama araçları",
+      "baslik": "Yeni: Takip Listem, Döviz ve Altın, ceza hesaplama araçları",
       "bildir": true,
       "notlar": [
+        "Döviz ve Altın: TCMB kurları (geçmiş tarih seçilebilir, döviz çevirici) ve gram, çeyrek, yarım, tam altın fiyatları. Ana sayfada ve Araçlar'da.",
         "Takip Listem: ilgilendiğiniz konuları (ör. \"sahte belge\", \"KDV iadesi\") ekleyin; bu kelimelerin geçtiği yeni özelge, karar, tebliğ ve Resmî Gazete kayıtlarında bildirim gelsin.",
         "Araçlar → Ceza ve Faiz: usulsüzlük (VUK 352) ve belge düzeni özel usulsüzlük (VUK 353/1) cezaları 2026 tutarlarıyla.",
         "Vergi ziyaı cezasında kendiliğinden beyan (%50), kayıt dışı faaliyet artırımı ve VUK 376 indirimli tutar.",

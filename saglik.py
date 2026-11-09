@@ -86,6 +86,24 @@ def relay():
         bad("relay", "kritik", f"Bildirim aktarıcısı çalışmıyor (HTTP {code}); sohbet ve onay bildirimleri gitmez")
 
 
+def piyasa():
+    code, body, _ = http(APP + "api/kur")
+    try:
+        n = len(json.loads(body).get("kurlar") or [])
+    except Exception:  # noqa: BLE001
+        n = 0
+    if code != 200 or n < 5:
+        bad("kur", "uyari", f"Döviz kurları alınamıyor (HTTP {code}); TCMB kaynağı değişmiş olabilir")
+    code, body, _ = http(APP + "api/altin")
+    try:
+        ok = bool(json.loads(body).get("onsUsd"))
+    except Exception:  # noqa: BLE001
+        ok = False
+    if code != 200 or not ok:
+        bad("altin", "uyari", f"Altın fiyatı alınamıyor (HTTP {code}); fiyat kaynağı değişmiş olabilir")
+    print(f"  kur: {n} döviz, altın: {'var' if ok else 'yok'}")
+
+
 def database():
     rows, _ = db("items?select=created_at,tur&order=created_at.desc&limit=1")
     last = ts(rows[0]["created_at"]) if rows else None
@@ -314,7 +332,7 @@ def main():
         print("Supabase ayarı yok")
         return
     for name, fn in (("site", site), ("aktarıcı", relay), ("veritabanı", database), ("kurulum", setup),
-                     ("tarama", main_job), ("kaynaklar", sources), ("üye girişi ve ekranlar", e2e), ("e-posta", mails), ("yedek", backup), ("yapay zekâ", ai), ("haberler", news_fresh), ("telefon", phone)):
+                     ("tarama", main_job), ("kaynaklar", sources), ("üye girişi ve ekranlar", e2e), ("e-posta", mails), ("yedek", backup), ("yapay zekâ", ai), ("haberler", news_fresh), ("döviz ve altın", piyasa), ("telefon", phone)):
         check(name, fn)
     if TEST:
         bad("deneme", "kritik", "Bu bir deneme uyarısıdır, nöbetçi çalışıyor")

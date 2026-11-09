@@ -453,6 +453,19 @@ body.aichat #tools>.foot{display:none}
 .timg{margin-top:10px;border-radius:16px;overflow:hidden;border:.5px solid var(--glass-line);background:var(--fill);aspect-ratio:16/9}
 .timg img{width:100%;height:100%;object-fit:cover;display:block}
 .tact{display:flex;justify-content:space-between;max-width:330px;margin-top:6px}
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.agrid>div{background:var(--fill);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.agrid>div.big{grid-column:1/-1;background:linear-gradient(135deg,#f5d77a,#c9952b);color:#3b2a05}
+.agrid>div.big small{color:#5a4310}
+.agrid small{font-size:12px;color:var(--muted)}.agrid b{font-size:17px;font-variant-numeric:tabular-nums}.agrid .big b{font-size:24px}
+.kdate{font-size:12.5px;color:var(--muted);margin:8px 0 4px}
+.ktbl{display:flex;flex-direction:column;font-variant-numeric:tabular-nums}
+.ktbl>div{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:6px;align-items:center;padding:8px 2px;border-bottom:.5px solid var(--glass-line);font-size:14px}
+.ktbl>div>span:not(:first-child){text-align:right}
+.ktbl .kh{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding-top:2px}
+.ktbl .kr span:first-child{display:flex;flex-direction:column;min-width:0}.ktbl .kr small{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ktbl .kr.main b{color:var(--accent)}
+#toolSeg{overflow-x:auto;scrollbar-width:none}#toolSeg::-webkit-scrollbar{display:none}#toolSeg button{white-space:nowrap;flex:none}
 .tact button{display:flex;align-items:center;gap:5px;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;padding:7px 8px 7px 0;cursor:pointer}
 .tact button.on{color:var(--gold)}
 .tact button:active{opacity:.6}
@@ -1180,6 +1193,7 @@ function _render(){
     $("grid").className = "grid bento";
     $("grid").innerHTML = ORDER.filter(t => t !== "Yargıtay (Ceza)" || items.some(i => i.tur === t)).map(bento).join("") + (() => { const P = 'class="tile all pair"', ws = me.watch_words || [], wu = watchUnread();
         const t = [unreadCount ? wide("__unread", bell, "Okunmamış", unreadCount, unreadCount) : "", stars.size ? wide("__star", ICON_STAR(true), "Kaydedilenler", stars.size, 0) : "",
+          `<button class="tile all" data-t="__piyasa"><span class="ic">${ICON_COIN}</span><span><b>Döviz ve Altın</b><small id="pyMini">${piyasaMini()}</small></span></button>`,
           `<button class="tile all" data-t="__watch"><span class="ic">${ICON_SEARCH}</span><span><b>Takip Listem</b><small>${ws.length ? `${watchHits.size} kayıt · ${ws.length} konu` : "Konu ekleyin"}</small></span>${wu ? `<span class="nb">${wu}</span>` : ""}</button>`,
           wide("Tümü", icon("Tümü"), "Tüm Kayıtlar", items.length, 0)].filter(Boolean);
         return `<div class="pairs">${t.map((h, k) => t.length % 2 && k === 0 ? h : h.replace('class="tile all"', P)).join("")}</div>`; })();
@@ -1213,7 +1227,7 @@ function _render(){
   if(list.length > 300) html += `<div class="empty">İlk 300 kayıt gösteriliyor. Aramayı daraltın.</div>`;
   $("list").innerHTML = html;
 }
-$("grid").addEventListener("click", e => { const b = e.target.closest(".tile"); if(!b) return; if(b.dataset.t === "__unread"){ tab = "unread"; store.set("tab", tab); render(); scrollTo({top:0}); return; } if(b.dataset.t === "__star"){ tab = "star"; render(); scrollTo({top:0}); return; } if(b.dataset.t === "__watch"){ tab = "watch"; render(); scrollTo({top:0}); return; } filter = b.dataset.t; if(filter === "Tümü"){ filter = "__all"; } store.set("filter", filter); render(); scrollTo({top:0}); });
+$("grid").addEventListener("click", e => { const b = e.target.closest(".tile"); if(!b) return; if(b.dataset.t === "__unread"){ tab = "unread"; store.set("tab", tab); render(); scrollTo({top:0}); return; } if(b.dataset.t === "__star"){ tab = "star"; render(); scrollTo({top:0}); return; } if(b.dataset.t === "__watch"){ tab = "watch"; render(); scrollTo({top:0}); return; } if(b.dataset.t === "__piyasa"){ tab = "tools"; toolSeg = "piyasa"; render(); scrollTo({top:0}); return; } filter = b.dataset.t; if(filter === "Tümü"){ filter = "__all"; } store.set("filter", filter); render(); scrollTo({top:0}); });
 /* ---- geri: ekrandaki tuş + telefonun geri hareketi ---- */
 let navDepth = 0, skipPop = 0;
 function navLevel(){
@@ -1284,11 +1298,11 @@ const left = iso => { const n = daysTo(iso); return n < 0 ? `<span class="tleft 
 const resRow = (lbl, iso, sub, evTitle) => `<div class="tres"><div class="grow"><small>${lbl}</small><b>${trD(iso)}</b>${sub ? `<em>${sub}</em>` : ""}</div><div class="tside">${left(iso)}${evTitle ? `<button class="tadd" data-t="${esc(evTitle)}" data-d="${iso}">Takvime Ekle</button>` : ""}</div></div>`;
 function renderTools(){
   $("sub").textContent = "Süre, ceza, faiz ve mevzuat yardımcıları";
-  const segs = [["asistan", "Asistan"], ["sure", "Süreler"], ["ceza", "Ceza ve Faiz"]];
+  const segs = [["asistan", "Asistan"], ["piyasa", "Döviz ve Altın"], ["sure", "Süreler"], ["ceza", "Ceza ve Faiz"]];
   $("tools").innerHTML = `<div class="sfil" id="toolSeg">${segs.map(([k, l]) => `<button data-s="${k}" class="${toolSeg === k ? "on" : ""}">${l}</button>`).join("")}</div><div id="toolBody"></div>
     <div class="foot" style="margin-top:14px">Hesaplamalar yardımcı amaçlıdır; sonuçları mevzuat ve güncel içtihatla teyit edin.</div>`;
   $("toolSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; toolSeg = b.dataset.s; renderTools(); syncNav(); };
-  if(toolSeg === "sure") toolSure(); else if(toolSeg === "ceza") toolCeza(); else toolAsk();
+  if(toolSeg === "sure") toolSure(); else if(toolSeg === "ceza") toolCeza(); else if(toolSeg === "piyasa") toolPiyasa(); else toolAsk();
 }
 function toolSure(){
   const y = new Date().getFullYear() - 1;
@@ -1319,6 +1333,54 @@ function toolSure(){
   $("toolBody").onclick = async e => { const b = e.target.closest(".tadd"); if(!b) return;
     const { error } = await sb.from("user_events").insert({ title: b.dataset.t.slice(0, 80), day: b.dataset.d, yearly: false });
     if(error){ toast("Takvime eklenemedi"); return; } evLoaded = false; b.textContent = "Eklendi ✓"; b.disabled = true; toast("Takvime eklendi"); };
+}
+let KUR = {}, ALTIN = null, kurTarih = "";
+const ICON_COIN = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18M7 6h1v4M16.71 13.88l.7.71-2.82 2.82"/></svg>';
+function piyasaMini(){
+  const u = KUR[""]?.kurlar?.find(k => k.kod === "USD"), e = KUR[""]?.kurlar?.find(k => k.kod === "EUR");
+  if(!u){ if(!piyasaMini.busy){ piyasaMini.busy = true; Promise.all([loadKur(null), loadAltin()]).then(() => { const el = $("pyMini"); if(el) el.textContent = piyasaMini(); }).finally(() => { setTimeout(() => piyasaMini.busy = false, 6e4); }); } return "Kurlar ve altın"; }
+  const g = ALTIN && !ALTIN.error ? ALTIN.onsUsd / 31.1035 * ALTIN.usdTry : null;
+  return `$ ${fx(u.satis, 2)} · € ${fx(e?.satis, 2)}${g ? ` · gr ${Math.round(g).toLocaleString("tr-TR")} ₺` : ""}`;
+}
+const fx = (n, d = 4) => n == null ? "–" : n.toLocaleString("tr-TR", { minimumFractionDigits: d, maximumFractionDigits: d });
+const KUR_ON = ["USD", "EUR", "GBP", "CHF", "JPY", "SAR", "AED"];
+async function loadKur(iso){ const k = iso || ""; if(KUR[k] && Date.now() - KUR[k].at < 15 * 60e3) return KUR[k];
+  try{ const r = await fetch("/api/kur" + (iso ? "?tarih=" + iso : "")); const j = await r.json(); if(!j.error){ j.at = Date.now(); KUR[k] = j; } return j; }catch{ return { error: "bağlantı" }; } }
+async function loadAltin(){ if(ALTIN && Date.now() - ALTIN.t < 5 * 60e3) return ALTIN;
+  try{ const r = await fetch("/api/altin"); const j = await r.json(); if(!j.error){ j.t = Date.now(); ALTIN = j; } return j; }catch{ return { error: "bağlantı" }; } }
+async function toolPiyasa(){
+  $("toolBody").innerHTML = `
+  <div class="tcard"><div class="tt">Altın <span id="alAt">yükleniyor…</span></div><div id="alBody"><div class="rload"><i></i><i></i><i></i></div></div>
+    <div class="thelp">Uluslararası ons fiyatı ve TCMB dolar kuruyla hesaplanan yaklaşık değerlerdir. Kuyumcu fiyatları işçilik ve makas nedeniyle farklı olur.</div></div>
+  <div class="tcard"><div class="tt">Döviz Kurları <span>TCMB</span></div>
+    <div class="tf"><label>Tarih<input id="kurD" type="date" value="${kurTarih || todayIso()}" max="${todayIso()}"></label></div>
+    <div class="tf two"><label>Çevrilecek tutar<input id="kurN" inputmode="decimal" placeholder="Örn. 1.000"></label><label>Döviz<select id="kurC"></select></label></div>
+    <div id="kurConv"></div><div id="kurBody"><div class="rload"><i></i><i></i><i></i></div></div>
+    <div class="thelp">Türkiye Cumhuriyet Merkez Bankası gösterge niteliğindeki kurlar. Tatil ve hafta sonunda bir önceki iş gününün kuru gösterilir. Geçmiş tarih seçerek değerleme ve tespit tarihindeki kuru görebilirsiniz.</div></div>`;
+  const pnum = v => +String(v || "").replace(/\s/g, "").replace(/\./g, "").replace(",", ".") || 0;
+  const key = () => $("kurD").value && $("kurD").value !== todayIso() ? $("kurD").value : "";
+  const conv = () => { const j = KUR[key()]; const n = pnum($("kurN").value); const k = j?.kurlar?.find(x => x.kod === $("kurC").value);
+    $("kurConv").innerHTML = n && k ? `<div class="tsum"><div><small>${fx(n, 2)} ${k.kod} · alış</small><b>${fmtTL(n * k.alis / k.birim)}</b></div><div class="tot"><small>${fx(n, 2)} ${k.kod} · satış</small><b>${fmtTL(n * (k.satis || k.alis) / k.birim)}</b></div></div>` : ""; };
+  const cap = t => (t || "").toLocaleLowerCase("tr").replace(/(^|\s)\S/g, c => c.toLocaleUpperCase("tr"));
+  const draw = async () => {
+    kurTarih = $("kurD").value;
+    const j = await loadKur(key() || null); if(toolSeg !== "piyasa") return;
+    if(j.error){ $("kurBody").innerHTML = `<div class="rwait">Kurlar şu an alınamadı. Biraz sonra tekrar deneyin.</div>`; return; }
+    const L = [...j.kurlar].sort((a, b) => ((KUR_ON.indexOf(a.kod) + 1) || 99) - ((KUR_ON.indexOf(b.kod) + 1) || 99));
+    const sel = $("kurC").value || "USD";
+    $("kurC").innerHTML = L.map(k => `<option value="${k.kod}"${k.kod === sel ? " selected" : ""}>${k.kod}</option>`).join("");
+    $("kurBody").innerHTML = `<div class="kdate">${esc(j.tarih)} tarihli kurlar</div><div class="ktbl"><div class="kh"><span>Döviz</span><span>Alış</span><span>Satış</span><span>Ef. Satış</span></div>`
+      + L.map(k => `<div class="kr${KUR_ON.includes(k.kod) ? " main" : ""}"><span><b>${k.birim > 1 ? k.birim + " " : ""}${k.kod}</b><small>${esc(cap(k.ad))}</small></span><span>${fx(k.alis)}</span><span>${fx(k.satis)}</span><span>${fx(k.efSatis)}</span></div>`).join("") + `</div>`;
+    conv();
+  };
+  $("kurD").onchange = draw; $("kurN").oninput = conv; $("kurC").onchange = conv;
+  draw();
+  const a = await loadAltin(); if(toolSeg !== "piyasa") return;
+  if(a.error){ $("alBody").innerHTML = `<div class="rwait">Altın fiyatı şu an alınamadı.</div>`; $("alAt").textContent = ""; return; }
+  const gram = a.onsUsd / 31.1035 * a.usdTry, ag = a.gumusOnsUsd ? a.gumusOnsUsd / 31.1035 * a.usdTry : null;
+  const R = [["Gram altın (24 ayar)", gram], ["Çeyrek altın", gram * 1.75 * .916], ["Yarım altın", gram * 3.5 * .916], ["Tam (Cumhuriyet) altın", gram * 7.016 * .916], ["22 ayar (gram)", gram * .916], ...(ag ? [["Gram gümüş", ag]] : [])];
+  $("alAt").textContent = new Date(a.at).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+  $("alBody").innerHTML = `<div class="agrid">${R.map(([l, v], i) => `<div class="${i === 0 ? "big" : ""}"><small>${l}</small><b>${fmtTL(v)}</b></div>`).join("")}<div><small>Ons (USD)</small><b>$${fx(a.onsUsd, 2)}</b></div></div>`;
 }
 async function toolCeza(){
   if(!ORAN){ try{ ORAN = await (await fetch("oranlar.json?v=" + Math.floor(Date.now() / 36e5))).json(); }catch{ ORAN = { gecikme: [] }; } }
