@@ -57,6 +57,10 @@ on:
         description: "Rapor taslağı uçtan uca testi (geçici kullanıcı)"
         type: boolean
         default: false
+      madde_cek:
+        description: "Kanun maddelerini mevzuat.gov.tr'den al (rapor taslağı için)"
+        type: boolean
+        default: false
       test_push:
         description: "Kayıtlı cihazlara deneme bildirimi gönder"
         type: boolean
@@ -127,11 +131,17 @@ jobs:
             curl -s -w ' %{http_code}' -X POST "$SUPABASE_URL/rest/v1/rpc/send_morning" -H "apikey: $SUPABASE_SERVICE_KEY" ${AUTH:+-H "$AUTH"} -H 'Content-Type: application/json' -d '{"test":${{ inputs.morning_all && 'false' || 'true' }}}'
             echo; exit 0
           fi
+          if [ "${{ inputs.madde_cek }}" = "true" ]; then python tools/madde_cek.py; exit 0; fi
           if [ "${{ inputs.taslak_test }}" = "true" ]; then SUPABASE_PUBLISHABLE_KEY=sb_publishable_tlfwqtscxxv2vdSHe3PstQ_XO1db8p9 python tools/taslak_test.py; exit 0; fi
           if [ "${{ inputs.chat_test }}" = "true" ]; then SUPABASE_PUBLISHABLE_KEY=sb_publishable_tlfwqtscxxv2vdSHe3PstQ_XO1db8p9 python tools/chat_test.py; exit 0; fi
           python ozelge.py ${{ inputs.seed && '--seed' || '' }} ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.resend && '--resend' || '' }} ${{ inputs.resend_karar && '--resend-karar' || '' }} ${{ inputs.migrate && '--migrate' || '' }} ${{ inputs.test_push && '--test-push' || '' }} ${{ inputs.diag && '--diag' || '' }} ${{ inputs.weekly_test && '--weekly-test' || '' }} ${{ inputs.remind_test && '--remind-test' || '' }} ${{ (github.event.schedule == '*/5 21 * * *' || inputs.auto == 'rg') && '--only-rg' || '' }}
       - name: Durumu kaydet
         run: |
+          if [ "${{ inputs.madde_cek }}" = "true" ]; then
+            git config user.name "ozelge-bot"; git config user.email "ozelge-bot@users.noreply.github.com"
+            git add worker/maddeler.json 2>/dev/null; git diff --cached --quiet && exit 0
+            git commit -m "Kanun maddeleri güncellendi (rapor taslağı)"; git pull --rebase -q; git push; exit 0
+          fi
           [ -f seen.json ] || [ -f docs/feed.json ] || exit 0
           git config user.name "ozelge-bot"
           git config user.email "ozelge-bot@users.noreply.github.com"
