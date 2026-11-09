@@ -868,7 +868,18 @@ def main():
         return
 
     # Özelgeler
-    ozelgeler = [] if ONLY_RG else get_ozelgeler()
+    # GİB özelge servisi geçici olarak kapanabiliyor (503); bu durumda diğer kaynaklar yine taransın
+    ozelgeler = []
+    if not ONLY_RG:
+        for deneme in range(2):
+            try:
+                ozelgeler = get_ozelgeler()
+                break
+            except Exception as e:  # noqa: BLE001
+                if deneme:
+                    print(f"Özelgeler alınamadı (GİB servisi yanıt vermiyor, sonraki turda tekrar denenecek): {getattr(e, 'code', '') or type(e).__name__}")
+                else:
+                    time.sleep(8)
     if RESEND_KARAR:
         send(*build_mail([], enrich_kararlar(get_kararlar()[:5]), today, None, "VUK 359. maddeye değinen son Danıştay kararları:"))
         return
