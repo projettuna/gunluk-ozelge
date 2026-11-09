@@ -355,12 +355,18 @@ Kurallar:
         else if (e.type === "error") return Response.json({ error: "Yapay zekâ yanıtı yarıda kesildi, tekrar deneyin (" + (e.error?.type || "hata") + ")" }, { status: 502 }); } } }
   if (!d.content[0].text) d.content = [...kinds].map(t => ({ type: t }));
   let draft = (d.content || []).filter(b => b.type === "text").map(b => b.text).join("").replace(/\*\*|^#+\s*/gm, "").trim();
+  // Atıf denetimi: taslaktaki her esas/karar numarası (2024/123 biçimi) verilen kaynaklarda geçmiyorsa işaretlenir
+  let unverified = 0;
+  if (draft) {
+    const known = ctx + " " + picked.map(x => `${x.title || ""} ${x.meta || ""}`).join(" ");
+    draft = draft.replace(/\b((?:19|20)\d{2}\/\d{1,6}(?:-\d{1,6})?)\b(?![^\n]{0,40}teyit)/g, (m0, num) => known.includes(num) ? m0 : (unverified++, `${m0} [KAYNAKTA YOK, TEYİT EDİNİZ]`));
+  }
   if (draft && d.stop_reason === "max_tokens") draft += "\n\n(Taslak uzunluk sınırında kesildi; kalan kısmı için konuyu daraltıp \"Tek Bölüm\" seçeneğiyle tekrar deneyebilirsiniz.)";
   if (!draft) return Response.json({ error: `Taslak üretilemedi, tekrar deneyin (${d.stop_reason || "?"}; ${(d.content || []).map(b => b.type).join(",") || "boş"})` }, { status: 502 });
   let n = 0;
   for (let i = 0; i < TASLAK_COST; i++) { const u = await fetch(SB_URL + "/rest/v1/rpc/use_ai_quota", { method: "POST", headers: J, body: "{}" }).catch(() => null); if (u?.ok && (await u.json()) === true) n++; }
   if (quota && quota.limit != null) { const free = Math.max(0, quota.limit - quota.used), f = Math.min(free, n); quota.used += f; quota.credits = Math.max(0, (quota.credits || 0) - (n - f)); }
-  return Response.json({ draft, sources, quota, cost: n, model: d.model, stop: d.stop_reason, usage: d.usage && { in: d.usage.input_tokens, out: d.usage.output_tokens } });
+  return Response.json({ draft, sources, quota, cost: n, unverified, model: d.model, stop: d.stop_reason, usage: d.usage && { in: d.usage.input_tokens, out: d.usage.output_tokens } });
 }
 
 // ---- Döviz (TCMB) ve altın: tarayıcı bu kaynaklara doğrudan erişemediği için worker üzerinden, önbellekli
