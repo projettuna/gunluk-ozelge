@@ -138,11 +138,11 @@ def setup():
         db("news?select=image&limit=1")
     except RuntimeError:
         bad("kurulum_haber_gorsel", "uyari", "Veritabanında haber görseli kurulumu eksik (haber_gorsel.sql çalıştırılmalı)")
-    for tbl, what in (("feedback", "Sorun Bildir"), ("usage_daily", "kullanım istatistiği"), ("password_resets", "şifre sıfırlama"), ("watch_hits", "takip listesi")):
+    for tbl, what in (("feedback", "Sorun Bildir"), ("usage_daily", "kullanım istatistiği"), ("password_resets", "şifre sıfırlama"), ("watch_hits", "takip listesi"), ("item_notes", "kişisel notlar")):
         try:
             db(f"{tbl}?select=*&limit=1")
         except RuntimeError:
-            bad("kurulum_" + tbl, "uyari", f"Veritabanında {what} kurulumu eksik ({'takip' if tbl == 'watch_hits' else 'destek'}.sql çalıştırılmalı)")
+            bad("kurulum_" + tbl, "uyari", f"Veritabanında {what} kurulumu eksik ({ {'watch_hits': 'takip', 'item_notes': 'notlar'}.get(tbl, 'destek') }.sql çalıştırılmalı)")
 
 
 def auto(r):
