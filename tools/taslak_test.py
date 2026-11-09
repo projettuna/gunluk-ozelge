@@ -69,7 +69,7 @@ try:
         L = r.get("list") or []
         print("emsal", konu_, st, f"{time.time() - t0:.0f} sn", "karar:", sum(1 for x in L if x.get("karar")), "idari:", sum(1 for x in L if not x.get("karar")),
               "türler:", sorted({x.get("tur") for x in L}), "sonuçlu:", sum(1 for x in L if x.get("sonuc") and x["sonuc"] != "Belirsiz"),
-              "özetli:", sum(1 for x in L if x.get("ozet")), "kullanım:", sum(1 for x in L if x.get("kullanim")), "elenen:", r.get("elenen"),
+              "özetli:", sum(1 for x in L if x.get("ozet")), "kullanım:", sum(1 for x in L if x.get("kullanim")), "elenen:", r.get("elenen"), "aday:", r.get("aday"),
               "madde:", len(r.get("maddeler") or []), "hak:", r.get("cost"), "özetsiz:", r.get("ozetsiz"), "hata:", r.get("error"))
 finally:
     print("silindi:", call("DELETE", f"{URL}/auth/v1/admin/users/{uid}", None, S)[0])

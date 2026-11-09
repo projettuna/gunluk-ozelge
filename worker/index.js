@@ -326,8 +326,11 @@ async function emsal(req, env) {
   let rows = [];
   if (pats.length) {
     const or = pats.flatMap(w => [`title.ilike.*${w}*`, `metin.ilike.*${w}*`]).join(",");
-    const r = await fetch(`${SB_URL}/rest/v1/items?select=id,tur,title,meta,url,metin,ozet&or=(${encodeURIComponent(or)})&order=id.desc&limit=150`, { headers: H });
-    rows = r.ok ? await r.json() : [];
+    // Özelge/tebliğ/sirküler kararların arasında kaybolmasın diye ayrıca aranır
+    const [r, r2] = await Promise.all([
+      fetch(`${SB_URL}/rest/v1/items?select=id,tur,title,meta,url,metin,ozet&or=(${encodeURIComponent(or)})&order=id.desc&limit=150`, { headers: H }),
+      fetch(`${SB_URL}/rest/v1/items?select=id,tur,title,meta,url,metin,ozet&or=(${encodeURIComponent(or)})&and=(${encodeURIComponent("tur.not.ilike.Dan*,tur.not.ilike.Yarg*,tur.not.ilike.Anayasa*,tur.not.ilike.AYM*")})&order=id.desc&limit=120`, { headers: H })]);
+    rows = [...(r.ok ? await r.json() : []), ...(r2.ok ? await r2.json() : [])];
   }
   const yg = x => /Yargıtay/i.test(x.tur || "");
   if (!ara?.ceza) rows = rows.filter(x => !yg(x));
@@ -338,7 +341,7 @@ async function emsal(req, env) {
     const tll = tl.toLocaleLowerCase("tr"), mll = ml.toLocaleLowerCase("tr");
     return ws.reduce((a, w) => a + 6 * (tll.split(w).length - 1) + Math.min(15, mll.split(w).length - 1), 0); };
   const MIN = res.length ? 9 : 20;
-  const local = rows.map(x => ({ x, sc: score(x) })).filter(o => o.sc >= MIN).sort((a, b) => b.sc - a.sc).map(o => o.x);
+  const local = rows.map(x => ({ x, sc: score(x) })).filter(o => o.sc >= (KARAR.test(o.x.tur || "") ? MIN : MIN - 3)).sort((a, b) => b.sc - a.sc).map(o => o.x);
   const seen = new Set(), key = x => (x.title || "").replace(/\s+/g, " ").toLocaleLowerCase("tr");
   const uniq = a => a.filter(x => { const k = key(x); if (seen.has(k)) return false; seen.add(k); return true; });
   const kararlar = uniq([...local.filter(x => KARAR.test(x.tur || "") && !yg(x)).slice(0, 6), ...live, ...local.filter(yg).slice(0, 2)]).slice(0, 10);
@@ -380,7 +383,7 @@ Metinde olmayan bilgi, karar numarası veya tarih uydurma. Mükellef adı verme.
   let n = 0;
   for (let i = 0; i < EMSAL_COST; i++) { const u = await fetch(SB_URL + "/rest/v1/rpc/use_ai_quota", { method: "POST", headers: J, body: "{}" }).catch(() => null); if (u?.ok && (await u.json()) === true) n++; }
   if (quota && quota.limit != null) { const free = Math.max(0, quota.limit - quota.used), f = Math.min(free, n); quota.used += f; quota.credits = Math.max(0, (quota.credits || 0) - (n - f)); }
-  return Response.json({ list, maddeler, quota, cost: n, elenen: all.length - list.length });
+  return Response.json({ list, maddeler, quota, cost: n, elenen: all.length - list.length, aday: { karar: kararlar.length, idari: idari.length, db: rows.length } });
 }
 
 // ---- Döviz (TCMB) ve altın: tarayıcı bu kaynaklara doğrudan erişemediği için worker üzerinden, önbellekli
