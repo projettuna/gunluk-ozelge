@@ -2172,7 +2172,7 @@ async function openMembers(){
     <div class="list">${fr.length ? fr.map(f => `<div class="li"><button class="room" data-room="${esc(dmRoom(f.id))}" style="display:flex;align-items:center;gap:12px;flex:1;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer;padding:0">${avaOf(f.id, f.name)}<div class="grow"><b class="rn">${esc(f.name)}</b><small>${f.unvan ? esc(f.unvan) + " · " : ""}Mesaj yazmak için dokunun</small></div></button>${btn("del", f.id, "Çıkar", 1)}</div>`).join("")
       : `<div class="li"><small>Henüz arkadaşınız yok. Kodunuzu paylaşın ya da bir arkadaş kodu girin.</small></div>`}</div>
     ${out.length ? `<div class="sect">Gönderdiğim İstekler</div><div class="list">${out.map(f => `<div class="li">${avaOf(f.id, f.name)}<div class="grow"><b class="rn">${esc(f.name)}</b><small>Onay bekleniyor</small></div>${btn("del", f.id, "Geri Al", 1)}</div>`).join("")}</div>` : ""}
-    <div class="foot">Diğer üyelerin adları gizlilik için yıldızlı görünür (M**** Y*****).</div>`;
+    <div class="foot">Diğer üyelerin adları gizlilik için yıldızlı görünür (M** Y**).</div>`;
   $("heading").textContent = "Arkadaşlar"; room = "__pick"; syncNav();
 }
 async function frAction(a, id){
