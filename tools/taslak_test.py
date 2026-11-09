@@ -1,6 +1,6 @@
 """Rapor taslağı uçtan uca testi: geçici kullanıcı açar, /api/taslak'ı dener, kullanıcıyı siler.
 Depo herkese açık olduğu için yalnızca durum kodları, uzunluklar ve hata metni yazdırılır."""
-import json, os, secrets, time
+import json, os, re, secrets, time
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 
@@ -46,7 +46,7 @@ try:
     print("taslak:", st, f"{time.time() - t0:.0f} sn")
     if isinstance(r, dict):
         print("hata:", r.get("error"))
-        print("uzunluk:", len(r.get("draft") or ""), "kaynak:", len(r.get("sources") or []), "düşülen hak:", r.get("cost"), "kota:", r.get("quota"))
+        print("uzunluk:", len(r.get("draft") or ""), "kaynak (atıf yapılan):", len(r.get("sources") or []), "metindeki farklı atıf:", len(set(re.findall(r"\[(\d{1,2})\]", r.get("draft") or ""))), "düşülen hak:", r.get("cost"), "kota:", r.get("quota"))
         print("model:", r.get("model"), r.get("stop"), r.get("usage"), "doğrulanamayan atıf:", r.get("unverified"), "madde metni:", r.get("maddeler"), "teyit notu:", (r.get("draft") or "").lower().count("teyit ediniz")); print("yer tutucu sayısı:", (r.get("draft") or "").count("[")); print("kaynak türleri:", [x.get("tur") for x in r.get("sources") or []]); d_ = (r.get("draft") or "").replace("İ", "i").replace("I", "ı").lower()
         for k in ("ikmalen", "re'sen", "353", "7326", "tek başına"):
             at = d_.find(k); print(f"{k}:", d_.count(k), "|", d_[max(0, at - 60):at + 60].replace("\n", " ") if at >= 0 else "")

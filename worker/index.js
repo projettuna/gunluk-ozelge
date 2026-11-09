@@ -224,7 +224,7 @@ Bu bir sohbettir: önceki mesajları dikkate al, kısa ve net yaz, gerektiğinde
 }
 
 // ---- Rapor taslağı asistanı (/api/taslak): yalnızca konu + genel açıklama alır, mükellef bilgisi engellenir, taslak saklanmaz.
-const TASLAK_COST = 3;
+const TASLAK_COST = 4;
 const TASLAK_TURLER = { inceleme: "Vergi İnceleme Raporu (tarhiyat)", vtr: "Vergi Tekniği Raporu (VTR)", suc: "Vergi Suçu Raporu (VUK 359, suç duyurusu)", bolum: "Tek bölüm / değerlendirme notu" };
 const TASLAK_KONULAR = {
   sahte_kullanma: "sahte belge kullanımı, KDV indirimlerinin reddi",
@@ -353,6 +353,7 @@ Kurallar:
 - Vergi İnceleme Raporu ve VTR'de vergi suçu değerlendirmesini ayrı bölüm olarak yazma; yalnızca sonuç bölümünde "VUK 359 kapsamındaki fiiller için ayrıca Vergi Suçu Raporu düzenlenmiştir/düzenlenecektir (VUK 367)" cümlesine yer ver.
 - Taslak eksiksiz bitmeli: toplam uzunluğu yaklaşık 9.000 karakteri geçmesin, tabloları 1-2 örnek satırla sınırla, tekrar yapma. Kontrol listesini mutlaka tamamla.
 - Sana "Güncel kanun metinleri" başlığı altında mevzuat.gov.tr'deki güncel madde metinleri verilecek. Bu maddelerin içeriğini, fıkra ve bentlerini, oranlarını ve istisnalarını yalnızca bu metinlere dayanarak yaz; bu maddeler için "(teyit ediniz)" ekleme. Metni verilmeyen maddeler için hafızana dayanıyorsan "(teyit ediniz)" ekle.
+- Yargı kararları bölümünde, verilen kaynaklardaki konuyla ilgili her yargı kararını ayrı bir alt başlıkta ([n] numarasıyla) kısaca özetle ve somut olaya nasıl uygulanacağını belirt; bu kararları değerlendirme bölümünde de ilgili yerde [n] ile an. Konuyla gerçekten ilgisiz bir karar varsa hiç anma.
 - Kararlarda "[Kararın sonuç kısmı:]" verilmişse kararın sonucunu (onama, bozma, kabul, red, ısrar vb.) bu kısımdan açıkça yaz; bu durumda sonuç için "(teyit ediniz)" ekleme. Sonuç kısmı verilmemişse sonucu tahmin etme.
 - Madde atıflarında aşağıdaki doğru eşleştirmelerle çelişme:
   VUK 3/B gerçek mahiyet ve ispat; VUK 30 re'sen takdir; VUK 114 tarh zamanaşımı; VUK 134-141 vergi incelemesi (135 yetkililer, 139 işyerinde inceleme, 140 inceleme esasları, 141 tutanak); VUK 227 ve 229-232 belge düzeni/fatura; VUK 336 cezaların içtimaı; VUK 339 tekerrür; VUK 341 vergi ziyaı; VUK 344/1 bir kat, 344/2 VUK 359'daki fiillerle ziyada üç kat vergi ziyaı cezası; VUK 359/a-1 defter ve kayıt hileleri, 359/a-2 muhteviyatı itibarıyla yanıltıcı belge düzenleme veya kullanma, 359/b sahte belge düzenleme veya kullanma; VUK 367 suç duyurusu; VUK 370 izaha davet; VUK 371 pişmanlık ve ıslah; VUK 376 ceza indirimi; VUK Ek 1 vd. uzlaşma; İYUK 7 dava açma süresi. KDVK 29/1 indirim, 34/1 indirimin belgeye dayanması, 32 iade. KVK 11 kanunen kabul edilmeyen giderler, KVK 12 örtülü sermaye, KVK 13 transfer fiyatlandırması yoluyla örtülü kazanç dağıtımı. GVK 41 kabul edilmeyen giderler, GVK 94 tevkifat, GVK mükerrer 80-81 değer artışı kazançları. VUK 258 vd. değerleme.
@@ -388,12 +389,15 @@ Kurallar:
     const known = ctx + " " + mText + " " + picked.map(x => `${x.title || ""} ${x.meta || ""}`).join(" ");
     draft = draft.replace(/\b((?:19|20)\d{2}\/\d{1,6}(?:-\d{1,6})?)\b(?![^\n]{0,40}teyit)/g, (m0, num) => known.includes(num) ? m0 : (unverified++, `${m0} [KAYNAKTA YOK, TEYİT EDİNİZ]`));
   }
+  // Kaynakça yalnızca metinde atıf yapılan kaynakları gösterir
+  const cited = new Set([...draft.matchAll(/\[(\d{1,2})\]/g)].map(m => +m[1]));
+  const shown = cited.size ? sources.filter(x => cited.has(x.n)) : sources;
   if (draft && d.stop_reason === "max_tokens") draft += "\n\n(Taslak uzunluk sınırında kesildi; kalan kısmı için konuyu daraltıp \"Tek Bölüm\" seçeneğiyle tekrar deneyebilirsiniz.)";
   if (!draft) return Response.json({ error: `Taslak üretilemedi, tekrar deneyin (${d.stop_reason || "?"}; ${(d.content || []).map(b => b.type).join(",") || "boş"})` }, { status: 502 });
   let n = 0;
   for (let i = 0; i < TASLAK_COST; i++) { const u = await fetch(SB_URL + "/rest/v1/rpc/use_ai_quota", { method: "POST", headers: J, body: "{}" }).catch(() => null); if (u?.ok && (await u.json()) === true) n++; }
   if (quota && quota.limit != null) { const free = Math.max(0, quota.limit - quota.used), f = Math.min(free, n); quota.used += f; quota.credits = Math.max(0, (quota.credits || 0) - (n - f)); }
-  return Response.json({ draft, sources, quota, cost: n, unverified, maddeler: mKeys.length, model: d.model, stop: d.stop_reason, usage: d.usage && { in: d.usage.input_tokens, out: d.usage.output_tokens } });
+  return Response.json({ draft, sources: shown, quota, cost: n, unverified, maddeler: mKeys.length, model: d.model, stop: d.stop_reason, usage: d.usage && { in: d.usage.input_tokens, out: d.usage.output_tokens } });
 }
 
 // ---- Döviz (TCMB) ve altın: tarayıcı bu kaynaklara doğrudan erişemediği için worker üzerinden, önbellekli
