@@ -221,6 +221,92 @@ Bu bir sohbettir: önceki mesajları dikkate al, kısa ve net yaz, gerektiğinde
   return Response.json({ answer, sources, live: live.length, quota });
 }
 
+// ---- Rapor taslağı asistanı (/api/taslak): yalnızca konu + genel açıklama alır, mükellef bilgisi engellenir, taslak saklanmaz.
+const TASLAK_COST = 3;
+const TASLAK_TURLER = { inceleme: "Vergi İnceleme Raporu (tarhiyat)", vtr: "Vergi Tekniği Raporu (VTR)", suc: "Vergi Suçu Raporu (VUK 359, suç duyurusu)", bolum: "Tek bölüm / değerlendirme notu" };
+const TASLAK_KONULAR = {
+  sahte_kullanma: "sahte belge kullanımı, KDV indirimlerinin reddi",
+  sahte_duzenleme: "sahte belge düzenleme",
+  yaniltici: "muhteviyatı itibarıyla yanıltıcı belge düzenleme veya kullanma",
+  kdv_iade: "KDV iadesi incelemesi",
+  ortulu_sermaye: "örtülü sermaye",
+  transfer: "transfer fiyatlandırması yoluyla örtülü kazanç dağıtımı",
+  hasilat: "kayıt dışı hasılat, satış hasılatının gizlenmesi",
+  ibraz: "defter ve belgelerin ibraz edilmemesi, takdir",
+  ortaklar_cari: "ortaklar cari hesabı, adat hesaplaması",
+  kkeg: "kanunen kabul edilmeyen giderler",
+  degerleme: "değerleme hataları",
+  gayrimenkul: "gayrimenkul satış kazancı, değer artışı kazancı",
+  stopaj: "eksik tevkifat (stopaj) uygulaması",
+  diger: "",
+};
+// Kimlik/mahremiyet bilgisi yakalayıcı (uygulamadaki ile aynı kurallar)
+function piiFound(t) {
+  const s = String(t || "");
+  if (/(?<!\d)\d{10,11}(?!\d)/.test(s.replace(/(\d) (?=\d)/g, "$1"))) return "10-11 haneli numara (VKN/TCKN)";
+  if (/\bTR\s?\d{2}(\s?\d{4}){5}\s?\d{2}\b/i.test(s) || /\bTR\d{24}\b/i.test(s.replace(/\s/g, ""))) return "IBAN";
+  if (/[\w.+-]+@[\w-]+\.[\w.]+/.test(s)) return "e-posta adresi";
+  if (/(\+?90|0)?\s?5\d{2}\s?\d{3}\s?\d{2}\s?\d{2}\b/.test(s)) return "telefon numarası";
+  if (/\b(a\.?\s?ş\.?|ltd\.?|şti\.?|koll\.?|kom\.?)(?=\s|$|[,.;])/iu.test(s)) return "şirket unvanı";
+  if (/\b(0[1-9]|[1-7]\d|8[01])\s?[A-ZÇĞİÖŞÜ]{1,3}\s?\d{2,4}\b/u.test(s)) return "araç plakası";
+  if (/\b(mahalle|mah\.|sokak|sok\.|cadde|cad\.|bulvar|apt\.?)\b|\bno\s?:\s?\d/iu.test(s)) return "adres";
+  return "";
+}
+async function taslak(req, env) {
+  if (!env.ANTHROPIC_API_KEY) return Response.json({ error: "API anahtarı tanımlı değil" }, { status: 503 });
+  const token = (req.headers.get("Authorization") || "").replace(/^Bearer /, "");
+  let j; try { j = await req.json(); } catch { return Response.json({ error: "bad json" }, { status: 400 }); }
+  const tur = TASLAK_TURLER[j.tur] ? j.tur : "inceleme", konuKey = j.konu in TASLAK_KONULAR ? j.konu : "diger";
+  const donem = /^\d{4}$/.test(String(j.donem || "")) ? String(j.donem) : "";
+  const aciklama = String(j.aciklama || "").slice(0, 800).trim();
+  const konu = TASLAK_KONULAR[konuKey] || aciklama.slice(0, 120);
+  if (!token) return Response.json({ error: "Yetkisiz" }, { status: 401 });
+  if (!konu) return Response.json({ error: "Konu seçin ya da kısa bir açıklama yazın" }, { status: 400 });
+  const pii = piiFound(aciklama);
+  if (pii) return Response.json({ error: `Açıklamada ${pii} olabilecek bir bilgi var. Mükellefe ait hiçbir bilgi yazmayınız; genel ifade kullanın.` }, { status: 422 });
+  const H = { apikey: SB_KEY, Authorization: "Bearer " + token }, J = { ...H, "Content-Type": "application/json" };
+  const me = await fetch(SB_URL + "/rest/v1/rpc/is_active", { method: "POST", headers: J, body: "{}" });
+  if (!me.ok || (await me.json()) !== true) return Response.json({ error: "Yetkisiz" }, { status: 401 });
+  const qr = await fetch(SB_URL + "/rest/v1/rpc/ai_quota", { method: "POST", headers: J, body: "{}" });
+  const quota = qr.ok ? await qr.json() : null;
+  if (quota && quota.limit != null && Math.max(0, quota.limit - quota.used) + (quota.credits || 0) < TASLAK_COST)
+    return Response.json({ error: `Taslak için ${TASLAK_COST} hak gerekir. Kalan hakkınız yetmiyor; Asistan bölümünden kredi yükleyebilirsiniz.`, quota }, { status: 429 });
+  const qText = `${konu} ${aciklama}`;
+  const ws = stems(qText);
+  let rows = [];
+  if (ws.length) {
+    const or = ws.flatMap(w => [`title.ilike.*${w}*`, `metin.ilike.*${w}*`]).join(",");
+    const r = await fetch(`${SB_URL}/rest/v1/items?select=id,tur,title,meta,url,metin,ozet&or=(${encodeURIComponent(or)})&order=id.desc&limit=80`, { headers: H });
+    rows = r.ok ? await r.json() : [];
+  }
+  const live = ws.length ? await danistayLive(konu) : [];
+  const score = x => { const tl = (x.title || "").toLocaleLowerCase("tr"), ml = (x.metin || x.ozet || "").toLocaleLowerCase("tr");
+    return ws.reduce((a, w) => a + 6 * (tl.split(w).length - 1) + Math.min(15, ml.split(w).length - 1), 0) + (KARAR.test(x.tur || "") ? 40 : 0); };
+  const local = rows.map(x => ({ x, sc: score(x) })).sort((a, b) => b.sc - a.sc).map(o => o.x);
+  const picked = [...live.slice(0, 3), ...local.filter(x => KARAR.test(x.tur)).slice(0, 4), ...local.filter(x => !KARAR.test(x.tur)).slice(0, 3)].slice(0, 9);
+  const sources = picked.map((x, i) => ({ n: i + 1, id: x.id || null, url: x.id ? null : x.url, tur: x.tur, title: x.title, meta: x.meta }));
+  const ctx = picked.map((x, i) => `[${i + 1}] ${x.tur} · ${x.title}${x.meta ? " · " + x.meta : ""}\n${excerpt(x.metin || x.ozet || "", ws, 2500)}`).join("\n\n---\n\n");
+  const system = `Sen Türkiye vergi mevzuatında uzman, vergi müfettişlerine rapor yazımında yardımcı olan bir asistansın. Görevin, verilen konu için kullanılabilir bir RAPOR TASLAĞI İSKELETİ hazırlamaktır.
+Kurallar:
+- Gerçek bir mükellef hakkında hiçbir bilgi bilmiyorsun ve uydurmayacaksın. Mükellefe, döneme, tutara, tarihe, belgeye ilişkin her somut bilgi yerine KÖŞELİ PARANTEZ içinde BÜYÜK HARFLE yer tutucu kullan: [MÜKELLEF], [VKN], [DÖNEM], [TUTAR], [FATURA SAYISI], [TESPİT TARİHİ], [TUTANAK TARİHİ] gibi.
+- Yasal dayanakları (kanun ve madde), tebliğ ve sirkülerleri, yargı kararlarını esas al. Verilen kaynaklara dayandığın yerde [1], [2] biçiminde kaynak göster. Kaynaklarda olmayan bir madde, karar numarası veya oran yazarsan sonuna "(teyit ediniz)" ekle; karar numarası uydurma, emin değilsen numara yazma.
+- Yapı: numaralı ana başlıklar (1., 2., ...) ve alt başlıklar (1.1, 1.2) kullan; her başlık altında müfettişin doldurabileceği kalıp paragraflar ve gerekli yerlerde doldurulacak boş tablo satırları (sütunları | ile ayırarak) yaz.
+- Rapor türüne göre olağan bölümleri kapsa: giriş/inceleme nedeni ve yetki, mükellef hakkında genel bilgiler (yalnızca yer tutucu), incelemenin yapılışı, tespitler, yasal dayanak ve değerlendirme, yargı kararları, matrah farkı ve vergi hesabı, ceza değerlendirmesi (VUK 344, 359, 370 vb. uygun olanlar), sonuç ve öneri. Vergi suçu raporunda suçun unsurları, fiil-dönem ilişkisi, kast değerlendirmesi ve suç duyurusu sonucu bölümlerini ekle. Tek bölüm istenmişse yalnızca değerlendirme bölümünü yaz.
+- Sonda "Kontrol listesi" başlığı altında raporu tamamlamadan önce müfettişin teyit etmesi gereken 6-10 maddelik kısa bir liste ver (zamanaşımı, tebliğ, ilgili dönem mevzuatı, kurumun güncel rapor yazım esasları vb.).
+- Düz metin yaz; Markdown işareti (#, **, *) kullanma. Resmî ve sade bir dil kullan.`;
+  const user = `Rapor türü: ${TASLAK_TURLER[tur]}\nKonu: ${konu}${donem ? `\nİncelenen dönem: ${donem}` : ""}${aciklama ? `\nGenel açıklama (mükellef bilgisi içermez): ${aciklama}` : ""}\n\n(Uygulamadaki ilgili kaynaklar:)\n${ctx || "(Eşleşen kaynak bulunamadı.)"}`;
+  const body = { model: env.ASK_MODEL || "claude-sonnet-5-5", max_tokens: 5000, system, messages: [{ role: "user", content: user }] };
+  const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify(body) });
+  if (!r.ok) { let m = ""; try { m = (await r.json())?.error?.message || ""; } catch {} return Response.json({ error: "Yapay zekâ yanıt vermedi (" + r.status + ") " + m.slice(0, 120) }, { status: 502 }); }
+  const d = await r.json();
+  const draft = (d.content || []).filter(b => b.type === "text").map(b => b.text).join("").replace(/\*\*|^#+\s*/gm, "").trim();
+  if (!draft) return Response.json({ error: "Taslak üretilemedi, tekrar deneyin" }, { status: 502 });
+  let n = 0;
+  for (let i = 0; i < TASLAK_COST; i++) { const u = await fetch(SB_URL + "/rest/v1/rpc/use_ai_quota", { method: "POST", headers: J, body: "{}" }).catch(() => null); if (u?.ok && (await u.json()) === true) n++; }
+  if (quota && quota.limit != null) { const free = Math.max(0, quota.limit - quota.used), f = Math.min(free, n); quota.used += f; quota.credits = Math.max(0, (quota.credits || 0) - (n - f)); }
+  return Response.json({ draft, sources, quota, cost: n });
+}
+
 // ---- Döviz (TCMB) ve altın: tarayıcı bu kaynaklara doğrudan erişemediği için worker üzerinden, önbellekli
 async function cached(key, ttl, make) {
   const c = caches.default, k = new Request("https://cache.tmpro/" + key);
@@ -293,6 +379,7 @@ export default {
       return Response.json(await morning(j, env));
     }
     if (url.pathname === "/api/ask" && req.method === "POST") return ask(req, env);
+    if (url.pathname === "/api/taslak" && req.method === "POST") return taslak(req, env);
     if (url.pathname === "/api/zaman") {  // nöbetçi için: zamanlayıcı anahtarı var mı, GitHub kabul ediyor mu (anahtarın kendisi asla dönmez)
       if (!env.GH_DISPATCH_TOKEN) return Response.json({ anahtar: false, github: 0 });
       const r = await fetch(`https://api.github.com/repos/${env.GH_REPO || "projettuna/gunluk-ozelge"}/actions/workflows/gunluk.yml`, {
