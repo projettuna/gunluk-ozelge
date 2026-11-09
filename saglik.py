@@ -132,6 +132,11 @@ def setup():
             bad("kurulum_" + tbl, "uyari", f"Veritabanında {what} kurulumu eksik ({'takip' if tbl == 'watch_hits' else 'destek'}.sql çalıştırılmalı)")
 
 
+def auto(r):
+    """Zamanlanmış tur: GitHub zamanlayıcısı ya da Cloudflare tetikleyicisinin başlattığı otomatik tur."""
+    return r["event"] == "schedule" or r.get("display_title") == "Özelge bildirimi (otomatik)"
+
+
 def main_job():
     if not GH or not REPO:
         return
@@ -139,7 +144,12 @@ def main_job():
                          headers={"Authorization": f"Bearer {GH}", "Accept": "application/vnd.github+json"})
     if code != 200:
         raise RuntimeError(f"github {code}")
-    runs = [r for r in json.loads(body)["workflow_runs"] if r["event"] == "schedule"]
+    runs = [r for r in json.loads(body)["workflow_runs"] if auto(r)]
+    tr = NOW.astimezone(TR)
+    if tr.weekday() < 5 and 8 <= tr.hour < 19 and tr.hour * 60 + tr.minute >= 8 * 60 + 30:
+        last = max((ts(r["created_at"]) for r in runs), default=None)
+        if not last or NOW - last > timedelta(minutes=30):
+            bad("zamanlayici", "uyari", "Mesai saatinde 30 dakikadır tarama başlamadı; zamanlayıcı gecikiyor")
     if len(runs) >= 3 and all(r["conclusion"] == "failure" for r in runs[:3]):
         bad("tarama", "kritik", "Otomatik tarama son 3 denemede hata verdi; yeni mevzuat gelmiyor")
     ok = [ts(r["created_at"]) for r in runs if r["conclusion"] == "success"]
@@ -155,7 +165,7 @@ def sources():
     code, body, _ = http(f"https://api.github.com/repos/{REPO}/actions/workflows/gunluk.yml/runs?per_page=10&status=completed", headers=h)
     if code != 200:
         raise RuntimeError(f"github {code}")
-    runs = [r for r in json.loads(body)["workflow_runs"] if r["event"] == "schedule" and r["conclusion"] == "success"][:4]
+    runs = [r for r in json.loads(body)["workflow_runs"] if auto(r) and r["conclusion"] == "success"][:4]
     if len(runs) < 4:
         return
     fails = None

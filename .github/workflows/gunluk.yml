@@ -1,4 +1,5 @@
 name: Özelge bildirimi
+run-name: ${{ github.event_name == 'workflow_dispatch' && inputs.auto != '' && 'Özelge bildirimi (otomatik)' || 'Özelge bildirimi' }}
 
 on:
   schedule:
@@ -9,6 +10,10 @@ on:
     - cron: "*/5 21 * * *"          # her gece 00:00-01:00 TR: yalnızca Resmî Gazete, 5 dakikada bir
   workflow_dispatch:
     inputs:
+      auto:
+        description: "Zamanlayıcıdan (Cloudflare) otomatik tur: boş = normal, rg = yalnızca Resmî Gazete"
+        type: string
+        default: ""
       yorum_limit:
         description: "Bu turda yazılacak Müfettiş Notu sayısı (eski kayıtlar için)"
         required: false
@@ -80,6 +85,7 @@ jobs:
       - run: pip install -q pywebpush==2.0.3 pypdf==5.1.0
       - name: Özelgeleri ve kararları kontrol et
         env:
+          TMPRO_AUTO: ${{ inputs.auto != '' && '1' || '' }}
           MAIL_TO: ${{ secrets.MAIL_TO }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
@@ -110,7 +116,7 @@ jobs:
             echo; exit 0
           fi
           if [ "${{ inputs.chat_test }}" = "true" ]; then SUPABASE_PUBLISHABLE_KEY=sb_publishable_tlfwqtscxxv2vdSHe3PstQ_XO1db8p9 python tools/chat_test.py; exit 0; fi
-          python ozelge.py ${{ inputs.seed && '--seed' || '' }} ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.resend && '--resend' || '' }} ${{ inputs.resend_karar && '--resend-karar' || '' }} ${{ inputs.migrate && '--migrate' || '' }} ${{ inputs.test_push && '--test-push' || '' }} ${{ inputs.diag && '--diag' || '' }} ${{ github.event.schedule == '*/5 21 * * *' && '--only-rg' || '' }}
+          python ozelge.py ${{ inputs.seed && '--seed' || '' }} ${{ inputs.dry_run && '--dry-run' || '' }} ${{ inputs.resend && '--resend' || '' }} ${{ inputs.resend_karar && '--resend-karar' || '' }} ${{ inputs.migrate && '--migrate' || '' }} ${{ inputs.test_push && '--test-push' || '' }} ${{ inputs.diag && '--diag' || '' }} ${{ (github.event.schedule == '*/5 21 * * *' || inputs.auto == 'rg') && '--only-rg' || '' }}
       - name: Durumu kaydet
         run: |
           [ -f seen.json ] || [ -f docs/feed.json ] || exit 0

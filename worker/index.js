@@ -254,7 +254,30 @@ async function metal(sym) {
   try { const r = await fetch(`https://api.gold-api.com/price/${sym}`, { headers: { "User-Agent": "TMPRO-kur" } }); if (!r.ok) return null; const j = await r.json(); return num(j.price) ? { usd: num(j.price), at: j.updatedAt || null } : null; } catch { return null; }
 }
 
+// ---- Zamanlayıcı: GitHub Actions taramalarını zamanında başlatır
+async function dispatch(env, wf, inputs) {
+  const r = await fetch(`https://api.github.com/repos/${env.GH_REPO || "projettuna/gunluk-ozelge"}/actions/workflows/${wf}/dispatches`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${env.GH_DISPATCH_TOKEN}`, "Accept": "application/vnd.github+json", "User-Agent": "TMPRO-zamanlayici", "Content-Type": "application/json" },
+    body: JSON.stringify({ ref: "main", inputs: inputs || {} })
+  });
+  return r.status;
+}
+async function tick(when, env) {
+  if (!env.GH_DISPATCH_TOKEN) return "token yok";
+  const tr = new Date(when + 3 * 3600e3), h = tr.getUTCHours(), m = tr.getUTCMinutes(), wd = tr.getUTCDay();
+  const jobs = [];
+  const busy = wd >= 1 && wd <= 5 && h >= 8 && h < 19;
+  if (busy) jobs.push(["gunluk.yml", { auto: "1" }]);                 // hafta içi mesai: 5 dakikada bir
+  else if (h === 0) jobs.push(["gunluk.yml", { auto: "rg" }]);        // gece 00-01: Resmî Gazete
+  else if (m >= 5 && m < 10) jobs.push(["gunluk.yml", { auto: "1" }]); // diğer saatler: saatte bir
+  if (m % 15 >= 3 && m % 15 < 8) jobs.push(["saglik.yml", {}]);        // nöbetçi: 15 dakikada bir
+  const res = await Promise.all(jobs.map(([wf, inp]) => dispatch(env, wf, inp).catch(() => 0)));
+  return jobs.map((j, i) => `${j[0]}:${res[i]}`).join(" ");
+}
+
 export default {
+  async scheduled(event, env, ctx) { ctx.waitUntil(tick(event.scheduledTime, env)); },
   async fetch(req, env) {
     const url = new URL(req.url);
     if (url.pathname === "/api/push" && req.method === "POST") {
