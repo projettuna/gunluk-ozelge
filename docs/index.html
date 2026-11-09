@@ -1599,17 +1599,58 @@ function taslakDoc(text){
 <style>@page{size:21cm 29.7cm;margin:2.5cm 2cm}body{font-family:"Times New Roman",serif;font-size:12pt;line-height:1.4}td,th{font-size:10.5pt;vertical-align:top}</style></head><body>${out.join("\n")}
 <p style="margin-top:18pt;font-size:9pt;color:#777">TMPRO ile hazırlanan yardımcı taslaktır. Madde, karar ve oranları teyit ediniz.</p></body></html>`;
 }
+// PDF: pdfmake (Türkçe karakterli Roboto yazı tipiyle) yalnızca ilk kullanımda yüklenir
+let pdfMakeP = null;
+function loadPdfMake(){
+  if(window.pdfMake?.vfs) return Promise.resolve();
+  const add = src => new Promise((ok, no) => { const sc = document.createElement("script"); sc.src = src; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); });
+  return pdfMakeP ||= add("https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/pdfmake.min.js").then(() => add("https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/vfs_fonts.js")).catch(e => { pdfMakeP = null; throw e; });
+}
+function taslakPdfDef(text){
+  const ph = t => String(t).split(/(\[(?!\d+\])[^\]\n]{1,80}\])/).filter(Boolean).map(x => /^\[.*\]$/.test(x) && !/^\[\d+\]$/.test(x) ? { text: x, background: "#fff2a8" } : x);
+  const lines = text.split("\n"), c = [];
+  for(let i = 0; i < lines.length; i++){
+    const l = lines[i].trim();
+    if(!l || /^tablo:?$/i.test(l)) continue;
+    if(l.includes("|") && (lines[i + 1] || "").includes("|")){
+      const rows = []; while(i < lines.length && lines[i].includes("|")){ const r = lines[i].trim().replace(/^\||\|$/g, "").split("|").map(x => x.trim()); if(!r.every(x => /^:?-{2,}:?$/.test(x) || !x)) rows.push(r); i++; } i--;
+      const n = Math.max(...rows.map(r => r.length)); rows.forEach(r => { while(r.length < n) r.push(""); });
+      c.push({ table: { headerRows: 1, widths: Array(n).fill("*"), body: rows.map((r, k) => r.map(x => k ? { text: ph(x), fontSize: 9 } : { text: x, bold: true, fontSize: 9, fillColor: "#eeeeee" })) }, layout: { hLineWidth: () => .5, vLineWidth: () => .5, hLineColor: () => "#888", vLineColor: () => "#888" }, margin: [0, 3, 0, 8] });
+      continue;
+    }
+    if(i === 0 || /^[A-ZÇĞİÖŞÜ][A-ZÇĞİÖŞÜ ()\-–]{6,}$/.test(l)){ c.push({ text: l, bold: true, fontSize: 13, alignment: "center", margin: [0, 10, 0, 6] }); continue; }
+    if(/^\d+\.\s+\S/.test(l) && !/[a-zçğıöşü]/.test(l)){ c.push({ text: l, bold: true, fontSize: 12, margin: [0, 10, 0, 4] }); continue; }
+    if(/^\d+\.\d+(\.\d+)*\.?\s+\S/.test(l) && l.length < 120){ c.push({ text: ph(l), bold: true, margin: [0, 6, 0, 3] }); continue; }
+    if(/^[-•]\s+/.test(l)){ c.push({ text: ["• ", ...ph(l.replace(/^[-•]\s+/, ""))], margin: [12, 0, 0, 3] }); continue; }
+    if(/^kaynaklar:?$/i.test(l)){ c.push({ text: "Kaynaklar", bold: true, margin: [0, 12, 0, 4] }); continue; }
+    c.push({ text: ph(l), alignment: "justify", margin: [0, 0, 0, 5] });
+  }
+  c.push({ text: "TMPRO ile hazırlanan yardımcı taslaktır. Madde, karar ve oranları teyit ediniz.", fontSize: 8, color: "#777", margin: [0, 14, 0, 0] });
+  return { pageSize: "A4", pageMargins: [56, 60, 56, 60], content: c, defaultStyle: { font: "Roboto", fontSize: 10.5, lineHeight: 1.25 },
+    footer: (p, n) => ({ text: `${p} / ${n}`, alignment: "center", fontSize: 8, color: "#777", margin: [0, 20, 0, 0] }), info: { title: "Rapor taslağı" } };
+}
 function renderTaslakOut(){
   const el = $("tsOut"); if(!el || !tsOut) return;
   const src = (tsOut.sources || []).map(x => `<li>${x.id ? `<a href="#" data-open="${x.id}">` : `<a href="${esc(x.url || "#")}" target="_blank" rel="noopener">`}[${x.n}] ${esc(x.tur)} · ${esc(x.title)}</a></li>`).join("");
   el.innerHTML = `<div class="tcard"><div class="tt">Taslak <span>Kontrol ederek kullanın</span></div>
-    <div class="tsdraft">${esc(tsOut.draft).replace(/\[([A-ZÇĞİÖŞÜ0-9 /().,-]{2,40})\]/g, '<mark class="tsph">[$1]</mark>')}</div>
+    <div class="tsdraft">${esc(tsOut.draft).replace(/\[(?!\d+\])([^\]\n]{2,80})\]/g, '<mark class="tsph">[$1]</mark>')}</div>
     ${src ? `<div class="sect" style="margin:14px 0 6px">Dayanılan kaynaklar</div><ol class="tssrc">${src}</ol>` : ""}
-    <div class="row" style="gap:8px;margin-top:12px"><button class="btn" id="tsCopy" style="flex:1">Kopyala</button><button class="btn ghost" id="tsDl" style="flex:1">Word Olarak İndir</button></div>
+    <div class="row" style="gap:8px;margin-top:12px"><button class="btn" id="tsCopy" style="flex:1">Kopyala</button><button class="btn ghost" id="tsDl" style="flex:1">Word</button><button class="btn ghost" id="tsPdf" style="flex:1">PDF</button></div>
     <div class="thelp">Yapay zekâ hata yapabilir; madde, karar ve oranları mutlaka teyit edin. "(teyit ediniz)" ile işaretli yerler kaynaklarda bulunamamıştır. Bu taslak kapatınca silinir.</div></div>`;
   el.onclick = e => { const a = e.target.closest("[data-open]"); if(a){ e.preventDefault(); openReader(+a.dataset.open); } };
   const txt = () => tsOut.draft + ((tsOut.sources || []).length ? "\n\nKaynaklar:\n" + tsOut.sources.map(x => `[${x.n}] ${x.tur} · ${x.title}${x.meta ? " · " + x.meta : ""}`).join("\n") : "");
   $("tsCopy").onclick = async () => { try{ await navigator.clipboard.writeText(txt()); toast("Taslak kopyalandı"); }catch{ toast("Kopyalanamadı"); } };
+  $("tsPdf").onclick = async () => {
+    const b = $("tsPdf"); b.disabled = true; b.textContent = "Hazırlanıyor…";
+    try{
+      await loadPdfMake();
+      const name = `rapor-taslagi-${todayIso()}.pdf`;
+      const blob = await new Promise(res => pdfMake.createPdf(taslakPdfDef(txt())).getBlob(res));
+      try{ const f = new File([blob], name, { type: "application/pdf" }); if(navigator.canShare && navigator.canShare({ files: [f] })){ await navigator.share({ files: [f], title: "Rapor taslağı" }); return; } }catch(e){ if(e?.name === "AbortError") return; }
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }catch{ toast("PDF hazırlanamadı, bağlantınızı kontrol edin"); }
+    finally{ b.disabled = false; b.textContent = "PDF"; }
+  };
   $("tsDl").onclick = async () => {
     const name = `rapor-taslagi-${todayIso()}.doc`, blob = new Blob(["\ufeff" + taslakDoc(txt())], { type: "application/msword" });
     try{ const f = new File([blob], name, { type: "application/msword" }); if(navigator.canShare && navigator.canShare({ files: [f] })){ await navigator.share({ files: [f], title: "Rapor taslağı" }); return; } }catch(e){ if(e?.name === "AbortError") return; }
