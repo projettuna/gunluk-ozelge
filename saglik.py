@@ -104,6 +104,19 @@ def piyasa():
     print(f"  kur: {n} döviz, altın: {'var' if ok else 'yok'}")
 
 
+def zamanlayici():
+    code, body, _ = http(APP + "api/zaman")
+    try:
+        j = json.loads(body)
+    except Exception:  # noqa: BLE001
+        j = {}
+    if code == 200 and not j.get("anahtar"):
+        bad("zaman_anahtar", "kritik", "Cloudflare'de GH_DISPATCH_TOKEN yok; taramalar zamanında başlamaz. Cloudflare → tmpro → Ayarlar → Değişkenler'e 'Secret' olarak yeniden ekleyin")
+    elif code == 200 and j.get("github") not in (200,):
+        bad("zaman_anahtar", "kritik", f"GH_DISPATCH_TOKEN GitHub'da geçersiz (HTTP {j.get('github')}); süresi dolmuş olabilir, yenisini oluşturun")
+    print(f"  zamanlayıcı anahtarı: {'var' if j.get('anahtar') else 'YOK'}, GitHub: {j.get('github')}")
+
+
 def database():
     rows, _ = db("items?select=created_at,tur&order=created_at.desc&limit=1")
     last = ts(rows[0]["created_at"]) if rows else None
@@ -342,7 +355,7 @@ def main():
         print("Supabase ayarı yok")
         return
     for name, fn in (("site", site), ("aktarıcı", relay), ("veritabanı", database), ("kurulum", setup),
-                     ("tarama", main_job), ("kaynaklar", sources), ("üye girişi ve ekranlar", e2e), ("e-posta", mails), ("yedek", backup), ("yapay zekâ", ai), ("haberler", news_fresh), ("döviz ve altın", piyasa), ("telefon", phone)):
+                     ("tarama", main_job), ("kaynaklar", sources), ("üye girişi ve ekranlar", e2e), ("e-posta", mails), ("yedek", backup), ("yapay zekâ", ai), ("haberler", news_fresh), ("döviz ve altın", piyasa), ("zamanlayıcı", zamanlayici), ("telefon", phone)):
         check(name, fn)
     if TEST:
         bad("deneme", "kritik", "Bu bir deneme uyarısıdır, nöbetçi çalışıyor")

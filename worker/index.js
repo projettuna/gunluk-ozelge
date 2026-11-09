@@ -293,6 +293,13 @@ export default {
       return Response.json(await morning(j, env));
     }
     if (url.pathname === "/api/ask" && req.method === "POST") return ask(req, env);
+    if (url.pathname === "/api/zaman") {  // nöbetçi için: zamanlayıcı anahtarı var mı, GitHub kabul ediyor mu (anahtarın kendisi asla dönmez)
+      if (!env.GH_DISPATCH_TOKEN) return Response.json({ anahtar: false, github: 0 });
+      const r = await fetch(`https://api.github.com/repos/${env.GH_REPO || "projettuna/gunluk-ozelge"}/actions/workflows/gunluk.yml`, {
+        headers: { "Authorization": `Bearer ${env.GH_DISPATCH_TOKEN}`, "Accept": "application/vnd.github+json", "User-Agent": "TMPRO-zamanlayici" }
+      }).catch(() => null);
+      return Response.json({ anahtar: true, github: r ? r.status : 0 });
+    }
     if (url.pathname === "/api/kur") {
       const t = url.searchParams.get("tarih"); const iso = /^\d{4}-\d{2}-\d{2}$/.test(t || "") ? t : null;
       return cached("kur-" + (iso || "bugun"), iso ? 86400 : 1800, () => tcmb(iso));
