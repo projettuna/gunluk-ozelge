@@ -1000,6 +1000,7 @@ async function boot(){
   me = p;
   const ban = await sb.rpc("touch_ip");
   if(ban.data === true){ await sb.auth.signOut(); show("authView"); fillSignupPrice(); $("loginErr").textContent = "Bu hesap sistemden engellenmiştir."; return; }
+  sb.rpc("set_app_version", { v: APP_VERSION, m: standalone ? "uygulama" : "tarayici" }).then(() => {}, () => {});  // eski sürüm hatırlatması için
   if("kvkk_v" in p && p.kvkk_v !== KVKK_V){ show("consentView"); return; }
   if(!isActive(p)){ await loadSettings(); renderPending(); show("pendingView"); return; }
   read = new Set(store.get("read", [])); stars = new Set(store.get("stars", []));

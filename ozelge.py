@@ -626,6 +626,70 @@ def release_push(state):
     print(f"Sürüm {r['surum']} bildirimi: {sent} cihaz")
 
 
+def ver_key(v):
+    return [int(n) if n.isdigit() else 0 for n in str(v or "0").split(".")]
+
+
+def version_remind(state):
+    """Yeni sürüme geçmemiş (ya da yeni sürümle hiç açmamış) aktif üyelere, her sürüm için bir kez hatırlatma yollar.
+    Duyurunun ertesi gününden itibaren, saat RELEASE_HOUR'da çalışır."""
+    try:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "surum.json"), encoding="utf-8") as f:
+            rels = json.load(f).get("surumler", [])
+    except (FileNotFoundError, ValueError):
+        return
+    if not rels:
+        return
+    r = max(rels, key=lambda x: ver_key(x["surum"]))
+    latest, now = r["surum"], datetime.now(TR)
+    if r.get("bildir") and state.get("release_notified") != latest:
+        return  # önce duyuru gider
+    days = state.setdefault("release_day", {})
+    if r.get("bildir"):
+        days.setdefault(latest, now.date().isoformat())
+    ref = days.get(latest) or r.get("tarih") or now.date().isoformat()
+    if now.date().isoformat() <= ref or now.hour != RELEASE_HOUR:
+        return
+    try:
+        users = db("GET", "profiles?select=id,role,status,expires_at,app_version,version_reminded")
+    except Exception:  # noqa: BLE001  sütunlar henüz yok (surum_takip.sql çalıştırılmadı)
+        print("Sürüm hatırlatması: kurulum bekleniyor")
+        return
+    utc_now = datetime.now(timezone.utc)
+    targets = {}
+    for u in users:
+        exp = u.get("expires_at")
+        if not (u["role"] == "admin" or (u["status"] == "active" and (not exp or datetime.fromisoformat(exp) > utc_now))):
+            continue
+        if ver_key(u.get("app_version")) >= ver_key(latest) or u.get("version_reminded") == latest:
+            continue
+        targets[u["id"]] = u
+    if not targets:
+        print("Sürüm hatırlatması: eski sürümde üye yok")
+        return
+    from pywebpush import webpush, WebPushException
+    vapid = db("GET", "private_settings?key=eq.vapid_private&select=value")[0]["value"]
+    payload = json.dumps({"title": f"TMPRO güncellendi · Sürüm {latest}",
+                          "body": f"Hâlâ eski sürümü kullanıyorsunuz. {APP_URL.split('//')[-1].rstrip('/')} adresini tarayıcınızda "
+                                  "(iPhone'da Safari, Android'de Chrome) açın ve ana ekrana yeniden ekleyin.",
+                          "url": APP_URL + "?yenilikler=1", "tag": "tmpro-surum-hatirlat"})
+    sent, done = 0, set()
+    for s in db("GET", "push_subs?select=id,user_id,endpoint,p256dh,auth") or []:
+        if s["user_id"] not in targets:
+            continue
+        try:
+            webpush({"endpoint": s["endpoint"], "keys": {"p256dh": s["p256dh"], "auth": s["auth"]}}, payload,
+                    vapid_private_key=vapid, vapid_claims={"sub": "mailto:bildirim@tmpro.app"}, ttl=86400)
+            sent += 1
+            done.add(s["user_id"])
+        except WebPushException as e:
+            if getattr(e.response, "status_code", None) in (404, 410):
+                db("DELETE", f"push_subs?id=eq.{s['id']}")
+    for uid in targets:  # cihazı olmayan da bu sürüm için bir daha denenmez
+        db("PATCH", f"profiles?id=eq.{uid}", {"version_reminded": latest})
+    print(f"Sürüm hatırlatması ({latest}): {len(done)} üye, {sent} cihaz")
+
+
 # ---------------------------------------------------------------- ana akış
 
 def load_state():
@@ -911,6 +975,11 @@ def main():
             save_state(state)
         except Exception as e:  # noqa: BLE001
             print(f"Sürüm bildirimi gönderilemedi: {type(e).__name__}")
+        try:
+            version_remind(state)
+            save_state(state)
+        except Exception as e:  # noqa: BLE001
+            print(f"Sürüm hatırlatması gönderilemedi: {type(e).__name__}")
         try:
             send_member_mails()
         except Exception as e:  # noqa: BLE001
