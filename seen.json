@@ -74,7 +74,9 @@
   "cf5e7e20-d83b-c191-5aef-aea5db7b85ae",
   "a197642b-592f-0273-fcf4-c14f6dd49c2c"
  ],
- "rg_seen": [],
+ "rg_seen": [
+  "https://www.resmigazete.gov.tr/eskiler/2026/11/20261110-6.htm"
+ ],
  "no_ozelge_notice": "08.11.2026",
  "last_ozelge_mail": "09.11.2026",
  "release_notified": "2.7",
