@@ -350,7 +350,7 @@ Kurallar:
   let n = 0;
   for (let i = 0; i < TASLAK_COST; i++) { const u = await fetch(SB_URL + "/rest/v1/rpc/use_ai_quota", { method: "POST", headers: J, body: "{}" }).catch(() => null); if (u?.ok && (await u.json()) === true) n++; }
   if (quota && quota.limit != null) { const free = Math.max(0, quota.limit - quota.used), f = Math.min(free, n); quota.used += f; quota.credits = Math.max(0, (quota.credits || 0) - (n - f)); }
-  return Response.json({ draft, sources, quota, cost: n });
+  return Response.json({ draft, sources, quota, cost: n, model: d.model, stop: d.stop_reason, usage: d.usage && { in: d.usage.input_tokens, out: d.usage.output_tokens } });
 }
 
 // ---- Döviz (TCMB) ve altın: tarayıcı bu kaynaklara doğrudan erişemediği için worker üzerinden, önbellekli
