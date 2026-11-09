@@ -522,6 +522,19 @@ def push_test():
     print(f"Cihaz sayısı: {len(subs)}")
 
 
+def muted(u, k):
+    """Üye bu bildirim türünü (ya da tümünü) şu an susturmuş mu?"""
+    m = (u or {}).get("mute") or {}
+    now = datetime.now(timezone.utc)
+    for key in ("hepsi", k):
+        try:
+            if m.get(key) and datetime.fromisoformat(m[key]) > now:
+                return True
+        except ValueError:
+            pass
+    return False
+
+
 def notify_users():
     """Aktif kullanıcılara son bildirimden beri eklenen kayıtlar için tek bir anlık bildirim yollar."""
     now = datetime.now(TR)
@@ -541,7 +554,10 @@ def notify_users():
     subs = db("GET", "push_subs?select=id,user_id,endpoint,p256dh,auth")
     if not subs:
         return
-    users = {u["id"]: u for u in db("GET", "profiles?select=id,role,status,expires_at,notify_types,last_notified_at")}
+    try:
+        users = {u["id"]: u for u in db("GET", "profiles?select=id,role,status,expires_at,notify_types,last_notified_at,mute")}
+    except Exception:  # noqa: BLE001  susturma sütunu henüz yok
+        users = {u["id"]: u for u in db("GET", "profiles?select=id,role,status,expires_at,notify_types,last_notified_at")}
     by_user = {}
     for s in subs:
         by_user.setdefault(s["user_id"], []).append(s)
@@ -554,8 +570,13 @@ def notify_users():
         active = u["role"] == "admin" or (u["status"] == "active" and (not exp or datetime.fromisoformat(exp) > utc_now))
         if not active or not u.get("notify_types"):
             continue
+        if muted(u, "mevzuat"):
+            continue  # susturma bitince kaçırılanlar tek bildirimde gelir
+        tlist = [t for t in u["notify_types"] if not muted(u, t)]
+        if not tlist:
+            continue
         since = u["last_notified_at"]
-        types = ",".join('"' + t.replace('"', '') + '"' for t in u["notify_types"])
+        types = ",".join('"' + t.replace('"', '') + '"' for t in tlist)
         new = db("GET", f"items?select=tur,title&created_at=gt.{quote(since)}&eklendi=not.is.null"
                         f"&tur=in.({quote(types)})&order=id.desc&limit=200")
         if not new:
@@ -600,7 +621,10 @@ def release_push(state):
         return
     from pywebpush import webpush, WebPushException
     vapid = db("GET", "private_settings?key=eq.vapid_private&select=value")[0]["value"]
-    users = {u["id"]: u for u in db("GET", "profiles?select=id,role,status,expires_at")}
+    try:
+        users = {u["id"]: u for u in db("GET", "profiles?select=id,role,status,expires_at,mute")}
+    except Exception:  # noqa: BLE001
+        users = {u["id"]: u for u in db("GET", "profiles?select=id,role,status,expires_at")}
     utc_now = datetime.now(timezone.utc)
     body = r.get("baslik") or "Yeni özellikler eklendi."
     if r.get("yeniden_ekle"):
@@ -614,6 +638,8 @@ def release_push(state):
         u = users.get(s["user_id"])
         exp = (u or {}).get("expires_at")
         if not u or not (u["role"] == "admin" or (u["status"] == "active" and (not exp or datetime.fromisoformat(exp) > utc_now))):
+            continue
+        if muted(u, "surum"):
             continue
         try:
             webpush({"endpoint": s["endpoint"], "keys": {"p256dh": s["p256dh"], "auth": s["auth"]}}, payload,
@@ -651,7 +677,10 @@ def version_remind(state):
     if now.date().isoformat() <= ref or now.hour != RELEASE_HOUR:
         return
     try:
-        users = db("GET", "profiles?select=id,role,status,expires_at,app_version,version_reminded")
+        try:
+            users = db("GET", "profiles?select=id,role,status,expires_at,app_version,version_reminded,mute")
+        except Exception:  # noqa: BLE001
+            users = db("GET", "profiles?select=id,role,status,expires_at,app_version,version_reminded")
     except Exception:  # noqa: BLE001  sütunlar henüz yok (surum_takip.sql çalıştırılmadı)
         print("Sürüm hatırlatması: kurulum bekleniyor")
         return
@@ -661,7 +690,7 @@ def version_remind(state):
         exp = u.get("expires_at")
         if not (u["role"] == "admin" or (u["status"] == "active" and (not exp or datetime.fromisoformat(exp) > utc_now))):
             continue
-        if ver_key(u.get("app_version")) >= ver_key(latest) or u.get("version_reminded") == latest:
+        if ver_key(u.get("app_version")) >= ver_key(latest) or u.get("version_reminded") == latest or muted(u, "surum"):
             continue
         targets[u["id"]] = u
     if not targets:

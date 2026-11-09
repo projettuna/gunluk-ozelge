@@ -814,7 +814,10 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const norm = s => String(s ?? "").toLocaleLowerCase("tr");
 const fmtDate = d => d ? new Date(d).toLocaleDateString("tr-TR", {day:"numeric", month:"long", year:"numeric"}) : "";
-const toEmail = u => `${u.trim().toLowerCase()}@${CFG.userDomain}`;
+// Kullanıcı adı: boşluk, baştaki @, Türkçe büyük/küçük harf (İ, I, ı) ve görünmez karakterler giriş hatasına yol açmasın
+const normUser = u => String(u || "").normalize("NFKC").replace(/[\u200b-\u200f\u2060\ufeff\s]/g, "").replace(/^@/, "").replace(/@.*$/, "")
+  .replace(/İ/g, "i").replace(/I/g, "i").replace(/ı/g, "i").replace(/\u0307/g, "").toLowerCase();
+const toEmail = u => `${normUser(u)}@${CFG.userDomain}`;
 function toast(m, ms = 2000){ const t = $("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), ms); }
 function show(view){ for(const v of ["authView","pendingView","appView","consentView"]) $(v).hidden = v !== view; if(view !== "appView") setupInstall(); }
 
@@ -869,7 +872,14 @@ $("loginForm").addEventListener("submit", async e => {
   const btn = e.target.querySelector("button"); btn.disabled = true;
   const { error } = await sb.auth.signInWithPassword({ email: toEmail(f.get("username")), password: f.get("password") });
   btn.disabled = false;
-  if(error){ $("loginErr").textContent = "Kullanıcı Adı veya şifre hatalı."; return; }
+  if(error){
+    const m = String(error.message || ""), st = error.status || 0;
+    $("loginErr").textContent = /invalid login|invalid_credentials/i.test(m + " " + (error.code || "")) ? "Kullanıcı Adı veya şifre hatalı. Kullanıcı adınızı küçük harfle ve boşluksuz yazın; e-posta adresi değil, kayıtta seçtiğiniz kullanıcı adı."
+      : st === 429 || /rate|too many/i.test(m) ? "Çok fazla deneme yapıldı. Birkaç dakika bekleyip tekrar deneyin."
+      : /fetch|network|load failed/i.test(m) ? "Bağlantı kurulamadı. İnternetinizi kontrol edip tekrar deneyin."
+      : "Giriş yapılamadı: " + m;
+    return;
+  }
   boot();
 });
 $("signupForm").addEventListener("submit", async e => {
