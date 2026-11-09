@@ -24,6 +24,12 @@ def call(method, url, body=None, h=None, timeout=30):
             return e.code, t[:300]
 
 
+try:
+    with urlopen(Request(SITE + "/?v=" + secrets.token_hex(3), headers={"User-Agent": "TMPRO-test"}), timeout=30) as r_:
+        page = r_.read().decode()
+    print("site sürümü: PDF düğmesi", "tsPdf" in page, "| Word", "taslakDoc" in page, "| taslak", "toolTaslak" in page)
+except Exception as e:  # noqa: BLE001
+    print("site okunamadı:", e)
 S = {"apikey": KEY, "Authorization": f"Bearer {KEY}"} if KEY.startswith("eyJ") else {"apikey": KEY}
 name, pw = "test" + secrets.token_hex(3), secrets.token_urlsafe(12)
 st, u = call("POST", URL + "/auth/v1/admin/users", {"email": f"{name}@tmpro.app", "password": pw, "email_confirm": True, "user_metadata": {"username": name, "full_name": "Test"}}, S)
