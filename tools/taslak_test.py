@@ -64,6 +64,9 @@ try:
             print("içtihat", k, st, f"{time.time() - t0:.1f} sn", "karar:", r.get("n"), "canlı:", r.get("canli"), "özet:", r.get("ozet"), "sonuç:", r.get("sonuc"), "hata:", r.get("error"))
             if r.get("dbg"): print("dbg:", r.get("dbg"))
         raise SystemExit
+    t0_ = time.time(); st_, r_ = call("POST", f"{URL}/rest/v1/rpc/arsiv_ara", {"q": "örtülü:* & sermaye:*", "turler": ["Özelge"], "lim": 30}, {"apikey": PUB, "Authorization": A["Authorization"]}, timeout=60)
+    print("arşiv arama (üye):", st_, f"{time.time() - t0_:.1f} sn", len(r_) if isinstance(r_, list) else str(r_)[:200])
+    if os.environ.get("YALNIZ_ARSIV"): raise SystemExit
     st, r = call("POST", SITE + "/api/emsal", {"konu": "sahte_kullanma", "aciklama": "ABC Gıda A.Ş."}, A)
     print("kimlik bilgisiyle:", st, "(beklenen 422)")
     for konu_ in (os.environ.get("TK") or "sahte_kullanma,kdv_iade,ortulu_sermaye").split(","):
