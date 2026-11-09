@@ -1016,6 +1016,12 @@ def main():
         except Exception as e:  # noqa: BLE001
             print(f"Haftalık özet gönderilemedi: {type(e).__name__}")
         try:
+            import hatirlatma
+            hatirlatma.run(db, state, muted=muted, force="--remind-test" in sys.argv)
+            save_state(state)
+        except Exception as e:  # noqa: BLE001
+            print(f"Takvim hatırlatıcısı çalışmadı: {type(e).__name__}")
+        try:
             send_member_mails()
         except Exception as e:  # noqa: BLE001
             print(f"Üye e-postaları gönderilemedi: {str(e)[:200]}")

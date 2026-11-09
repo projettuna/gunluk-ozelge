@@ -1048,6 +1048,7 @@ async function boot(){
   const qb = new URLSearchParams(location.search).get("bildirim");
   if(qb){ history.replaceState(null, "", location.pathname); showNtfAt(qb); }
   if(new URLSearchParams(location.search).has("takip")){ history.replaceState(null, "", location.pathname); tab = "watch"; render(); }
+  if(new URLSearchParams(location.search).has("takvim")){ history.replaceState(null, "", location.pathname); tab = "cal"; render(); }
   if(new URLSearchParams(location.search).has("hafta")){ history.replaceState(null, "", location.pathname); openWeekly(); }
   if(tab === "chat") render();
 }
@@ -1917,7 +1918,7 @@ function openWeekly(){
 }
 
 /* ---------------- süreli susturma ---------------- */
-const MUTE_KEYS = () => [["hepsi", "Tüm bildirimler"], ["mevzuat", "Mevzuat ve kararlar (hepsi)"], ...ORDER.map(t => [t, t]), ["takip", "Takip Listem"], ["sohbet", "Sohbet"], ["gunaydin", "Günaydın"], ["haftalik", "Haftalık Özet"]];
+const MUTE_KEYS = () => [["hepsi", "Tüm bildirimler"], ["mevzuat", "Mevzuat ve kararlar (hepsi)"], ...ORDER.map(t => [t, t]), ["takip", "Takip Listem"], ["sohbet", "Sohbet"], ["gunaydin", "Günaydın"], ["takvim", "Takvim hatırlatmaları"], ["haftalik", "Haftalık Özet"]];
 const muteLabel = k => (MUTE_KEYS().find(x => x[0] === k) || [k, k])[1];
 const activeMutes = () => Object.entries(me?.mute || {}).filter(([, v]) => new Date(v) > new Date()).sort((a, b) => a[0] === "hepsi" ? -1 : 0);
 const untilText = v => { const d = new Date(v), today = new Date().toDateString() === d.toDateString();
@@ -1984,7 +1985,7 @@ function ntfTarget(n){
   if(u.searchParams.has("hafta")) return ["Haftanın Özetini Aç", () => openWeekly()];
   if(u.searchParams.has("takip")) return ["Takip Listemi aç", () => { tab = "watch"; render(); scrollTo({ top: 0 }); }];
   if(u.searchParams.has("yenilikler")) return ["Yenilikleri gör", () => openVersionSheet("all")];
-  if(n.tag === "tmpro-gunaydin") return ["Takvimi aç", () => { tab = "cal"; render(); scrollTo({ top: 0 }); }];
+  if(n.tag === "tmpro-gunaydin" || n.tag === "tmpro-takvim") return ["Takvimi aç", () => { tab = "cal"; render(); scrollTo({ top: 0 }); }];
   if(/kayıt|mevzuat|özelge|karar|tebliğ|gazete|sirküler|kanun/i.test((n.title || "") + " " + (n.body || ""))) return ["Akışı aç", () => { tab = "feed"; filter = "Tümü"; render(); scrollTo({ top: 0 }); }];
   return null;
 }
@@ -2079,8 +2080,9 @@ async function renderCal(){
   html += `<form id="evForm"><div class="sect">Gün Ekle</div><div class="group">
       <label class="field"><input name="title" placeholder="Örn. Annemin Doğum Günü" maxlength="80" required></label>
       <label class="field"><input name="day" type="date" value="${calSel}" required></label>
-      <div class="li"><div class="grow"><b>Her Yıl Tekrarla</b></div><label class="switch"><input type="checkbox" name="yearly" checked><span></span></label></div></div>
-      <div class="foot">Eklediğiniz günleri yalnızca siz görürsünüz; o sabah 08:30 bildiriminde hatırlatılır.</div>
+      <div class="li"><div class="grow"><b>Her Yıl Tekrarla</b></div><label class="switch"><input type="checkbox" name="yearly" checked><span></span></label></div>
+      <div class="li"><div class="grow"><b>Önceden Hatırlat</b><small>3 gün ve 1 gün önce, saat 09:00</small></div><label class="switch"><input type="checkbox" name="remind" checked><span></span></label></div></div>
+      <div class="foot">Eklediğiniz günleri yalnızca siz görürsünüz; o sabah 08:30 bildiriminde de hatırlatılır. Rapor teslimi, süre bitimi gibi tarihleri ekleyebilirsiniz.</div>
       <button class="btn" style="margin-top:16px">Ekle</button></form>`;
   $("cal").innerHTML = html;
   $("calSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; calSeg = b.dataset.s; renderCal(); };
@@ -2093,7 +2095,9 @@ async function renderCal(){
   });
   $("evForm").onsubmit = async e => {
     e.preventDefault(); const f = new FormData(e.target), btn = e.target.querySelector("button.btn"); btn.disabled = true;
-    const { error } = await sb.from("user_events").insert({ title: f.get("title").trim(), day: f.get("day"), yearly: !!f.get("yearly") });
+    const ev = { title: f.get("title").trim(), day: f.get("day"), yearly: !!f.get("yearly"), remind: !!f.get("remind") };
+    let { error } = await sb.from("user_events").insert(ev);
+    if(error && /remind/i.test(error.message || "")){ delete ev.remind; ({ error } = await sb.from("user_events").insert(ev)); }  // kurulum öncesi
     btn.disabled = false; if(error){ toast("Eklenemedi"); return; }
     await loadEvents(true); calSel = f.get("day"); const d = parseIso(calSel); calMonth = new Date(d.getFullYear(), d.getMonth(), 1); toast("Eklendi"); renderCal();
   };
