@@ -295,7 +295,7 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
   backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 -.5px 0 var(--line);padding:7px 12px}
 .composer textarea{flex:1;resize:none;border:.5px solid var(--line);background:var(--surface);border-radius:18px;padding:7px 14px;font-size:17px;line-height:1.3;max-height:120px;outline:none}
 .send{width:32px;height:32px;border-radius:50%;border:0;background:var(--accent);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none;align-self:flex-end;margin-bottom:2px}
-.send[disabled]{opacity:.35}
+.send[disabled],.send.off{opacity:.35}
 .room{width:100%;border:0;background:none;text-align:left;cursor:pointer;color:inherit;align-items:center}
 .room:active{background:var(--fill-2)}
 .rav{width:46px;height:46px;border-radius:50%;background:var(--c);color:#fff;display:grid;place-items:center;flex:none}
@@ -784,7 +784,7 @@ body.home::before{opacity:.85}
 </div></nav>
 </div>
 <form class="composer" id="composer" hidden><div class="wrap row"><textarea id="msgIn" rows="1" placeholder="Mesaj" maxlength="2000" enterkeyhint="send"></textarea>
-  <button class="send" id="sendBtn" aria-label="Gönder" disabled><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div></form>
+  <button class="send" id="sendBtn" type="submit" aria-label="Gönder"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div></form>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -2067,7 +2067,7 @@ function renderRoom(){
     const d = new Date(m.created_at), dl = dayLabel(m.created_at);
     if(dl !== lastDay){ html += `<div class="chatday">${esc(dl)}</div>`; lastDay = dl; lastUser = null; }
     const mine = m.user_id === me.id;
-    html += `<div class="msg ${mine ? "me" : ""}" data-id="${m.id}">${!mine && !room.startsWith("dm:") && lastUser !== m.user_id ? `<div class="who">${esc(m.username || "üye")}${m.unvan ? ` · <span style="color:var(--gold)">${esc(m.unvan)}</span>` : ""}</div>` : ""}
+    html += `<div class="msg ${mine ? "me" : ""}" data-id="${m.id}">${!mine && !room.startsWith("dm:") && lastUser !== m.user_id ? `<div class="who">${esc(members?.find(x => x.id === m.user_id)?.full_name || m.username || "üye")}${m.unvan ? ` · <span style="color:var(--gold)">${esc(m.unvan)}</span>` : ""}</div>` : ""}
       <div class="bub">${esc(m.body)}</div><div class="tm">${m.edited_at ? "düzenlendi · " : ""}${d.toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"})}${mine && isDm ? `<span class="tick ${m.id <= otherRead ? "seen" : ""}" title="${m.id <= otherRead ? "Okundu" : "İletildi"}">${m.id <= otherRead ? TICK2 : TICK1}</span>` : ""}</div></div>`;
     lastUser = m.user_id;
   }
@@ -2207,20 +2207,40 @@ $("msgs").addEventListener("click", async e => {
   const { error } = await sb.from("messages").delete().eq("id", msg.id);
   if(!error){ msgs = msgs.filter(x => x.id !== msg.id); renderChat(); }
 });
-const msgIn = $("msgIn");
+const msgIn = $("msgIn"); let sending = false;
 msgIn.addEventListener("focus", () => { document.body.classList.add("typing"); setTimeout(() => scrollTo({ top: document.body.scrollHeight }), 350); });
 msgIn.addEventListener("blur", () => setTimeout(() => { if(document.activeElement !== msgIn) document.body.classList.remove("typing"); }, 100));
-msgIn.addEventListener("input", () => { $("sendBtn").disabled = !msgIn.value.trim(); msgIn.style.height = "auto"; msgIn.style.height = Math.min(msgIn.scrollHeight, 120) + "px"; });
+$("sendBtn").classList.add("off");
+const sendState = () => $("sendBtn").classList.toggle("off", !msgIn.value.trim());
+["input", "keyup", "change", "compositionend", "paste"].forEach(ev => msgIn.addEventListener(ev, () => setTimeout(sendState, 0)));
+// Dokunuş anında gönder: klavye kapanmadan (düğme kaymadan) önce
+$("sendBtn").addEventListener("touchstart", e => { e.preventDefault(); $("composer").requestSubmit(); }, { passive: false });
+$("sendBtn").addEventListener("mousedown", e => e.preventDefault());
+msgIn.addEventListener("input", () => { msgIn.style.height = "auto"; msgIn.style.height = Math.min(msgIn.scrollHeight, 120) + "px"; });
 msgIn.addEventListener("keydown", e => { if(e.key === "Enter" && !e.shiftKey && !e.isComposing){ e.preventDefault(); $("composer").requestSubmit(); } });
 $("composer").addEventListener("submit", async e => {
   e.preventDefault(); const body = msgIn.value.trim(); if(!body || !room || room === "__pick") return;
-  msgIn.value = ""; msgIn.style.height = "auto"; $("sendBtn").disabled = true;
-  const { data, error } = await sb.from("messages").insert({ body, room }).select().single();
+  if(sending) return; sending = true;
+  msgIn.value = ""; msgIn.style.height = "auto"; sendState();
+  const { data, error } = await sb.from("messages").insert({ body, room }).select().single().then(r => r, e => ({ error: e }));
+  sending = false;
   if(!error) track("mesaj");
-  if(error){ msgIn.value = body; toast(room.startsWith("dm:") && /security|policy/i.test(error.message || "") ? "Bu kişiyle arkadaş olmadan mesaj gönderemezsiniz" : "Gönderilemedi", 4000); return; }
+  if(error){ msgIn.value = body; sendState(); toast(room.startsWith("dm:") && /security|policy/i.test(error.message || "") ? "Bu kişiyle arkadaş olmadan mesaj gönderemezsiniz" : "Gönderilemedi", 4000); return; }
   if(!msgs.some(m => m.id === data.id)) msgs.push(data);
   renderChat();
 });
+
+let presRoom = null, presAt = 0;
+function presence(){
+  if(!sb || !me) return;
+  const r = document.visibilityState === "visible" && tab === "chat" && room && room !== "__pick" ? room : null;
+  if(r === presRoom && (!r || Date.now() - presAt < 25000)) return;
+  presRoom = r; presAt = Date.now();
+  sb.rpc("set_active_room", { r }).then(() => {}, () => {});
+}
+setInterval(presence, 3000);
+document.addEventListener("visibilitychange", presence);
+addEventListener("pagehide", () => { if(presRoom){ presRoom = null; sb?.rpc("set_active_room", { r: null }).then(() => {}, () => {}); } });
 
 /* ---------------- bildirimler ---------------- */
 const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
