@@ -44,6 +44,7 @@ try:
             t0 = time.time(); st, r = call("GET", f"{SITE}/api/ictihat?konu={k}", None, A, timeout=60)
             r = r if isinstance(r, dict) else {"error": str(r)[:120]}
             print("içtihat", k, st, f"{time.time() - t0:.1f} sn", "karar:", r.get("n"), "canlı:", r.get("canli"), "özet:", r.get("ozet"), "sonuç:", r.get("sonuc"), "hata:", r.get("error"))
+            if r.get("dbg"): print("dbg:", r.get("dbg"))
         raise SystemExit
     st, r = call("POST", SITE + "/api/taslak", {"tur": "inceleme", "konu": "sahte_kullanma", "aciklama": "ABC Gıda A.Ş."}, A)
     print("kimlik bilgisiyle:", st, (r or {}).get("error", "")[:80] if isinstance(r, dict) else r, "(beklenen 422)")
