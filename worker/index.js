@@ -224,7 +224,7 @@ Bu bir sohbettir: önceki mesajları dikkate al, kısa ve net yaz, gerektiğinde
 }
 
 // ---- Rapor taslağı asistanı (/api/taslak): yalnızca konu + genel açıklama alır, mükellef bilgisi engellenir, taslak saklanmaz.
-const TASLAK_COST = 4;
+const TASLAK_COST = 6;
 const TASLAK_TURLER = { inceleme: "Vergi İnceleme Raporu (tarhiyat)", vtr: "Vergi Tekniği Raporu (VTR)", suc: "Vergi Suçu Raporu (VUK 359, suç duyurusu)", bolum: "Tek bölüm / değerlendirme notu" };
 const TASLAK_KONULAR = {
   sahte_kullanma: "sahte belge kullanımı, KDV indirimlerinin reddi",

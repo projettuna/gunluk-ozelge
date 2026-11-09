@@ -1552,7 +1552,7 @@ async function toolTaslak(){
       <div class="tf"><label>İncelenen dönem (isteğe bağlı)<select id="tsDonem">${opt(years, tsForm.donem)}</select></label></div>
       <div class="tf"><label>Genel açıklama (isteğe bağlı)<textarea id="tsAc" rows="3" maxlength="800" placeholder="Örn. Kurum, iade talebinde bulunduğu dönemde indirim konusu yaptığı faturaların bir kısmının sahte belge düzenleyicisi raporlu mükelleflerden alındığı tespit edildi.">${esc(tsForm.aciklama)}</textarea></label></div>
       <div id="tsWarn" class="kwarn" style="margin:0 0 10px" hidden></div>
-      <div class="thelp" style="margin:0 0 8px">Her taslak <b>4 asistan hakkı</b> kullanır.${qt ? "<br>" + qt : ""}</div>
+      <div class="thelp" style="margin:0 0 8px">Her taslak <b>6 asistan hakkı</b> kullanır.${qt ? "<br>" + qt : ""}</div>
       <button class="btn" id="tsGo" ${tsBusy ? "disabled" : ""}>${tsBusy ? "Hazırlanıyor… (2-4 dakika sürebilir, ekranı kapatmayın)" : "Taslak Hazırla"}</button></div>
     <div id="tsOut"></div>`;
   const ac = $("tsAc"), warn = $("tsWarn");
