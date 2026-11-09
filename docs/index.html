@@ -1411,8 +1411,8 @@ const left = iso => { const n = daysTo(iso); return n < 0 ? `<span class="tleft 
 const resRow = (lbl, iso, sub, evTitle) => `<div class="tres"><div class="grow"><small>${lbl}</small><b>${trD(iso)}</b>${sub ? `<em>${sub}</em>` : ""}</div><div class="tside">${left(iso)}${evTitle ? `<button class="tadd" data-t="${esc(evTitle)}" data-d="${iso}">Takvime Ekle</button>` : ""}</div></div>`;
 function renderTools(){
   $("sub").textContent = "Süre, ceza, faiz ve mevzuat yardımcıları";
-  const segs = [["asistan", "Asistan"], ["taslak", "Rapor Taslağı"], ["ictihat", "İçtihat Yönü"], ["delil", "Delil Matrisi"], ["sure", "Süreler"], ["ceza", "Ceza ve Faiz"], ...(hasSinav() ? [["sinav", "Sınav"]] : []), ["piyasa", "Döviz ve Altın"]];
-  if(toolSeg === "sinav" && !hasSinav()) toolSeg = "asistan";
+  const segs = [["asistan", "Asistan"], ["taslak", "Rapor Taslağı"], ["ictihat", "İçtihat Yönü"], ["ceza", "Ceza ve Faiz"], ...(hasSinav() ? [["sinav", "Sınav"]] : []), ["piyasa", "Döviz ve Altın"]];
+  if((toolSeg === "sinav" && !hasSinav()) || toolSeg === "delil" || toolSeg === "sure") toolSeg = "asistan";
   $("tools").innerHTML = `<div class="sfil" id="toolSeg">${segs.map(([k, l]) => `<button data-s="${k}" class="${toolSeg === k ? "on" : ""}">${l}</button>`).join("")}</div><div id="toolBody"></div>
     <div class="foot" style="margin-top:14px">Hesaplamalar yardımcı amaçlıdır; sonuçları mevzuat ve güncel içtihatla teyit edin.</div>`;
   $("toolSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; toolSeg = b.dataset.s; renderTools(); syncNav(); };
