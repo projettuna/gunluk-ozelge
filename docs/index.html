@@ -209,6 +209,7 @@ mark{background:color-mix(in srgb,var(--gold) 28%,transparent);color:inherit;bor
 /* hesap ve yönetim: iOS gruplu listeler */
 .list{background:var(--surface);border-radius:14px;overflow:hidden;margin-bottom:8px}
 .li{display:flex;align-items:center;gap:12px;padding:11px 16px;min-height:50px;position:relative}
+button.li{width:100%;border:0;background:none;text-align:left;font:inherit;color:inherit;cursor:pointer;-webkit-appearance:none;appearance:none}
 .li+.li::before{content:"";position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--line)}
 .li .grow{flex:1;min-width:0}
 .li b{display:block;font-weight:400;font-size:17px}
@@ -1410,7 +1411,8 @@ const left = iso => { const n = daysTo(iso); return n < 0 ? `<span class="tleft 
 const resRow = (lbl, iso, sub, evTitle) => `<div class="tres"><div class="grow"><small>${lbl}</small><b>${trD(iso)}</b>${sub ? `<em>${sub}</em>` : ""}</div><div class="tside">${left(iso)}${evTitle ? `<button class="tadd" data-t="${esc(evTitle)}" data-d="${iso}">Takvime Ekle</button>` : ""}</div></div>`;
 function renderTools(){
   $("sub").textContent = "Süre, ceza, faiz ve mevzuat yardımcıları";
-  const segs = [["asistan", "Asistan"], ["taslak", "Rapor Taslağı"], ["ictihat", "İçtihat Yönü"], ["delil", "Delil Matrisi"], ["sure", "Süreler"], ["ceza", "Ceza ve Faiz"], ["sinav", "Sınav"], ["piyasa", "Döviz ve Altın"]];
+  const segs = [["asistan", "Asistan"], ["taslak", "Rapor Taslağı"], ["ictihat", "İçtihat Yönü"], ["delil", "Delil Matrisi"], ["sure", "Süreler"], ["ceza", "Ceza ve Faiz"], ...(hasSinav() ? [["sinav", "Sınav"]] : []), ["piyasa", "Döviz ve Altın"]];
+  if(toolSeg === "sinav" && !hasSinav()) toolSeg = "asistan";
   $("tools").innerHTML = `<div class="sfil" id="toolSeg">${segs.map(([k, l]) => `<button data-s="${k}" class="${toolSeg === k ? "on" : ""}">${l}</button>`).join("")}</div><div id="toolBody"></div>
     <div class="foot" style="margin-top:14px">Hesaplamalar yardımcı amaçlıdır; sonuçları mevzuat ve güncel içtihatla teyit edin.</div>`;
   $("toolSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; toolSeg = b.dataset.s; renderTools(); syncNav(); };
@@ -1790,16 +1792,18 @@ function toolDelil(){
 
 /* ---- Yeterlik sınavı soru bankası (ilerleme yalnızca cihazda) ---- */
 let SORU = null, sv = null;
+const hasSinav = () => me?.role === "admin" || (!!me?.sinav_until && new Date(me.sinav_until) > new Date());
 const svStat = () => { try{ return JSON.parse(localStorage.getItem("sinav") || "{}"); }catch{ return {}; } };
 const svSave = st => { try{ localStorage.setItem("sinav", JSON.stringify(st)); }catch{} };
 async function toolSinav(){
   if(!SORU){ $("toolBody").innerHTML = `<div class="tcard"><div class="rload"><i></i><i></i><i></i></div></div>`;
-    try{ SORU = (await (await fetch("sorular.json?v=" + Math.floor(Date.now() / 36e5))).json()).sorular; }catch{ SORU = []; } if(toolSeg !== "sinav") return; }
+    try{ const { data, error } = await sb.from("sinav_sorular").select("id,k,q,o,a,e").eq("durum", "yayinda").order("id"); SORU = error ? [] : data || []; }catch{ SORU = []; } if(toolSeg !== "sinav") return; }
+  if(!SORU.length){ $("toolBody").innerHTML = `<div class="tcard"><div class="rwait">Soru bankası henüz yüklenmedi.</div></div>`; SORU = null; return; }
   const st = svStat(), cats = [...new Set(SORU.map(x => x.k))];
   const yan = SORU.filter(x => st[x.id] === 0), cevap = SORU.filter(x => st[x.id] != null), dog = cevap.filter(x => st[x.id] === 1).length;
   if(!sv){
     $("toolBody").innerHTML = `<div class="tcard"><div class="tt">Yeterlik Sınavı Çalışma <span>${SORU.length} soru</span></div>
-      <div class="thelp" style="margin-top:0">Vergi müfettiş yardımcılığı yeterlik sınavına hazırlık için mevzuat soruları. Her soruda doğru cevap ve kanun dayanağı gösterilir. İlerlemeniz bu cihazda tutulur.</div>
+      <div class="thelp" style="margin-top:0">Vergi müfettiş yardımcılığı yeterlik sınavına hazırlık için mevzuat soruları. Her soruda doğru cevap ve kanun dayanağı gösterilir. Hatalı gördüğünüz soruyu bildirebilirsiniz. İlerlemeniz bu cihazda tutulur.${me.role !== "admin" && me.sinav_until ? `<br>Paketiniz ${fmtDate(me.sinav_until)} tarihine kadar açık.` : ""}</div>
       <div class="tsum"><div><small>Çözülen</small><b>${cevap.length}/${SORU.length}</b></div><div class="tot"><small>Başarı</small><b>${cevap.length ? Math.round(dog * 100 / cevap.length) + "%" : "–"}</b></div></div></div>
       <div class="tcard"><div class="tt">Test başlat</div><div class="list" style="margin-top:6px">
         <button class="li" data-sv="__mix"><div class="grow"><b>Karışık 10 soru</b><small>Tüm konulardan</small></div></button>
@@ -1826,12 +1830,14 @@ async function toolSinav(){
     ${q.ord.map((oi, n) => { const right = oi === q.a, mine = sv.pick === oi; const bg = done && right ? "color-mix(in srgb,var(--ok) 22%,transparent)" : done && mine ? "color-mix(in srgb,var(--danger) 18%,transparent)" : "var(--fill)";
       return `<button data-op="${oi}" ${done ? "disabled" : ""} style="display:flex;gap:10px;width:100%;text-align:left;border:0;border-radius:14px;padding:12px;margin-top:8px;font:inherit;font-size:15px;line-height:1.4;color:var(--ink);background:${bg};cursor:pointer"><b style="color:var(--muted)">${"ABCD"[n]}</b><span>${esc(q.o[oi])}</span></button>`; }).join("")}
     ${done ? `<div class="thelp" style="margin-top:12px"><b style="color:var(${sv.pick === q.a ? "--ok" : "--danger"})">${sv.pick === q.a ? "Doğru." : "Yanlış."}</b> ${esc(q.e)}</div><button class="btn" id="svNext" style="margin-top:6px">${sv.i + 1 < sv.qs.length ? "Sonraki soru" : "Sonucu gör"}</button>` : ""}
-    <button class="btn small" id="svQuit" style="margin-top:10px;background:var(--fill);color:var(--ink)">Testi bitir</button></div>`;
+    <div class="row" style="gap:8px;margin-top:10px"><button class="btn small" id="svQuit" style="background:var(--fill);color:var(--ink)">Testi bitir</button><button class="btn small" id="svRep" style="background:none;color:var(--muted);margin-left:auto">⚑ Hatalı soru bildir</button></div></div>`;
   $("toolBody").onclick = e => {
     const o = e.target.closest("[data-op]");
     if(o && sv.pick == null){ sv.pick = +o.dataset.op; const st2 = svStat(); st2[q.id] = sv.pick === q.a ? 1 : 0; svSave(st2); if(sv.pick === q.a) sv.ok++; toolSinav(); return; }
     if(e.target.closest("#svNext")){ sv.i++; sv.pick = null; toolSinav(); scrollTo({ top: 0 }); return; }
     if(e.target.closest("#svQuit")){ sv = null; toolSinav(); }
+    if(e.target.closest("#svRep")){ const n = prompt("Bu soruda ne hatalı? (ör. doğru cevap farklı, madde değişti)"); if(n === null) return;
+      sb.from("sinav_bildirim").insert({ soru_id: q.id, nott: n.trim().slice(0, 600) }).then(({ error }) => toast(error ? "Gönderilemedi" : "Teşekkürler, bildiriminiz yöneticiye iletildi", 3000)); }
   };
 }
 
@@ -1887,17 +1893,38 @@ async function toolAsk(){
   });
 }
 let creditPkg = null;
+function editSoru(r){
+  if(!r) return; closeSheet();
+  const el = document.createElement("div"); el.className = "sheetwrap"; el.id = "sheet";
+  const ta = (n, v, h) => `<textarea name="${n}" rows="${h}" style="width:100%;box-sizing:border-box;border-radius:12px;border:.5px solid var(--glass-line);background:var(--fill);color:var(--ink);font:inherit;font-size:15px;padding:8px 10px;margin-top:6px">${esc(v || "")}</textarea>`;
+  el.innerHTML = `<div class="sheet" style="max-height:88vh;overflow:auto"><div class="stitle">Soru #${r.id}</div><form id="sqForm" style="padding:0 6px">
+    <input name="k" value="${esc(r.k)}" style="width:100%;box-sizing:border-box;height:38px;border-radius:12px;border:.5px solid var(--glass-line);background:var(--fill);color:var(--ink);padding:0 10px;font:inherit">
+    ${ta("q", r.q, 3)}${[0, 1, 2, 3].map(i => `<label style="display:flex;gap:8px;align-items:flex-start;margin-top:6px"><input type="radio" name="a" value="${i}" ${i === r.a ? "checked" : ""} style="margin-top:12px"><span style="flex:1">${ta("o" + i, r.o[i], 2)}</span></label>`).join("")}
+    ${ta("e", r.e, 3)}<small class="muted">Doğru şıkkı soldaki daireyle seçin. Son kutu açıklama ve madde dayanağıdır.</small>
+    <button class="btn" style="margin-top:10px;width:100%">Kaydet ve Yayınla</button></form><button data-a="x" class="cancel">Vazgeç</button></div>`;
+  document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
+  el.onclick = e => { if(e.target === el || e.target.closest("[data-a=x]")) closeSheet(); };
+  $("sqForm").onsubmit = async e => { e.preventDefault(); const f = new FormData(e.target);
+    const row = { k: f.get("k").trim(), q: f.get("q").trim(), o: [0, 1, 2, 3].map(i => f.get("o" + i).trim()), a: +f.get("a"), e: f.get("e").trim(), durum: "yayinda", updated_at: new Date().toISOString() };
+    if(!row.q || row.o.some(x => !x)){ toast("Soru ve dört şık dolu olmalı"); return; }
+    const { error } = await sb.from("sinav_sorular").update(row).eq("id", r.id);
+    if(!error) await sb.from("sinav_bildirim").update({ durum: "kapali" }).eq("soru_id", r.id);
+    toast(error ? "Kaydedilemedi" : "Soru güncellendi"); closeSheet(); SORU = null; renderAdmin(); };
+}
 async function renderCredit(){
   syncNav();
   const [{ data: pk }, { data: od }] = await Promise.all([sb.from("ai_packages").select("*").order("sira"), sb.from("credit_orders").select("id,code,fiyat,status,created_at").eq("user_id", me.id).order("id", { ascending: false }).limit(10)]);
   if(!settings.iban) await loadSettings();
-  const P = pk || [], sel = P.find(x => x.code === creditPkg);
+  const ALL = pk || [], SP = ALL.find(x => x.code === "SINAV"), P = ALL.filter(x => x.code !== "SINAV" || creditPkg === "SINAV"), sel = ALL.find(x => x.code === creditPkg);
   const nm = String(me.full_name || me.username || "").trim();
   const acik = sel ? `${sel.code} ${nm}`.toLocaleUpperCase("tr") : "";
   const st = { pending: "Onay bekliyor", approved: "Yüklendi", rejected: "Reddedildi" };
   $("toolBody").innerHTML = `<div class="tcard"><div class="tt">Kredi Yükle <span>Asistan</span></div>
       <div class="thelp" style="margin-top:0">Aboneliğinizde her ay ${esc(settings.ai_kota || "30")} soru hakkı vardır. Hakkınız bitince satın aldığınız kredilerden düşülür; krediler süresizdir.${quotaText() ? "<br>" + quotaText() : ""}</div>
-      <div class="pkgs">${P.map(x => `<button class="pkg${x.code === creditPkg ? " on" : ""}" data-pkg="${esc(x.code)}"><b>${esc(x.ad)}</b><span>${x.fiyat} TL</span><small>${x.gun ? `${x.gun} gün sınırsız soru` : `soru başı ${(x.fiyat / x.adet).toFixed(2).replace(".", ",")} TL`}</small></button>`).join("")}</div></div>
+      <div class="pkgs">${P.filter(x => x.code !== "SINAV").map(x => `<button class="pkg${x.code === creditPkg ? " on" : ""}" data-pkg="${esc(x.code)}"><b>${esc(x.ad)}</b><span>${x.fiyat} TL</span><small>${x.gun ? `${x.gun} gün sınırsız soru` : `soru başı ${(x.fiyat / x.adet).toFixed(2).replace(".", ",")} TL`}</small></button>`).join("")}</div></div>
+    ${SP ? `<div class="tcard"><div class="tt">Yeterlik Sınavı Paketi <span>${SP.fiyat} TL · ${Math.round(SP.gun / 30)} ay</span></div>
+      <div class="thelp" style="margin-top:0">Vergi müfettiş yardımcılığı yeterlik sınavına hazırlık: kanun dayanaklı yüzlerce mevzuat sorusu, konu testleri ve yanlışlarım listesi. Araçlar'da "Sınav" bölümü açılır.${hasSinav() && me.role !== "admin" ? `<br><b>Paketiniz ${fmtDate(me.sinav_until)} tarihine kadar açık.</b>` : ""}</div>
+      <button class="btn${creditPkg === "SINAV" ? "" : " ghost"}" data-pkg="SINAV">${hasSinav() ? "Süreyi Uzat" : "Satın Al"}</button></div>` : ""}
     ${sel ? `<div class="tcard"><div class="tt">Ödeme Bilgileri</div>
       <dl class="pay"><div class="pr"><dt>Tutar</dt><dd>${sel.fiyat} TL</dd></div>
       <div class="pr"><dt>Alıcı</dt><dd>${esc(settings.alici || "—")}</dd></div>
@@ -2925,7 +2952,10 @@ async function renderAdmin(){
       ${u.referred_by ? `<small style="color:var(--gold)">🎁 Davet eden: ${esc((users.find(x => x.id === u.referred_by) || {}).full_name || "üye")}${u.referral_rewarded ? " · 30 gün hediye eklendi" : " · onaylayınca davet edene 30 gün eklenir"}</small>` : ""}
       ${u.status === "active" || u.role === "admin" ? verLine(u) : ""}</div>
       ${statusPill(u)}</div><div class="acts2">${actions(u)}${u.role === "admin" ? "" : `<button class="btn small ghost" data-act="pw" data-id="${u.id}">Şifre Belirle</button><button class="btn small ghost" data-act="del" data-id="${u.id}">Sil</button><button class="btn small danger" data-act="ban" data-id="${u.id}">Engelle</button>`}</div></div>`;
-  let body = "";
+  let body = "", sinavBek = 0;
+  let sTas = [], sBil = [];
+  try{ const [a, b2] = await Promise.all([sb.from("sinav_sorular").select("*").eq("durum", "taslak").order("id"), sb.from("sinav_bildirim").select("*").eq("durum", "acik").order("id")]);
+    sTas = a.error ? [] : a.data || []; sBil = b2.error ? [] : b2.data || []; sinavBek = sTas.length + sBil.length; }catch{}
   const latestV = releases[0]?.surum || APP_VERSION;
   function verLine(u){
     if(!("app_version" in u)) return "";
@@ -2941,9 +2971,21 @@ async function renderAdmin(){
       const acik = `${o.code} ${String(u.full_name || u.username || "").trim()}`.toLocaleUpperCase("tr");
       return `<div class="li" style="display:block"><div class="grow"><b>${esc(u.full_name || u.username || "?")} · ${esc(o.code)} · ${o.fiyat} TL</b><small>Açıklama: ${esc(acik)} · ${fmtDate(o.created_at)}</small></div>
       <div class="acts2"><button class="btn small ok" data-act="cok" data-id="${o.id}">Onayla</button><button class="btn small danger" data-act="cno" data-id="${o.id}">Reddet</button></div></div>`; }).join("")}</div>`;
+  }else if(adminSeg === "sinav"){
+    const ids = [...new Set(sBil.map(x => x.soru_id))];
+    const { data: bq } = ids.length ? await sb.from("sinav_sorular").select("*").in("id", ids) : { data: [] };
+    const { count: yay } = await sb.from("sinav_sorular").select("id", { count: "exact", head: true }).eq("durum", "yayinda");
+    const qv = r => `<b style="display:block;line-height:1.35">#${r.id} · ${esc(r.k)} · ${esc(r.q)}</b><small style="display:block;margin-top:4px">${(r.o || []).map((o, i) => `${"ABCD"[i]}) ${i === r.a ? `<span style="color:var(--ok);font-weight:650">${esc(o)} ✓</span>` : esc(o)}`).join("<br>")}</small><small style="display:block;margin-top:4px;color:var(--muted)">${esc(r.e || "")}${r.kaynak ? " · Kaynak: " + esc(r.kaynak) : ""}</small>`;
+    window._sq = Object.fromEntries([...sTas, ...(bq || [])].map(r => [r.id, r]));
+    body = `<p class="small muted" style="margin:8px 4px">Yayında ${yay || 0} soru. Üyelerin hatalı bulduğu sorular ve mevzuat değişikliklerinden hazırlanan soru taslakları burada onayınızı bekler.</p>
+      <div class="sect">Hatalı Soru Bildirimleri</div>${sBil.length ? `<div class="list">${sBil.map(x => { const r = (bq || []).find(q => q.id === x.soru_id); return `<div class="li" style="display:block">${r ? qv(r) : `<b>#${x.soru_id}</b>`}
+        <small style="display:block;margin-top:6px;color:var(--warn,#c77700)">Bildirim: ${esc(x.nott || "(not yok)")} · ${fmtDate(x.created_at)}</small>
+        <div class="acts2"><button class="btn small ghost" data-sq="edit" data-id="${x.soru_id}">Düzenle</button><button class="btn small danger" data-sq="off" data-id="${x.soru_id}" data-b="${x.id}">Soruyu Kaldır</button><button class="btn small ghost" data-sq="bok" data-b="${x.id}">Bildirimi Kapat</button></div></div>`; }).join("")}</div>` : `<div class="empty">Açık bildirim yok.</div>`}
+      <div class="sect">Soru Taslakları</div>${sTas.length ? `<div class="list">${sTas.map(r => `<div class="li" style="display:block">${qv(r)}
+        <div class="acts2"><button class="btn small ok" data-sq="pub" data-id="${r.id}">Yayınla</button><button class="btn small ghost" data-sq="edit" data-id="${r.id}">Düzenle</button><button class="btn small danger" data-sq="del" data-id="${r.id}">Sil</button></div></div>`).join("")}</div>` : `<div class="empty">Bekleyen taslak yok.</div>`}`;
   }else if(adminSeg === "active"){
     const withV = active.filter(u => "app_version" in u), upd = withV.filter(u => u.app_version && !verGt(latestV, u.app_version)).length;
-    body = (withV.length ? `<div class="sect">Sürüm ${esc(latestV)}: ${upd} güncel · ${withV.length - upd} eski</div>` : "") + `<div class="list">${active.map(u => person(u, u => u.role === "admin" ? "" : `<button class="btn small ghost" data-act="approve" data-id="${u.id}">+${settings.sure_gun || 30} Gün</button><button class="btn small ghost" data-act="year" data-id="${u.id}">+1 Yıl</button><button class="btn small ghost" data-act="forever" data-id="${u.id}">Süresiz Yap</button><button class="btn small ghost" data-act="ai" data-val="${u.ai_unlimited ? "0" : "1"}" data-id="${u.id}">${u.ai_unlimited ? "Asistanı Sınırla" : "Asistan Sınırsız"}</button><button class="btn small danger" data-act="cancel" data-id="${u.id}">Aboneliği Kapat</button>`)).join("")}</div>`
+    body = (withV.length ? `<div class="sect">Sürüm ${esc(latestV)}: ${upd} güncel · ${withV.length - upd} eski</div>` : "") + `<div class="list">${active.map(u => person(u, u => u.role === "admin" ? "" : `<button class="btn small ghost" data-act="approve" data-id="${u.id}">+${settings.sure_gun || 30} Gün</button><button class="btn small ghost" data-act="year" data-id="${u.id}">+1 Yıl</button><button class="btn small ghost" data-act="forever" data-id="${u.id}">Süresiz Yap</button><button class="btn small ghost" data-act="ai" data-val="${u.ai_unlimited ? "0" : "1"}" data-id="${u.id}">${u.ai_unlimited ? "Asistanı Sınırla" : "Asistan Sınırsız"}</button>${u.sinav_until && new Date(u.sinav_until) > new Date() ? `<button class="btn small ghost" data-act="sinavoff" data-id="${u.id}">Sınavı Kapat (${fmtDate(u.sinav_until)})</button>` : `<button class="btn small ghost" data-act="sinav" data-id="${u.id}">Sınav Aç (6 Ay)</button>`}<button class="btn small danger" data-act="cancel" data-id="${u.id}">Aboneliği Kapat</button>`)).join("")}</div>`
       + (other.length ? `<div class="sect">Süresi Dolan / Reddedilen</div><div class="list">${other.map(u => person(u, u => `<button class="btn small ghost" data-act="approve" data-id="${u.id}">Aç (${settings.sure_gun || 30} Gün)</button><button class="btn small ghost" data-act="year" data-id="${u.id}">Aç (1 Yıl)</button>`)).join("")}</div>` : "");
   }else if(adminSeg === "feedback"){
     const { data: fb } = await sb.from("feedback").select("*").order("id", { ascending: false }).limit(100);
@@ -2984,7 +3026,7 @@ async function renderAdmin(){
       <div class="sect">Engellenenler</div><div class="list" id="banList"><div class="empty">Yükleniyor…</div></div>
       <p class="small muted" style="margin:8px 4px">Engellenen IP, e-posta, telefon veya kullanıcı adıyla yeniden kayıt olunamaz.</p>`;
   }
-  $("admin").innerHTML = `<div class="seg" id="adminSeg">${seg("pending", "Talepler", pending.length + co.length)}${seg("active", "Aboneler", active.length)}${seg("feedback", "Geri Bildirim")}${seg("stats", "İstatistik")}${seg("settings", "Ayarlar")}</div>${body}`;
+  $("admin").innerHTML = `<div class="seg" id="adminSeg">${seg("pending", "Talepler", pending.length + co.length)}${seg("active", "Aboneler", active.length)}${seg("sinav", "Sınav", sinavBek)}${seg("feedback", "Geri Bildirim")}${seg("stats", "İstatistik")}${seg("settings", "Ayarlar")}</div>${body}`;
   $("admin").querySelectorAll("[data-fb]").forEach(b => b.onclick = async () => {
     const a = b.dataset.fb, id = +b.dataset.id; let ans = null;
     if(a === "reply"){ ans = prompt("Üyeye gidecek yanıt (bildirim olarak gider):"); if(!ans) return; }
@@ -2997,6 +3039,15 @@ async function renderAdmin(){
     $("banList").innerHTML = (bans || []).length ? bans.map(x => `<div class="li"><div class="grow"><b>${esc(x.value)}</b><small>${lbl[x.kind] || x.kind} · ${fmtDate(x.created_at)}</small></div><button class="btn small ghost" data-unban="${x.id}">Kaldır</button></div>`).join("") : `<div class="empty">Engellenen kimse yok.</div>`;
     $("banList").querySelectorAll("[data-unban]").forEach(b => b.onclick = async () => { if(!confirm("Engel kaldırılsın mı?")) return; await sb.from("banned").delete().eq("id", +b.dataset.unban); renderAdmin(); });
   }
+  $("admin").querySelectorAll("[data-sq]").forEach(b => b.onclick = async () => {
+    const a = b.dataset.sq, id = +b.dataset.id, bid = +b.dataset.b; let r = {};
+    if(a === "edit") return editSoru(window._sq?.[id]);
+    if(a === "pub") r = await sb.from("sinav_sorular").update({ durum: "yayinda", updated_at: new Date().toISOString() }).eq("id", id);
+    if(a === "del"){ if(!confirm("Taslak silinsin mi?")) return; r = await sb.from("sinav_sorular").delete().eq("id", id); }
+    if(a === "off"){ if(!confirm("Soru bankadan kaldırılsın mı?")) return; r = await sb.from("sinav_sorular").update({ durum: "kapali" }).eq("id", id); if(!r.error) r = await sb.from("sinav_bildirim").update({ durum: "kapali" }).eq("soru_id", id); }
+    if(a === "bok") r = await sb.from("sinav_bildirim").update({ durum: "kapali" }).eq("id", bid);
+    toast(r.error ? "İşlem başarısız" : "Kaydedildi"); refreshAdminBadge(); renderAdmin();
+  });
   $("adminSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; adminSeg = b.dataset.seg; renderAdmin(); };
   $("admin").querySelectorAll("[data-act]").forEach(b => b.onclick = async () => {
     b.disabled = true; const id = b.dataset.id, act = b.dataset.act; let r;
@@ -3005,6 +3056,7 @@ async function renderAdmin(){
     if(act === "year") r = await sb.rpc("admin_approve", { uid: id, days: 365 });
     if(act === "cok" || act === "cno") r = await sb.rpc("decide_credit", { oid: +id, ok: act === "cok" });
     if(act === "ai") r = await sb.rpc("set_ai_unlimited", { uid: id, val: b.dataset.val === "1" });
+    if(act === "sinav" || act === "sinavoff") r = await sb.rpc("set_sinav", { uid: id, days: act === "sinav" ? 180 : 0 });
     if(act === "reject") r = await sb.rpc("admin_set_status", { uid: id, new_status: "rejected" });
     if(act === "del" || act === "ban"){
       const u = (users || []).find(x => x.id === id) || {}, nm = u.full_name || u.username || "Bu kullanıcı";
