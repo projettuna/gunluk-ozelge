@@ -240,6 +240,23 @@ const TASLAK_KONULAR = {
   stopaj: "eksik tevkifat (stopaj) uygulaması",
   diger: "",
 };
+// Konu bazında kaynak arama ifadeleri (ilike kalıbı; "_" tek harf yerine geçer). Yargıtay ceza kararları yalnız suçla ilgili konularda.
+const TASLAK_ARA = {
+  sahte_kullanma: { p: ["sahte fatura", "sahte belge", "sahte_belge", "sahte faturalar"], ceza: true },
+  sahte_duzenleme: { p: ["sahte fatura d_zenle", "sahte belge d_zenle", "sahte fatura", "sahte belge"], ceza: true },
+  yaniltici: { p: ["muhteviyat_ _tibar", "yan_lt_c_ belge", "yan_lt_c_ fatura"], ceza: true },
+  kdv_iade: { p: ["kdv iade", "katma de_er vergisi iade", "iade talebi", "iade alaca__"] },
+  ortulu_sermaye: { p: ["_rt_l_ sermaye"] },
+  transfer: { p: ["transfer fiyatland_rmas_", "_rt_l_ kazan_"] },
+  hasilat: { p: ["kay_t d___", "has_lat_n", "has_lat gizle", "_effaf olmayan"] },
+  ibraz: { p: ["ibraz edilme", "defter ve belgelerin ibraz", "takdir komisyon", "re'sen takdir"] },
+  ortaklar_cari: { p: ["ortaklar cari", "adat", "_rt_l_ kazan_"] },
+  kkeg: { p: ["kanunen kabul edilmeyen gider"] },
+  degerleme: { p: ["de_erleme", "de_erlenmesi"] },
+  gayrimenkul: { p: ["de_er art___ kazanc_", "gayrimenkul sat__", "ta__nmaz sat__"] },
+  stopaj: { p: ["tevkifat", "stopaj"] },
+};
+const ilike2re = p => new RegExp(p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/_/g, "."), "giu");
 // Kimlik/mahremiyet bilgisi yakalayıcı (uygulamadaki ile aynı kurallar)
 function piiFound(t) {
   const s = String(t || "");
@@ -272,20 +289,32 @@ async function taslak(req, env) {
   if (quota && quota.limit != null && Math.max(0, quota.limit - quota.used) + (quota.credits || 0) < TASLAK_COST)
     return Response.json({ error: `Taslak için ${TASLAK_COST} hak gerekir. Kalan hakkınız yetmiyor; Asistan bölümünden kredi yükleyebilirsiniz.`, quota }, { status: 429 });
   const qText = `${konu} ${aciklama}`;
-  const ws = stems(qText);
-  let rows = [];
-  if (ws.length) {
+  const ws = stems(qText), ara = TASLAK_ARA[konuKey];
+  const cezaOk = tur === "suc" || !!ara?.ceza;
+  let rows = [], res = [];
+  if (ara) {
+    res = ara.p.map(ilike2re);
+    const or = ara.p.flatMap(w => [`title.ilike.*${w}*`, `metin.ilike.*${w}*`]).join(",");
+    const r = await fetch(`${SB_URL}/rest/v1/items?select=id,tur,title,meta,url,metin,ozet&or=(${encodeURIComponent(or)})&order=id.desc&limit=120`, { headers: H });
+    rows = r.ok ? await r.json() : [];
+  } else if (ws.length) {
     const or = ws.flatMap(w => [`title.ilike.*${w}*`, `metin.ilike.*${w}*`]).join(",");
     const r = await fetch(`${SB_URL}/rest/v1/items?select=id,tur,title,meta,url,metin,ozet&or=(${encodeURIComponent(or)})&order=id.desc&limit=80`, { headers: H });
     rows = r.ok ? await r.json() : [];
   }
-  const live = ws.length ? await danistayLive(konu) : [];
-  const score = x => { const tl = (x.title || "").toLocaleLowerCase("tr"), ml = (x.metin || x.ozet || "").toLocaleLowerCase("tr");
-    return ws.reduce((a, w) => a + 6 * (tl.split(w).length - 1) + Math.min(15, ml.split(w).length - 1), 0) + (KARAR.test(x.tur || "") ? 40 : 0); };
-  const local = rows.map(x => ({ x, sc: score(x) })).sort((a, b) => b.sc - a.sc).map(o => o.x);
-  const picked = [...live.slice(0, 3), ...local.filter(x => KARAR.test(x.tur)).slice(0, 4), ...local.filter(x => !KARAR.test(x.tur)).slice(0, 3)].slice(0, 9);
+  if (!cezaOk) rows = rows.filter(x => !/Yargıtay/i.test(x.tur || ""));
+  const live = await danistayLive(ara ? ara.p.filter(x => !x.includes("_")).slice(0, 1).join(" ") || konu : konu);
+  // Puan: konu ifadelerinin başlık ve metinde geçme sayısı; ifadesi az geçen (ilgisiz) kayıtlar elenir
+  const score = x => { const tl = x.title || "", ml = x.metin || x.ozet || "";
+    if (res.length) return res.reduce((a, re) => a + 8 * (tl.match(re) || []).length + Math.min(12, (ml.match(re) || []).length), 0) + (KARAR.test(x.tur || "") ? 6 : 0);
+    const tll = tl.toLocaleLowerCase("tr"), mll = ml.toLocaleLowerCase("tr");
+    return ws.reduce((a, w) => a + 6 * (tll.split(w).length - 1) + Math.min(15, mll.split(w).length - 1), 0); };
+  const MIN = res.length ? 9 : 20;
+  const local = rows.map(x => ({ x, sc: score(x) })).filter(o => o.sc >= MIN).sort((a, b) => b.sc - a.sc).map(o => o.x);
+  const picked = [...live.slice(0, 3), ...local.filter(x => KARAR.test(x.tur)).slice(0, 4), ...local.filter(x => !KARAR.test(x.tur)).slice(0, 2)].slice(0, 8);
   const sources = picked.map((x, i) => ({ n: i + 1, id: x.id || null, url: x.id ? null : x.url, tur: x.tur, title: x.title, meta: x.meta }));
-  const ctx = picked.map((x, i) => `[${i + 1}] ${x.tur} · ${x.title}${x.meta ? " · " + x.meta : ""}\n${excerpt(x.metin || x.ozet || "", ws, 2500)}`).join("\n\n---\n\n");
+  const exWs = res.length ? ara.p.map(p => p.split("_")[0].toLocaleLowerCase("tr")).filter(w => w.length > 3) : ws;
+  const ctx = picked.map((x, i) => `[${i + 1}] ${x.tur} · ${x.title}${x.meta ? " · " + x.meta : ""}\n${excerpt(x.metin || x.ozet || "", exWs, 2500)}`).join("\n\n---\n\n");
   const system = `Sen Türkiye vergi mevzuatında uzman, vergi müfettişlerine rapor yazımında yardımcı olan bir asistansın. Görevin, verilen konu için kullanılabilir bir RAPOR TASLAĞI İSKELETİ hazırlamaktır.
 Kurallar:
 - Gerçek bir mükellef hakkında hiçbir bilgi bilmiyorsun ve uydurmayacaksın. Mükellefe, döneme, tutara, tarihe, belgeye ilişkin her somut bilgi yerine KÖŞELİ PARANTEZ içinde BÜYÜK HARFLE yer tutucu kullan: [MÜKELLEF], [VKN], [DÖNEM], [TUTAR], [FATURA SAYISI], [TESPİT TARİHİ], [TUTANAK TARİHİ] gibi.
@@ -293,16 +322,22 @@ Kurallar:
 - Yapı: numaralı ana başlıklar (1., 2., ...) ve alt başlıklar (1.1, 1.2) kullan; her başlık altında müfettişin doldurabileceği kalıp paragraflar ve gerekli yerlerde doldurulacak boş tablo satırları (sütunları | ile ayırarak) yaz.
 - Rapor türüne göre olağan bölümleri kapsa: giriş/inceleme nedeni ve yetki, mükellef hakkında genel bilgiler (yalnızca yer tutucu), incelemenin yapılışı, tespitler, yasal dayanak ve değerlendirme, yargı kararları, matrah farkı ve vergi hesabı, ceza değerlendirmesi (VUK 344, 359, 370 vb. uygun olanlar), sonuç ve öneri. Vergi suçu raporunda suçun unsurları, fiil-dönem ilişkisi, kast değerlendirmesi ve suç duyurusu sonucu bölümlerini ekle. Tek bölüm istenmişse yalnızca değerlendirme bölümünü yaz.
 - Sonda "Kontrol listesi" başlığı altında raporu tamamlamadan önce müfettişin teyit etmesi gereken 6-10 maddelik kısa bir liste ver (zamanaşımı, tebliğ, ilgili dönem mevzuatı, kurumun güncel rapor yazım esasları vb.).
+- Kaynakların ilgili olup olmadığı hakkında yorum veya ön not yazma; konuyla ilgisiz bir kaynak varsa hiç anma. Doğrudan rapor başlığıyla başla.
+- Vergi İnceleme Raporu ve VTR'de vergi suçu değerlendirmesini ayrı bölüm olarak yazma; yalnızca sonuç bölümünde "VUK 359 kapsamındaki fiiller için ayrıca Vergi Suçu Raporu düzenlenmiştir/düzenlenecektir (VUK 367)" cümlesine yer ver.
+- Taslak eksiksiz bitmeli: toplam uzunluğu yaklaşık 9.000 karakteri geçmesin, tabloları 1-2 örnek satırla sınırla, tekrar yapma. Kontrol listesini mutlaka tamamla.
+- Madde atıflarında aşağıdaki doğru eşleştirmelerle çelişme:
+  VUK 3/B gerçek mahiyet ve ispat; VUK 30 re'sen takdir; VUK 114 tarh zamanaşımı; VUK 134-141 vergi incelemesi (135 yetkililer, 139 işyerinde inceleme, 140 inceleme esasları, 141 tutanak); VUK 227 ve 229-232 belge düzeni/fatura; VUK 336 cezaların içtimaı; VUK 339 tekerrür; VUK 341 vergi ziyaı; VUK 344/1 bir kat, 344/2 VUK 359'daki fiillerle ziyada üç kat vergi ziyaı cezası; VUK 352-353 usulsüzlük ve özel usulsüzlük; VUK 359/a-1 defter ve kayıt hileleri, 359/a-2 muhteviyatı itibarıyla yanıltıcı belge düzenleme veya kullanma, 359/b sahte belge düzenleme veya kullanma; VUK 367 suç duyurusu; VUK 370 izaha davet; VUK 371 pişmanlık ve ıslah; VUK 376 ceza indirimi; VUK Ek 1 vd. uzlaşma; İYUK 7 dava açma süresi. KDVK 29/1 indirim, 34/1 indirimin belgeye dayanması, 32 iade. KVK 11 kanunen kabul edilmeyen giderler, KVK 12 örtülü sermaye, KVK 13 transfer fiyatlandırması yoluyla örtülü kazanç dağıtımı. GVK 41 kabul edilmeyen giderler, GVK 94 tevkifat, GVK mükerrer 80-81 değer artışı kazançları. VUK 258 vd. değerleme.
 - Düz metin yaz; Markdown işareti (#, **, *) kullanma. Resmî ve sade bir dil kullan.`;
   const user = `Rapor türü: ${TASLAK_TURLER[tur]}\nKonu: ${konu}${donem ? `\nİncelenen dönem: ${donem}` : ""}${aciklama ? `\nGenel açıklama (mükellef bilgisi içermez): ${aciklama}` : ""}\n\n(Uygulamadaki ilgili kaynaklar:)\n${ctx || "(Eşleşen kaynak bulunamadı.)"}`;
   // Sonnet 5.5'te düşünme varsayılan açık ve tüm çıktı bütçesini harcayabiliyor: taslak için kapatılır (between_tools = en düşük düşünme)
-  const body = { model: env.ASK_MODEL || "claude-sonnet-5-5", max_tokens: 8000, thinking: { type: "between_tools" }, system, messages: [{ role: "user", content: user }] };
+  const body = { model: env.ASK_MODEL || "claude-sonnet-5-5", max_tokens: 10000, thinking: { type: "between_tools" }, system, messages: [{ role: "user", content: user }] };
   const call = b => fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify(b) });
   let r = await call(body);
   if (r.status === 400) { delete body.thinking; body.max_tokens = 16000; r = await call(body); }  // model bu ayarı desteklemiyorsa düşünmeyle, geniş bütçeyle dene
   if (!r.ok) { let m = ""; try { m = (await r.json())?.error?.message || ""; } catch {} return Response.json({ error: "Yapay zekâ yanıt vermedi (" + r.status + ") " + m.slice(0, 120) }, { status: 502 }); }
   const d = await r.json();
-  const draft = (d.content || []).filter(b => b.type === "text").map(b => b.text).join("").replace(/\*\*|^#+\s*/gm, "").trim();
+  let draft = (d.content || []).filter(b => b.type === "text").map(b => b.text).join("").replace(/\*\*|^#+\s*/gm, "").trim();
+  if (draft && d.stop_reason === "max_tokens") draft += "\n\n(Taslak uzunluk sınırında kesildi; kalan kısmı için konuyu daraltıp \"Tek Bölüm\" seçeneğiyle tekrar deneyebilirsiniz.)";
   if (!draft) return Response.json({ error: `Taslak üretilemedi, tekrar deneyin (${d.stop_reason || "?"}; ${(d.content || []).map(b => b.type).join(",") || "boş"})` }, { status: 502 });
   let n = 0;
   for (let i = 0; i < TASLAK_COST; i++) { const u = await fetch(SB_URL + "/rest/v1/rpc/use_ai_quota", { method: "POST", headers: J, body: "{}" }).catch(() => null); if (u?.ok && (await u.json()) === true) n++; }
