@@ -297,7 +297,7 @@ const TASLAK_MADDE = {
   stopaj: ["GVK 94", "VUK 11"],
   diger: [],
 };
-const CQ = { ortulu_sermaye: "örtülü sermaye", transfer: "transfer fiyatlandırması", hasilat: "hasılat gizleme", yaniltici: "yanıltıcı belge", ortaklar_cari: "ortaklar cari", degerleme: "değerleme", gayrimenkul: "değer artışı kazancı", sahte_duzenleme: "sahte fatura düzenleme" };  // canlı Danıştay araması için sade ifadeler
+const CQ = { stopaj: "tevkifat sorumlusu", kkeg: "kanunen kabul edilmeyen gider", ortulu_sermaye: "örtülü sermaye", transfer: "transfer fiyatlandırması", hasilat: "hasılat gizleme", yaniltici: "yanıltıcı belge", ortaklar_cari: "ortaklar cari", degerleme: "değerleme", gayrimenkul: "değer artışı kazancı", sahte_duzenleme: "sahte fatura düzenleme" };  // canlı Danıştay araması için sade ifadeler
 const ilike2re = p => new RegExp(p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/_/g, "."), "giu");
 // Kimlik/mahremiyet bilgisi yakalayıcı (uygulamadaki ile aynı kurallar)
 function piiFound(t) {
