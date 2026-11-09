@@ -39,6 +39,12 @@ try:
     st2, tok = call("POST", URL + "/auth/v1/token?grant_type=password", {"email": f"{name}@tmpro.app", "password": pw}, {"apikey": PUB})
     print("kullanıcı:", st, "giriş:", st2)
     A = {"Authorization": "Bearer " + tok["access_token"], "User-Agent": "TMPRO-test"}
+    if os.environ.get("ICTIHAT"):
+        for k in ["sahte_kullanma", "kdv_iade", "ortulu_sermaye", "transfer", "ibraz"]:
+            t0 = time.time(); st, r = call("GET", f"{SITE}/api/ictihat?konu={k}", None, A, timeout=60)
+            r = r if isinstance(r, dict) else {"error": str(r)[:120]}
+            print("içtihat", k, st, f"{time.time() - t0:.1f} sn", "karar:", r.get("n"), "özet:", r.get("ozet"), "sonuç:", r.get("sonuc"), "hata:", r.get("error"))
+        raise SystemExit
     st, r = call("POST", SITE + "/api/taslak", {"tur": "inceleme", "konu": "sahte_kullanma", "aciklama": "ABC Gıda A.Ş."}, A)
     print("kimlik bilgisiyle:", st, (r or {}).get("error", "")[:80] if isinstance(r, dict) else r, "(beklenen 422)")
     for tur_, konu_ in [(os.environ.get("TT", "inceleme"), os.environ.get("TK", "sahte_kullanma"))] if not os.environ.get("TALL") else [("vtr", "kdv_iade"), ("suc", "sahte_duzenleme"), ("bolum", "ortulu_sermaye")]:
