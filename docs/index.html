@@ -1720,7 +1720,7 @@ async function toolIctihat(){
   $("icOut").innerHTML = `<div class="tcard"><div class="tt">${o.n} karar <span>${o.sonuc.filter(x => x[1]).map(x => `${x[0]} ${x[1]}`).join(" · ")}</span></div>${bar}<div>${leg}</div>
     ${z.belirsiz ? `<div class="thelp">${z.belirsiz} kararda kimin lehine olduğu metinden çıkarılamadı.</div>` : ""}
     <div class="thelp">Sınıflandırma kararların hüküm kısmından otomatik yapılır ("davacının temyiz isteminin reddine" gibi). Raporda kullanmadan önce kararın tam metnini okuyun.</div></div>
-    <div class="list" style="margin-top:12px">${o.list.map(x => `<button class="li" data-icid="${x.id}" style="display:block;text-align:left;padding:11px 12px">
+    <div class="list" style="margin-top:12px">${o.list.map(x => `<button class="li" ${x.id ? `data-icid="${x.id}"` : ""} style="display:block;text-align:left;padding:11px 12px">
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><span class="pill">${esc(x.sonuc)}</span>${x.lehine ? `<span class="pill" style="color:var(${LEH[x.lehine][1]})">${LEH[x.lehine][0]}</span>` : ""}<small style="color:var(--muted)">${esc(x.meta || "")}</small></div>
       <b style="display:block;font-weight:600;margin-top:4px">${esc(x.title)}</b><small style="display:block;color:var(--muted);line-height:1.4;margin-top:3px">${esc(x.hukum.slice(0, 260))}${x.hukum.length > 260 ? "…" : ""}</small></button>`).join("")}</div>`;
   $("icOut").onclick = e => { const b = e.target.closest("[data-icid]"); if(b) openReader(+b.dataset.icid); };
