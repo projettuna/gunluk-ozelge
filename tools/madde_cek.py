@@ -7,7 +7,7 @@ KANUNLAR = {
     "VUK": (213, 4, ["3", "11", "29", "30", "114", "134", "135", "138", "139", "140", "141", "227", "229", "230", "231", "232", "258", "336", "339", "341", "344", "353", "359", "367", "370", "371", "376", "Ek 1"]),
     "KDVK": (3065, 5, ["8", "9", "29", "30", "32", "34"]),
     "KVK": (5520, 5, ["11", "12", "13"]),
-    "GVK": (193, 3, ["40", "41", "94", "Mükerrer 80", "Mükerrer 81"]),
+    "GVK": (193, 4, ["40", "41", "94", "Mükerrer 80", "Mükerrer 81"]),
 }
 UA = {"User-Agent": "Mozilla/5.0 (TMPRO mevzuat)"}
 
@@ -38,16 +38,23 @@ def split(t):
         # madde başlığı: başlangıçtan önceki son kısa satır
         before = t[max(0, m.start() - 300): m.start()].strip().split("\n")
         title = before[-1].strip() if before and 2 < len(before[-1].strip()) < 120 else ""
-        body = re.sub(r"\s+\n", "\n", body).strip()
+        body = re.sub(r"\s*\[\d+\]", "", body)
+        body = re.sub(r"\n(?=[a-zçğıöşü0-9(,;.])", " ", body)  # satır içi kırılmaları birleştir
+        body = re.sub(r"[ \t]+", " ", re.sub(r"\s+\n", "\n", body)).strip()
+        title = re.sub(r"\s*\[\d+\]", "", title).strip(" :")
         if key not in out:  # ilk geçen (geçici maddeler sonra gelir)
-            out[key] = {"baslik": title, "metin": body[:3500] + ("…" if len(body) > 3500 else "")}
+            out[key] = {"baslik": title, "metin": body[:5000] + ("…" if len(body) > 5000 else "")}
     return out
 
 
 res, eksik = {}, []
 for kod, (no, tertip, keys) in KANUNLAR.items():
     try:
-        allm = split(text_of(no, tertip))
+        allm = {}
+        for tt in dict.fromkeys([tertip, 4, 3, 5]):
+            allm = split(text_of(no, tt))
+            if allm:
+                break
     except Exception as e:  # noqa: BLE001
         print(kod, "alınamadı:", e)
         eksik.append(kod)
