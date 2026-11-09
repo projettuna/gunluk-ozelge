@@ -142,7 +142,12 @@ def setup():
         try:
             db(f"{tbl}?select=*&limit=1")
         except RuntimeError:
-            bad("kurulum_" + tbl, "uyari", f"Veritabanında {what} kurulumu eksik ({ {'watch_hits': 'takip', 'item_notes': 'notlar'}.get(tbl, 'destek') }.sql çalıştırılmalı)")
+            bad("kurulum_" + tbl, "uyari", f"Veritabanında {what} kurulumu eksik ({ {'watch_hits': 'takip', 'item_notes': 'yeni_ozellikler'}.get(tbl, 'destek') }.sql çalıştırılmalı)")
+    for path, key, what in (("profiles?select=weekly_on,referred_by", "yeni_profil", "haftalık özet/davet"), ("user_events?select=remind", "yeni_takvim", "takvim hatırlatıcısı")):
+        try:
+            db(path + "&limit=1")
+        except RuntimeError:
+            bad("kurulum_" + key, "uyari", f"Veritabanında {what} kurulumu eksik (yeni_ozellikler.sql çalıştırılmalı)")
 
 
 def auto(r):
