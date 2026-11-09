@@ -709,7 +709,7 @@ body.home::before{opacity:.85}
     <label class="kchk"><input type="checkbox" name="k1" required><span><a href="hukuki.html#sartlar" target="_blank">Kullanım Şartları</a>, <a href="hukuki.html#satis" target="_blank">Ön Bilgilendirme</a> ve <a href="hukuki.html#aydinlatma" target="_blank">Aydınlatma Metni</a>'ni okudum, kabul ediyorum. Hizmetin ödeme onayıyla hemen başlamasını ve bu nedenle cayma hakkım olmadığını kabul ediyorum.</span></label>
     <label class="kchk"><input type="checkbox" name="k2" required><span>Kişisel verilerimin <a href="hukuki.html#riza" target="_blank">Açık Rıza Metni</a>'nde belirtilen yurt dışındaki hizmet sağlayıcılara aktarılmasına açık rıza veriyorum.</span></label>
     <div class="err" id="signupErr"></div>
-    <div class="priceBox"><b id="supPrice">149 TL / 30 gün</b><span id="supAi">Mevzuat Asistanı: ayda 30 soru dahil</span></div>
+    <div class="priceBox"><b id="supPrice">179 TL / 30 gün</b><span id="supAi">Mevzuat Asistanı: ayda 30 soru dahil</span></div>
     <button class="btn" type="submit">Talep Oluştur</button>
     <p class="note">Ödeme bilgileri (IBAN ve açıklama kodu) hem sonraki ekranda gösterilir hem e-postanıza gönderilir. Ödemeniz onaylanınca hesabınızın açıldığını e-posta ile bildiririz.</p>
   </form>
@@ -944,8 +944,8 @@ function setupInstall(){
 }
 async function fillSignupPrice(){
   try{ if(!settings.fiyat) await loadSettings();
-    $("supPrice").textContent = (settings.fiyat || "149") + " TL / " + (settings.sure_gun || "30") + " gün";
-    $("supAi").textContent = "Mevzuat Asistanı: ayda " + (settings.ai_kota || "30") + " soru dahil · Havale/EFT ile ödeme";
+    $("supPrice").textContent = (settings.fiyat || "179") + " TL / " + (settings.sure_gun || "30") + " gün · Yıllık " + Number(settings.fiyat_yil || 1790).toLocaleString("tr-TR") + " TL";
+    $("supAi").textContent = "Yıllıkta 2 ay bedava · Mevzuat Asistanı: ayda " + (settings.ai_kota || "30") + " soru dahil · Havale/EFT ile ödeme";
   }catch{}
 }
 function isActive(p){ return p.role === "admin" || (p.status === "active" && (!p.expires_at || new Date(p.expires_at) > new Date())); }
@@ -1068,7 +1068,7 @@ function renderPending(){
     : me.status === "rejected" ? "Talebiniz onaylanmadı. Bir hata olduğunu düşünüyorsanız ödeme bilgileriyle tekrar iletişime geçin."
     : "Talebiniz alındı. Aşağıdaki hesaba ödemeyi yapın; ödemeniz onaylanınca e-posta ile bilgilendirilirsiniz.";
   $("pendUser").textContent = "@" + me.username;
-  $("payAmount").textContent = (settings.fiyat || "149") + " TL / " + (settings.sure_gun || "30") + " gün";
+  $("payAmount").innerHTML = `${esc(settings.fiyat || "179")} TL / ${esc(settings.sure_gun || "30")} gün<br><small>veya yıllık ${esc(Number(settings.fiyat_yil || 1790).toLocaleString("tr-TR"))} TL / 365 gün (2 ay bedava)</small>`;
   $("payName").textContent = settings.alici || "—";
   $("payIban").textContent = settings.iban || "—";
   $("payCode").textContent = me.pay_code || me.username;
@@ -2729,7 +2729,7 @@ async function renderAdmin(){
     return `<small style="color:${old ? "var(--warn,#d97706)" : "var(--ok,#16a34a)"}">${u.app_version ? `Sürüm ${esc(u.app_version)}${how ? " · " + how : ""}${u.app_seen_at ? " · " + fmtDate(u.app_seen_at) : ""}` : "Sürüm bilinmiyor (yeni sürümle henüz açmadı)"}${old ? " · eski" : " · güncel"}${rem}</small>`;
   }
   if(adminSeg === "pending"){
-    body = pending.length ? `<div class="list">${pending.map(u => person(u, u => `<button class="btn small ok" data-act="approve" data-id="${u.id}">Onayla (${settings.sure_gun || 30} Gün)</button><button class="btn small danger" data-act="reject" data-id="${u.id}">Reddet</button>`)).join("")}</div>`
+    body = pending.length ? `<div class="list">${pending.map(u => person(u, u => `<button class="btn small ok" data-act="approve" data-id="${u.id}">Onayla (${settings.sure_gun || 30} Gün)</button><button class="btn small ok" data-act="year" data-id="${u.id}">Yıllık Onayla</button><button class="btn small danger" data-act="reject" data-id="${u.id}">Reddet</button>`)).join("")}</div>`
       : (co.length ? "" : `<div class="empty">Bekleyen talep yok.</div>`);
     if(co.length) body += `<div class="sect">Kredi Talepleri</div><div class="list">${co.map(o => { const u = users.find(x => x.id === o.user_id) || {};
       const acik = `${o.code} ${String(u.full_name || u.username || "").trim()}`.toLocaleUpperCase("tr");
@@ -2737,8 +2737,8 @@ async function renderAdmin(){
       <div class="acts2"><button class="btn small ok" data-act="cok" data-id="${o.id}">Onayla</button><button class="btn small danger" data-act="cno" data-id="${o.id}">Reddet</button></div></div>`; }).join("")}</div>`;
   }else if(adminSeg === "active"){
     const withV = active.filter(u => "app_version" in u), upd = withV.filter(u => u.app_version && !verGt(latestV, u.app_version)).length;
-    body = (withV.length ? `<div class="sect">Sürüm ${esc(latestV)}: ${upd} güncel · ${withV.length - upd} eski</div>` : "") + `<div class="list">${active.map(u => person(u, u => u.role === "admin" ? "" : `<button class="btn small ghost" data-act="approve" data-id="${u.id}">+${settings.sure_gun || 30} Gün</button><button class="btn small ghost" data-act="forever" data-id="${u.id}">Süresiz Yap</button><button class="btn small ghost" data-act="ai" data-val="${u.ai_unlimited ? "0" : "1"}" data-id="${u.id}">${u.ai_unlimited ? "Asistanı Sınırla" : "Asistan Sınırsız"}</button><button class="btn small danger" data-act="cancel" data-id="${u.id}">Aboneliği Kapat</button>`)).join("")}</div>`
-      + (other.length ? `<div class="sect">Süresi Dolan / Reddedilen</div><div class="list">${other.map(u => person(u, u => `<button class="btn small ghost" data-act="approve" data-id="${u.id}">Aç (${settings.sure_gun || 30} Gün)</button>`)).join("")}</div>` : "");
+    body = (withV.length ? `<div class="sect">Sürüm ${esc(latestV)}: ${upd} güncel · ${withV.length - upd} eski</div>` : "") + `<div class="list">${active.map(u => person(u, u => u.role === "admin" ? "" : `<button class="btn small ghost" data-act="approve" data-id="${u.id}">+${settings.sure_gun || 30} Gün</button><button class="btn small ghost" data-act="year" data-id="${u.id}">+1 Yıl</button><button class="btn small ghost" data-act="forever" data-id="${u.id}">Süresiz Yap</button><button class="btn small ghost" data-act="ai" data-val="${u.ai_unlimited ? "0" : "1"}" data-id="${u.id}">${u.ai_unlimited ? "Asistanı Sınırla" : "Asistan Sınırsız"}</button><button class="btn small danger" data-act="cancel" data-id="${u.id}">Aboneliği Kapat</button>`)).join("")}</div>`
+      + (other.length ? `<div class="sect">Süresi Dolan / Reddedilen</div><div class="list">${other.map(u => person(u, u => `<button class="btn small ghost" data-act="approve" data-id="${u.id}">Aç (${settings.sure_gun || 30} Gün)</button><button class="btn small ghost" data-act="year" data-id="${u.id}">Aç (1 Yıl)</button>`)).join("")}</div>` : "");
   }else if(adminSeg === "feedback"){
     const { data: fb } = await sb.from("feedback").select("*").order("id", { ascending: false }).limit(100);
     const nm = id => { const u = users.find(x => x.id === id); return u ? (u.full_name || u.username) : "?"; };
@@ -2769,7 +2769,8 @@ async function renderAdmin(){
       <label class="field"><span>Veri Sorumlusu / Satıcı (Ad Soyad veya Şirket Unvanı)</span><input name="veri_sorumlusu" value="${esc(settings.veri_sorumlusu || "")}"></label>
       <label class="field"><span>Veri Sorumlusu Adresi</span><input name="vs_adres" value="${esc(settings.vs_adres || "")}"></label>
       <label class="field"><span>KVKK / Şikâyet E-postası</span><input name="vs_eposta" type="email" value="${esc(settings.vs_eposta || "")}"></label>
-      <div class="row"><label class="field" style="flex:1"><span>Fiyat (TL)</span><input name="fiyat" inputmode="numeric" value="${esc(settings.fiyat || "149")}"></label>
+      <div class="row"><label class="field" style="flex:1"><span>Fiyat (TL)</span><input name="fiyat" inputmode="numeric" value="${esc(settings.fiyat || "179")}"></label>
+      <label class="field" style="flex:1"><span>Yıllık Fiyat (TL)</span><input name="fiyat_yil" inputmode="numeric" value="${esc(settings.fiyat_yil || "1790")}"></label>
       <label class="field" style="flex:1"><span>Süre (Gün)</span><input name="sure_gun" inputmode="numeric" value="${esc(settings.sure_gun || "30")}"></label></div>
       <label class="field"><span>Aylık Asistan Sorusu</span><input name="ai_kota" inputmode="numeric" value="${esc(settings.ai_kota || "30")}"></label>
       <button class="btn" type="submit">Kaydet</button></form>
@@ -2795,6 +2796,7 @@ async function renderAdmin(){
     b.disabled = true; const id = b.dataset.id, act = b.dataset.act; let r;
     if(act === "approve") r = await sb.rpc("admin_approve", { uid: id, days: null });
     if(act === "forever") r = await sb.rpc("admin_approve", { uid: id, days: 0 });
+    if(act === "year") r = await sb.rpc("admin_approve", { uid: id, days: 365 });
     if(act === "cok" || act === "cno") r = await sb.rpc("decide_credit", { oid: +id, ok: act === "cok" });
     if(act === "ai") r = await sb.rpc("set_ai_unlimited", { uid: id, val: b.dataset.val === "1" });
     if(act === "reject") r = await sb.rpc("admin_set_status", { uid: id, new_status: "rejected" });
@@ -2817,7 +2819,7 @@ async function renderAdmin(){
   const sf = $("setForm");
   if(sf) sf.onsubmit = async e => {
     e.preventDefault(); const f = new FormData(sf);
-    for(const k of ["iban", "alici", "fiyat", "sure_gun", "ai_kota", "veri_sorumlusu", "vs_adres", "vs_eposta"]) await sb.from("settings").update({ value: String(f.get(k)).trim() }).eq("key", k);
+    for(const k of ["iban", "alici", "fiyat", "fiyat_yil", "sure_gun", "ai_kota", "veri_sorumlusu", "vs_adres", "vs_eposta"]) await sb.from("settings").update({ value: String(f.get(k)).trim() }).eq("key", k);
     toast("Ayarlar kaydedildi");
   };
 }
