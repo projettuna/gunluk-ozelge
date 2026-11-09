@@ -2,6 +2,8 @@
 // Aktarıcı, yalnızca VAPID özel anahtarını bilen çağıranın (veritabanı tetikleyicisi) bildirimlerini gönderir;
 // Apple/Google bu anahtarla imzalanmamış bildirimleri reddeder, bu yüzden ayrıca gizli anahtar gerekmez.
 
+import MADDELER from "./maddeler.json";  // tools/madde_cek.py ile mevzuat.gov.tr'den alınan güncel madde metinleri
+
 const enc = new TextEncoder();
 const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const unb64u = s => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((s.length + 3) % 4)), c => c.charCodeAt(0));
@@ -256,6 +258,24 @@ const TASLAK_ARA = {
   gayrimenkul: { p: ["de_er art___ kazanc_", "gayrimenkul sat__", "ta__nmaz sat__"] },
   stopaj: { p: ["tevkifat", "stopaj"] },
 };
+// Konuya göre yapay zekâya verilecek güncel kanun maddeleri
+const TASLAK_MADDE_ORTAK = ["VUK 3", "VUK 29", "VUK 30", "VUK 114", "VUK 134", "VUK 341", "VUK 344", "VUK 376", "VUK Ek 1"];
+const TASLAK_MADDE = {
+  sahte_kullanma: ["KDVK 29", "KDVK 34", "VUK 227", "VUK 230", "VUK 359", "VUK 367", "VUK 339", "VUK 336", "VUK 370"],
+  sahte_duzenleme: ["VUK 227", "VUK 229", "VUK 230", "VUK 359", "VUK 367", "VUK 339", "KDVK 8"],
+  yaniltici: ["KDVK 29", "KDVK 34", "VUK 230", "VUK 359", "VUK 367", "VUK 339"],
+  kdv_iade: ["KDVK 29", "KDVK 30", "KDVK 32", "KDVK 34", "KDVK 9", "VUK 359"],
+  ortulu_sermaye: ["KVK 12", "KVK 11"],
+  transfer: ["KVK 13", "KVK 11"],
+  hasilat: ["VUK 227", "VUK 359", "VUK 370", "VUK 371"],
+  ibraz: ["VUK 139", "VUK 140", "VUK 141", "VUK 359"],
+  ortaklar_cari: ["KVK 13", "KVK 11", "KVK 12"],
+  kkeg: ["KVK 11", "GVK 41", "GVK 40"],
+  degerleme: ["VUK 258"],
+  gayrimenkul: ["GVK Mükerrer 80", "GVK Mükerrer 81"],
+  stopaj: ["GVK 94", "VUK 11"],
+  diger: [],
+};
 const ilike2re = p => new RegExp(p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/_/g, "."), "giu");
 // Kimlik/mahremiyet bilgisi yakalayıcı (uygulamadaki ile aynı kurallar)
 function piiFound(t) {
@@ -317,6 +337,8 @@ async function taslak(req, env) {
   const sources = picked.map((x, i) => ({ n: i + 1, id: x.id || null, url: x.id ? null : x.url, tur: x.tur, title: x.title, meta: x.meta }));
   const exWs = res.length ? ara.p.map(p => p.split("_")[0].toLocaleLowerCase("tr")).filter(w => w.length > 3) : ws;
   const ctx = picked.map((x, i) => `[${i + 1}] ${x.tur} · ${x.title}${x.meta ? " · " + x.meta : ""}\n${excerpt(x.metin || x.ozet || "", exWs, 2500)}`).join("\n\n---\n\n");
+  const mKeys = [...new Set([...(TASLAK_MADDE[konuKey] || []), ...TASLAK_MADDE_ORTAK, ...(tur === "suc" ? ["VUK 359", "VUK 367"] : [])])].filter(k => MADDELER[k]);
+  const mText = mKeys.map(k => `${k}${MADDELER[k].baslik ? " (" + MADDELER[k].baslik + ")" : ""}:\n${MADDELER[k].metin}`).join("\n\n---\n\n");
   const system = `Sen Türkiye vergi mevzuatında uzman, vergi müfettişlerine rapor yazımında yardımcı olan bir asistansın. Görevin, verilen konu için kullanılabilir bir RAPOR TASLAĞI İSKELETİ hazırlamaktır.
 Kurallar:
 - Gerçek bir mükellef hakkında hiçbir bilgi bilmiyorsun ve uydurmayacaksın. Mükellefe, döneme, tutara, tarihe, belgeye ilişkin her somut bilgi yerine KÖŞELİ PARANTEZ içinde BÜYÜK HARFLE yer tutucu kullan: [MÜKELLEF], [VKN], [DÖNEM], [TUTAR], [FATURA SAYISI], [TESPİT TARİHİ], [TUTANAK TARİHİ] gibi.
@@ -327,6 +349,7 @@ Kurallar:
 - Kaynakların ilgili olup olmadığı hakkında yorum veya ön not yazma; konuyla ilgisiz bir kaynak varsa hiç anma. Doğrudan rapor başlığıyla başla.
 - Vergi İnceleme Raporu ve VTR'de vergi suçu değerlendirmesini ayrı bölüm olarak yazma; yalnızca sonuç bölümünde "VUK 359 kapsamındaki fiiller için ayrıca Vergi Suçu Raporu düzenlenmiştir/düzenlenecektir (VUK 367)" cümlesine yer ver.
 - Taslak eksiksiz bitmeli: toplam uzunluğu yaklaşık 9.000 karakteri geçmesin, tabloları 1-2 örnek satırla sınırla, tekrar yapma. Kontrol listesini mutlaka tamamla.
+- Sana "Güncel kanun metinleri" başlığı altında mevzuat.gov.tr'deki güncel madde metinleri verilecek. Bu maddelerin içeriğini, fıkra ve bentlerini, oranlarını ve istisnalarını yalnızca bu metinlere dayanarak yaz; bu maddeler için "(teyit ediniz)" ekleme. Metni verilmeyen maddeler için hafızana dayanıyorsan "(teyit ediniz)" ekle.
 - Madde atıflarında aşağıdaki doğru eşleştirmelerle çelişme:
   VUK 3/B gerçek mahiyet ve ispat; VUK 30 re'sen takdir; VUK 114 tarh zamanaşımı; VUK 134-141 vergi incelemesi (135 yetkililer, 139 işyerinde inceleme, 140 inceleme esasları, 141 tutanak); VUK 227 ve 229-232 belge düzeni/fatura; VUK 336 cezaların içtimaı; VUK 339 tekerrür; VUK 341 vergi ziyaı; VUK 344/1 bir kat, 344/2 VUK 359'daki fiillerle ziyada üç kat vergi ziyaı cezası; VUK 359/a-1 defter ve kayıt hileleri, 359/a-2 muhteviyatı itibarıyla yanıltıcı belge düzenleme veya kullanma, 359/b sahte belge düzenleme veya kullanma; VUK 367 suç duyurusu; VUK 370 izaha davet; VUK 371 pişmanlık ve ıslah; VUK 376 ceza indirimi; VUK Ek 1 vd. uzlaşma; İYUK 7 dava açma süresi. KDVK 29/1 indirim, 34/1 indirimin belgeye dayanması, 32 iade. KVK 11 kanunen kabul edilmeyen giderler, KVK 12 örtülü sermaye, KVK 13 transfer fiyatlandırması yoluyla örtülü kazanç dağıtımı. GVK 41 kabul edilmeyen giderler, GVK 94 tevkifat, GVK mükerrer 80-81 değer artışı kazançları. VUK 258 vd. değerleme.
 - Uygulama gerçekliği: beyanname verilmiş dönemde inceleme sonucu bulunan fark için tarh türü kural olarak ikmalen tarhtır (VUK 29); re'sen tarhı (VUK 30) yalnızca defter ve belgelerin ibraz edilmemesi gibi takdir hâllerinde öner. Sahte veya yanıltıcı belge konularında "Düzenleyici hakkındaki tespitlerin kullanıcı nezdinde somutlaştırılması" başlıklı ayrı bir alt bölüm yaz: Danıştay'ın yerleşik içtihadına göre düzenleyici hakkındaki vergi tekniği raporu tek başına yeterli değildir; kullanıcı nezdinde karşıt inceleme, mal hareketi, stok ve üretim kayıtları, sevk ve taşıma belgeleri, ödemenin akıbeti gibi somut tespitler gerekir. Sahte belge kullanımında özel usulsüzlük cezasını (VUK 353) ayrı başlık yapma. Kaynakta geçse bile konuya özgü olmayan af, yapılandırma veya matrah artırımı kanunlarına değinme.
@@ -336,7 +359,7 @@ Kurallar:
     ["sahte_kullanma", "sahte_duzenleme", "yaniltici"].includes(konuKey) ? "\"Düzenleyici hakkındaki tespitlerin kullanıcı nezdinde somutlaştırılması\" başlıklı alt bölüm yaz ve içinde düzenleyici hakkındaki raporun tek başına yeterli olmadığını belirten Danıştay ilkesini açıkla." : "",
     ["sahte_kullanma", "sahte_duzenleme", "yaniltici"].includes(konuKey) ? "Özel usulsüzlük cezasına (VUK 353) yer verme." : "",
   ].filter(Boolean);
-  const user = `Rapor türü: ${TASLAK_TURLER[tur]}\nKonu: ${konu}${donem ? `\nİncelenen dönem: ${donem}` : ""}${aciklama ? `\nGenel açıklama (mükellef bilgisi içermez): ${aciklama}` : ""}${zorunlu.length ? "\nZorunlu kurallar:\n- " + zorunlu.join("\n- ") : ""}\n\n(Uygulamadaki ilgili kaynaklar:)\n${ctx || "(Eşleşen kaynak bulunamadı.)"}`;
+  const user = `Rapor türü: ${TASLAK_TURLER[tur]}\nKonu: ${konu}${donem ? `\nİncelenen dönem: ${donem}` : ""}${aciklama ? `\nGenel açıklama (mükellef bilgisi içermez): ${aciklama}` : ""}${zorunlu.length ? "\nZorunlu kurallar:\n- " + zorunlu.join("\n- ") : ""}${mText ? `\n\n(Güncel kanun metinleri, mevzuat.gov.tr:)\n${mText}` : ""}\n\n(Uygulamadaki ilgili kaynaklar:)\n${ctx || "(Eşleşen kaynak bulunamadı.)"}`;
   // En yüksek doğruluk: Opus 5.5, uyarlamalı düşünme, yüksek efor. Uzun sürebildiği için akış (stream) ile alınır.
   const body = { model: env.TASLAK_MODEL || "claude-opus-5-5", max_tokens: 32000, stream: true, output_config: { effort: env.TASLAK_EFFORT || "high" }, system, messages: [{ role: "user", content: user }] };
   const call = b => fetch("https://api.anthropic.com/v1/messages", { method: "POST", headers: { "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" }, body: JSON.stringify(b) });
@@ -358,7 +381,7 @@ Kurallar:
   // Atıf denetimi: taslaktaki her esas/karar numarası (2024/123 biçimi) verilen kaynaklarda geçmiyorsa işaretlenir
   let unverified = 0;
   if (draft) {
-    const known = ctx + " " + picked.map(x => `${x.title || ""} ${x.meta || ""}`).join(" ");
+    const known = ctx + " " + mText + " " + picked.map(x => `${x.title || ""} ${x.meta || ""}`).join(" ");
     draft = draft.replace(/\b((?:19|20)\d{2}\/\d{1,6}(?:-\d{1,6})?)\b(?![^\n]{0,40}teyit)/g, (m0, num) => known.includes(num) ? m0 : (unverified++, `${m0} [KAYNAKTA YOK, TEYİT EDİNİZ]`));
   }
   if (draft && d.stop_reason === "max_tokens") draft += "\n\n(Taslak uzunluk sınırında kesildi; kalan kısmı için konuyu daraltıp \"Tek Bölüm\" seçeneğiyle tekrar deneyebilirsiniz.)";
@@ -366,7 +389,7 @@ Kurallar:
   let n = 0;
   for (let i = 0; i < TASLAK_COST; i++) { const u = await fetch(SB_URL + "/rest/v1/rpc/use_ai_quota", { method: "POST", headers: J, body: "{}" }).catch(() => null); if (u?.ok && (await u.json()) === true) n++; }
   if (quota && quota.limit != null) { const free = Math.max(0, quota.limit - quota.used), f = Math.min(free, n); quota.used += f; quota.credits = Math.max(0, (quota.credits || 0) - (n - f)); }
-  return Response.json({ draft, sources, quota, cost: n, unverified, model: d.model, stop: d.stop_reason, usage: d.usage && { in: d.usage.input_tokens, out: d.usage.output_tokens } });
+  return Response.json({ draft, sources, quota, cost: n, unverified, maddeler: mKeys.length, model: d.model, stop: d.stop_reason, usage: d.usage && { in: d.usage.input_tokens, out: d.usage.output_tokens } });
 }
 
 // ---- Döviz (TCMB) ve altın: tarayıcı bu kaynaklara doğrudan erişemediği için worker üzerinden, önbellekli
