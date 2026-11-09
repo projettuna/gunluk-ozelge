@@ -2370,9 +2370,18 @@ async function renderAdmin(){
   const seg = (k, l, n) => `<button data-seg="${k}" class="${adminSeg === k ? "on" : ""}">${l}${n ? ` (${n})` : ""}</button>`;
   const person = (u, actions) => `<div class="li" style="display:block"><div class="row"><div class="grow"><b>${esc(u.full_name || u.username)}</b>
       <small>${u.unvan ? esc(u.unvan) + " · " : ""}@${esc(u.username)}${u.email ? " · " + esc(u.email) : ""}${u.phone ? " · " + esc(u.phone) : ""} · Kod: ${esc(u.pay_code || "")}</small>
-      <small>Talep: ${fmtDate(u.created_at)}${u.expires_at ? " · Bitiş: " + fmtDate(u.expires_at) : u.status === "active" ? " · Süresiz" : ""}</small></div>
+      <small>Talep: ${fmtDate(u.created_at)}${u.expires_at ? " · Bitiş: " + fmtDate(u.expires_at) : u.status === "active" ? " · Süresiz" : ""}</small>
+      ${u.status === "active" || u.role === "admin" ? verLine(u) : ""}</div>
       ${statusPill(u)}</div><div class="acts2">${actions(u)}${u.role === "admin" ? "" : `<button class="btn small ghost" data-act="pw" data-id="${u.id}">Şifre Belirle</button><button class="btn small ghost" data-act="del" data-id="${u.id}">Sil</button><button class="btn small danger" data-act="ban" data-id="${u.id}">Engelle</button>`}</div></div>`;
   let body = "";
+  const latestV = releases[0]?.surum || APP_VERSION;
+  function verLine(u){
+    if(!("app_version" in u)) return "";
+    const old = !u.app_version || verGt(latestV, u.app_version);
+    const how = u.app_mode === "uygulama" ? "ana ekrandan" : u.app_mode === "tarayici" ? "tarayıcıdan" : "";
+    const rem = old ? (u.version_reminded === latestV ? " · Hatırlatma gönderildi" : " · Hatırlatma 13:00'te gidecek") : "";
+    return `<small style="color:${old ? "var(--warn,#d97706)" : "var(--ok,#16a34a)"}">${u.app_version ? `Sürüm ${esc(u.app_version)}${how ? " · " + how : ""}${u.app_seen_at ? " · " + fmtDate(u.app_seen_at) : ""}` : "Sürüm bilinmiyor (yeni sürümle henüz açmadı)"}${old ? " · eski" : " · güncel"}${rem}</small>`;
+  }
   if(adminSeg === "pending"){
     body = pending.length ? `<div class="list">${pending.map(u => person(u, u => `<button class="btn small ok" data-act="approve" data-id="${u.id}">Onayla (${settings.sure_gun || 30} Gün)</button><button class="btn small danger" data-act="reject" data-id="${u.id}">Reddet</button>`)).join("")}</div>`
       : (co.length ? "" : `<div class="empty">Bekleyen talep yok.</div>`);
@@ -2381,7 +2390,8 @@ async function renderAdmin(){
       return `<div class="li" style="display:block"><div class="grow"><b>${esc(u.full_name || u.username || "?")} · ${esc(o.code)} · ${o.fiyat} TL</b><small>Açıklama: ${esc(acik)} · ${fmtDate(o.created_at)}</small></div>
       <div class="acts2"><button class="btn small ok" data-act="cok" data-id="${o.id}">Onayla</button><button class="btn small danger" data-act="cno" data-id="${o.id}">Reddet</button></div></div>`; }).join("")}</div>`;
   }else if(adminSeg === "active"){
-    body = `<div class="list">${active.map(u => person(u, u => u.role === "admin" ? "" : `<button class="btn small ghost" data-act="approve" data-id="${u.id}">+${settings.sure_gun || 30} Gün</button><button class="btn small ghost" data-act="forever" data-id="${u.id}">Süresiz Yap</button><button class="btn small ghost" data-act="ai" data-val="${u.ai_unlimited ? "0" : "1"}" data-id="${u.id}">${u.ai_unlimited ? "Asistanı Sınırla" : "Asistan Sınırsız"}</button><button class="btn small danger" data-act="cancel" data-id="${u.id}">Aboneliği Kapat</button>`)).join("")}</div>`
+    const withV = active.filter(u => "app_version" in u), upd = withV.filter(u => u.app_version && !verGt(latestV, u.app_version)).length;
+    body = (withV.length ? `<div class="sect">Sürüm ${esc(latestV)}: ${upd} güncel · ${withV.length - upd} eski</div>` : "") + `<div class="list">${active.map(u => person(u, u => u.role === "admin" ? "" : `<button class="btn small ghost" data-act="approve" data-id="${u.id}">+${settings.sure_gun || 30} Gün</button><button class="btn small ghost" data-act="forever" data-id="${u.id}">Süresiz Yap</button><button class="btn small ghost" data-act="ai" data-val="${u.ai_unlimited ? "0" : "1"}" data-id="${u.id}">${u.ai_unlimited ? "Asistanı Sınırla" : "Asistan Sınırsız"}</button><button class="btn small danger" data-act="cancel" data-id="${u.id}">Aboneliği Kapat</button>`)).join("")}</div>`
       + (other.length ? `<div class="sect">Süresi Dolan / Reddedilen</div><div class="list">${other.map(u => person(u, u => `<button class="btn small ghost" data-act="approve" data-id="${u.id}">Aç (${settings.sure_gun || 30} Gün)</button>`)).join("")}</div>` : "");
   }else if(adminSeg === "feedback"){
     const { data: fb } = await sb.from("feedback").select("*").order("id", { ascending: false }).limit(100);
