@@ -1858,6 +1858,10 @@ function openMute(){
 }
 function afterMute(){ if(tab === "inbox") renderInbox(); if(tab === "account") renderAccount(); $("bell")?.classList.toggle("muted", activeMutes().some(([k]) => k === "hepsi")); }
 
+async function clearSystemNtfs(){
+  try{ const reg = await navigator.serviceWorker?.getRegistration(); (await reg?.getNotifications() || []).forEach(n => n.close()); }catch{}
+  try{ await navigator.clearAppBadge?.(); }catch{}
+}
 async function renderInbox(){
   const list = await inboxAll(); if(tab !== "inbox") return;
   $("sub").textContent = list.length ? `${list.length} bildirim` : "";
@@ -1867,10 +1871,14 @@ async function renderInbox(){
       <span class="grow" style="flex:1;min-width:0"><span class="nt"><b>${esc(n.title)}</b><span>${agoText(n.at)}</span></span><p>${esc(n.body || "")}</p></span></button>`; }).join("")}</div>
       <button class="btn plain" id="inboxClear" style="margin-top:12px;color:var(--danger)">Tümünü Temizle</button>`
     : `<div class="empty"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>Henüz bildirim yok. Gelen bildirimler burada toplanır.</div>`);
+  // Bildirimler sayfası açılınca hepsi okunmuş sayılır; telefonun bildirim merkezindeki TMPRO bildirimleri ve simge rozeti de temizlenir
   if(list.some(n => !n.read)){ await inboxWrite(st => list.forEach(n => { if(!n.read) st.put({ ...n, read: true }); })); refreshBell(); }
+  clearSystemNtfs();
   $("muteOpen").onclick = openMute;
   const clr = $("inboxClear"); if(clr) clr.onclick = async () => { if(!confirm("Tüm bildirimler silinsin mi?")) return; await inboxWrite(st => st.clear()); refreshBell(); renderInbox(); };
-  $("inbox").querySelectorAll(".ntf").forEach(b => b.onclick = () => { const n = list.find(x => String(x.at) === b.dataset.at); if(n) openNtf(n); });
+  $("inbox").querySelectorAll(".ntf").forEach(b => b.onclick = async () => { const n = list.find(x => String(x.at) === b.dataset.at); if(!n) return;
+    openNtf(n);
+    if(!n.read){ n.read = true; b.classList.remove("new"); await inboxWrite(st => st.put({ ...n, read: true })); refreshBell(); } });
 }
 function ntfTarget(n){
   let u; try{ u = new URL(n.url || "./", location.href); }catch{ return null; }
