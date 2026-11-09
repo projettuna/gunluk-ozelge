@@ -62,7 +62,7 @@ try:
         raise SystemExit
     st, r = call("POST", SITE + "/api/emsal", {"konu": "sahte_kullanma", "aciklama": "ABC Gıda A.Ş."}, A)
     print("kimlik bilgisiyle:", st, "(beklenen 422)")
-    for konu_ in (os.environ.get("TK") or "sahte_kullanma,kdv_iade,ortulu_sermaye").split(","):
+    for konu_ in (os.environ.get("TK") or "sahte_kullanma,kdv_iade,ortulu_sermaye,stopaj,kkeg").split(","):
         t0 = time.time()
         st, r = call("POST", SITE + "/api/emsal", {"konu": konu_, "aciklama": ""}, A, timeout=180)
         r = r if isinstance(r, dict) else {"error": str(r)[:120]}
