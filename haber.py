@@ -34,6 +34,7 @@ JUNK = re.compile(r"abone ol|tıklay|haberin devamı|©|tüm hakları|çerez|coo
 
 def clean(t):
     t = html.unescape(re.sub(r"<!\[CDATA\[|\]\]>", "", t or ""))
+    t = re.sub(r"\[(?:Fotoğraf|Fotograf|Foto|Video)[^\]]*\]", " ", t, flags=re.I)
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", t)).strip()
 
 

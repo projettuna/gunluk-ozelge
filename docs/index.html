@@ -760,6 +760,7 @@ const TYPES = {"Özelge":"--t-ozelge","Tebliğ":"--t-teblig","Sirküler":"--t-si
   "İç Genelge":"--t-ic","Resmî Gazete":"--t-rg","Yargıtay (Ceza)":"--t-yargitay","Danıştay (VUK 359)":"--t-danistay","Anayasa Mahkemesi":"--t-aym"};
 const ORDER = Object.keys(TYPES);
 const IC = {
+  "Haber": '<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/>',
   "Tümü":'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',
   "Özelge":'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
   "Tebliğ":'<path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>',
@@ -1538,7 +1539,7 @@ async function renderNews(force){
     const dl = n.published ? dayLabel(n.published) : "";
     if(dl !== last){ html += `<div class="day">${esc(dl)}</div>`; last = dl; }
     const t = n.published ? new Date(n.published).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" }) : "";
-    html += `<a class="ncard ${seen.has(n.id) ? "seen" : ""}" href="${esc(n.url)}" target="_blank" rel="noopener" data-id="${n.id}">
+    html += `<a class="ncard ${seen.has(n.id) ? "seen" : ""}" href="#" data-id="${n.id}">
       <div class="nt"><span class="nsrc">${esc(n.source || "Haber")}</span><span class="nk">${esc(n.konu || "")}</span><span class="when">${esc(t)}</span></div>
       <div class="nh">${esc(n.title)}</div></a>`;
   }
@@ -1546,7 +1547,7 @@ async function renderNews(force){
 }
 $("news").addEventListener("click", e => {
   const c = e.target.closest(".chip"); if(c){ newsFil = c.dataset.k; renderNews(); return; }
-  const a = e.target.closest(".ncard"); if(a){ const s = new Set(store.get("newsSeen", [])); s.add(+a.dataset.id); store.set("newsSeen", [...s].slice(-800)); setTimeout(() => a.classList.add("seen"), 300); }
+  const a = e.target.closest(".ncard"); if(a){ e.preventDefault(); const s = new Set(store.get("newsSeen", [])); s.add(+a.dataset.id); store.set("newsSeen", [...s].slice(-800)); setTimeout(() => a.classList.add("seen"), 300); openNews(+a.dataset.id); }
 });
 
 /* ---------------- argo denetimi (veritabanında da aynı kural var) ---------------- */
@@ -1578,7 +1579,24 @@ async function openReader(id){
     : `${i.ozet ? `<div class="rtext"><p>${esc(i.ozet)}</p></div>` : ""}<div class="rwait">${metin === "" ? "Bu kaynağın tam metni otomatik alınamıyor. Aşağıdaki bağlantıdan resmî metne ulaşabilirsiniz." : "Tam metin hazırlanıyor. Birkaç dakika içinde burada olacak."}</div>`;
   $("rBody").innerHTML = head + note + body + ref;
 }
-function closeReader(fromPop){ const R = $("reader"); if(R.hidden) return; R.classList.remove("on"); document.body.classList.remove("noscroll"); setTimeout(() => { R.hidden = true; }, 220); rItem = null; if(!fromPop && history.state?.reader){ skipPop++; history.back(); } render(); }
+async function openNews(id){
+  track("haber_oku");
+  const n = (news || []).find(x => x.id === id); if(!n) return; rItem = n;
+  const host = (() => { try{ return new URL(n.url).hostname.replace(/^www\./, ""); }catch{ return ""; } })();
+  $("rType").innerHTML = `<span class="cic">${icon("Haber", 13)}</span>Haber · ${esc(n.konu || "")}`;
+  const when = n.published ? new Date(n.published).toLocaleString("tr-TR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" }) : "";
+  const head = `<h1 class="rtitle">${esc(n.title)}</h1><div class="rmeta">${n.source ? `<span>${esc(n.source)}</span>` : ""}${when ? `<span>${esc(when)}</span>` : ""}</div>`;
+  const ref = `<div class="rref"><div class="rrl">Haberin tamamı</div><a href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.source || host)} sitesinde oku ${ICON_OPEN}</a><div class="rrn">Bu sayfada haberin kısa bir bölümü kaynak gösterilerek alıntılanmıştır; haberin tamamı ve tüm hakları yayımlayan kuruluşa aittir.</div></div>`;
+  $("rBody").innerHTML = head + `<div class="rload"><i></i><i></i><i></i></div>` + ref;
+  const R = $("reader"); R.hidden = false; R.scrollTop = 0; requestAnimationFrame(() => R.classList.add("on")); document.body.classList.add("noscroll");
+  if(history.state?.reader !== true) history.pushState({ reader: true }, "");
+  let oz = n.ozet;
+  if(oz === undefined){ try{ const { data, error } = await sb.from("news").select("ozet").eq("id", id).single(); oz = error ? null : data.ozet; n.ozet = oz; }catch{ oz = null; } }
+  if(rItem !== n) return;
+  const body = oz ? `<div class="rtext">${oz.split(/\n{2,}/).map(p => `<p>${esc(p)}</p>`).join("")}</div>` : `<div class="rwait">Bu haberin özeti henüz hazır değil. Haberin tamamını aşağıdaki bağlantıdan okuyabilirsiniz.</div>`;
+  $("rBody").innerHTML = head + body + ref;
+}
+function closeReader(fromPop){ const R = $("reader"); if(R.hidden) return; R.classList.remove("on"); document.body.classList.remove("noscroll"); setTimeout(() => { R.hidden = true; }, 220); rItem = null; if(!fromPop && history.state?.reader){ skipPop++; history.back(); } if(tab !== "news") render(); }
 const ICON_SPARK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"/></svg>';
 $("rClose").addEventListener("click", () => closeReader());
 $("rShare").addEventListener("click", async () => { if(!rItem) return; const d = { title: rItem.title, text: rItem.title + "\n" + rItem.url }; try{ if(navigator.share) await navigator.share(d); else { await navigator.clipboard.writeText(d.text); toast("Bağlantı kopyalandı"); } }catch{} });
