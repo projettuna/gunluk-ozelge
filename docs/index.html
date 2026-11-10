@@ -2816,7 +2816,10 @@ const lastSeen = iso => { const d = new Date(iso), m = Math.round((Date.now() - 
 async function renderAdmin(){
   const tok = ++adminTok, segSl = $("adminSeg")?.scrollLeft || 0;  // geç biten eski yükleme yeni sekmenin üstüne yazmasın; sekme şeridi kaymasın
   $("sub").textContent = "";
-  const [{ data: users }, { data: corders }] = await Promise.all([sb.from("profiles").select("*").order("created_at", { ascending: false }), sb.from("credit_orders").select("*").eq("status", "pending").order("id"), loadSettings()]);
+  const [{ data: users }, { data: corders }, pc] = await Promise.all([sb.from("profiles").select("*").order("created_at", { ascending: false }), sb.from("credit_orders").select("*").eq("status", "pending").order("id"), sb.rpc("admin_push_counts").then(r => r, () => ({ error: true })), loadSettings()]);
+  const pushN = pc && !pc.error && Array.isArray(pc.data) ? new Map(pc.data.map(r => [r.user_id, r.n])) : null;
+  const pushLine = u => { if(!pushN) return ""; const n = pushN.get(u.id) || 0, t = (u.notify_types || []).length;
+    return n ? `<small style="color:${t ? "var(--ok,#16a34a)" : "var(--warn,#d97706)"}">🔔 Bildirim açık · ${n} cihaz${t ? "" : " · bildirim türü seçilmemiş"}</small>` : `<small style="color:var(--warn,#d97706)">🔕 Bildirim kapalı (telefonunda izin vermemiş)</small>`; };
   const co = corders || [];
   const now = new Date();
   const pending = users.filter(u => u.status === "pending");
@@ -2826,6 +2829,7 @@ async function renderAdmin(){
   const person = (u, actions) => `<div class="li" style="display:block"><div class="row"><div class="grow"><b>${esc(u.full_name || u.username)}</b>
       <small>${u.unvan ? esc(u.unvan) + " · " : ""}@${esc(u.username)}${u.email ? " · " + esc(u.email) : ""}${u.phone ? " · " + esc(u.phone) : ""} · Kod: ${esc(u.pay_code || "")}</small>
       ${u.app_seen_at ? `<small>Son giriş: ${lastSeen(u.app_seen_at)}</small>` : ""}
+      ${u.status === "active" || u.role === "admin" ? pushLine(u) : ""}
       <small>Talep: ${fmtDate(u.created_at)}${u.expires_at ? " · Bitiş: " + fmtDate(u.expires_at) : u.status === "active" ? " · Süresiz" : ""}</small>
       ${u.referred_by ? `<small style="color:var(--gold)">🎁 Davet eden: ${esc((users.find(x => x.id === u.referred_by) || {}).full_name || "üye")}${u.referral_rewarded ? " · 30 gün hediye eklendi" : " · onaylayınca davet edene 30 gün eklenir"}</small>` : ""}
       ${u.status === "active" || u.role === "admin" ? verLine(u) : ""}</div>
