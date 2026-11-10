@@ -597,7 +597,7 @@ def notify_users():
                 if code in (404, 410):
                     db("DELETE", f"push_subs?id=eq.{s['id']}")
         db("PATCH", f"profiles?id=eq.{uid}", {"last_notified_at": utc_now.isoformat()})
-        print(f"Bildirim: {uid[:8]} -> {len(new)} kayıt")
+        print(f"Bildirim: bir üyeye {len(new)} kayıt")  # depo herkese açık: kimlik yazılmaz
 
 
 RELEASE_HOUR = 13  # yeni özellik duyuruları yalnızca bu saatte, günde en fazla bir kez
