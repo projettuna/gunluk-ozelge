@@ -143,7 +143,6 @@ jobs:
           if [ "${{ inputs.madde_cek }}" = "true" ]; then python tools/madde_cek.py; exit 0; fi
           if [ "${{ inputs.ictihat_test }}" = "kontrol" ]; then SUPABASE_PUBLISHABLE_KEY=x KONTROL=1 python tools/taslak_test.py; exit 0; fi
           if [ "${{ inputs.ictihat_test }}" = "arsiv_uye" ]; then SUPABASE_PUBLISHABLE_KEY=sb_publishable_tlfwqtscxxv2vdSHe3PstQ_XO1db8p9 YALNIZ_ARSIV=1 python tools/taslak_test.py; exit 0; fi
-          if [ "${{ inputs.ictihat_test }}" = "duyuru-vdk-1110" ]; then python tools/duyuru.py; exit 0; fi
           if [ "${{ inputs.ictihat_test }}" = "bildirim" ]; then python tools/bildirim_tani.py; exit 0; fi
           if [ "${{ inputs.ictihat_test }}" = "emsal" ]; then SUPABASE_PUBLISHABLE_KEY=sb_publishable_tlfwqtscxxv2vdSHe3PstQ_XO1db8p9 python tools/taslak_test.py; exit 0; fi
           if [ "${{ inputs.ictihat_test }}" = "true" ]; then SUPABASE_PUBLISHABLE_KEY=sb_publishable_tlfwqtscxxv2vdSHe3PstQ_XO1db8p9 ICTIHAT=1 python tools/taslak_test.py; exit 0; fi
