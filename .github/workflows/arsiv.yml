@@ -1,9 +1,11 @@
 name: Mevzuat arşivi (özelge, tebliğ, sirküler)
 on:
+  schedule:
+    - cron: "30 3 * * *"   # her gün 06:30 (TR): yeni GİB kayıtları + Danıştay kararları
   workflow_dispatch:
     inputs:
       mod:
-        description: "probe (yalnız dene) / 1 (tüm arşivi yükle)"
+        description: "probe (yalnız dene) / 1 (tüm arşivi yükle) / danistay / gunluk"
         type: string
         default: "probe"
 concurrency:
@@ -21,7 +23,7 @@ jobs:
       - run: pip install -q pypdf==5.1.0
       - name: Arşivi çek
         env:
-          ARSIV: ${{ inputs.mod }}
+          ARSIV: ${{ inputs.mod || 'gunluk' }}
           SUPABASE_URL: https://hnolhapzcisavhkwyzhs.supabase.co
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: python tools/arsiv_cek.py

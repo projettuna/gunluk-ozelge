@@ -75,7 +75,74 @@ def mevcut(tur):
         return 0
 
 
+# Danıştay vergi kararları: konu başına ifade (andKelimeler); canlı arama kesintilerinden etkilenmemek için arşive alınır
+DANISTAY_Q = {
+    "sahte_kullanma": [["sahte", "fatura", "kullanma"], ["sahte", "belge", "indirim"]], "sahte_duzenleme": [["sahte", "fatura", "düzenleme"]],
+    "yaniltici": [["yanıltıcı", "belge"]], "kdv_iade": [["katma", "değer", "vergisi", "iade"], ["kdv", "iade"]],
+    "ortulu_sermaye": [["örtülü", "sermaye"]], "transfer": [["transfer", "fiyatlandırması"]], "hasilat": [["hasılat", "gizleme"], ["kayıt", "dışı", "hasılat"]],
+    "ibraz": [["defter", "belge", "ibraz"]], "ortaklar_cari": [["ortaklar", "cari"]], "kkeg": [["kanunen", "kabul", "edilmeyen"]],
+    "degerleme": [["değerleme", "vergi", "usul"]], "gayrimenkul": [["değer", "artışı", "kazancı"], ["gayrimenkul", "satış", "kazanç"]], "stopaj": [["tevkifat", "sorumlusu"]],
+}
+DANISTAY_SAYFA = int(os.environ.get("DANISTAY_SAYFA") or 4)  # sayfa başı 10 karar
+
+
+def danistay(var_olan):
+    import zlib
+    yeni, hata, t0 = 0, 0, time.time()
+    for konu, qs in DANISTAY_Q.items():
+        for kw in qs:
+            for pg in range(1, DANISTAY_SAYFA + 1):
+                try:
+                    d = json.loads(ozelge.http(ozelge.DANISTAY + "/aramalist", {"data": {"andKelimeler": kw, "pageSize": 10, "pageNumber": pg}}, timeout=90))
+                    lst = (d.get("data") or {}).get("data") or []
+                except Exception:  # noqa: BLE001
+                    hata += 1
+                    break
+                rows = []
+                for k in lst:
+                    kid = str(k.get("id") or "")
+                    gid = int(kid) if kid.isdigit() and len(kid) < 18 else zlib.crc32(kid.encode())
+                    if not kid or gid in var_olan:
+                        continue
+                    url = f"{ozelge.DANISTAY}/getDokuman?id={kid}&arananKelime={ozelge.quote(','.join(kw))}"
+                    try:
+                        txt = metin.danistay_text(url)[:30000]
+                    except Exception:  # noqa: BLE001
+                        hata += 1
+                        continue
+                    if len(txt) < 300:
+                        continue
+                    var_olan.add(gid)
+                    rows.append({"tur": "Danıştay kararı", "gid": gid, "title": f"{k.get('daireKurul') or k.get('daire') or 'Danıştay'} E. {k.get('esasNo') or ''}, K. {k.get('kararNo') or ''}",
+                                 "meta": k.get("kararTarihi") or "", "url": url, "metin": txt})
+                if rows:
+                    write(rows)
+                    yeni += len(rows)
+                if len(lst) < 10:
+                    break
+    print(f"Danıştay: {yeni} yeni karar arşive alındı, {hata} hata, {time.time() - t0:.0f} sn")
+
+
+def gidler(tur):
+    out, off = set(), 0
+    while True:
+        r = ozelge.db("GET", f"mevzuat_arsiv?select=gid&tur=eq.{ozelge.quote(tur)}&order=gid&offset={off}&limit=1000") or []
+        out |= {x["gid"] for x in r}
+        if len(r) < 1000:
+            return out
+        off += 1000
+
+
 def main():
+    if MODE in ("danistay", "gunluk"):
+        if MODE == "gunluk":  # GİB'deki yeni özelge/tebliğ/sirküler (ilk sayfa)
+            for tur, path, kind in KINDS:
+                d = page(path, 0, 200)
+                if d:
+                    rows = [row(tur, kind, r) for r in d["content"] if not r.get("deleted")]
+                    print(f"{tur}: ilk {len(rows)} kayıt güncellendi, {write(rows)} yazılamadı")
+        danistay(gidler("Danıştay kararı"))
+        return
     if MODE == "probe":
         for tur, path, kind in KINDS:
             d = page(path, 0, 20)

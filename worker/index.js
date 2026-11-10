@@ -327,8 +327,8 @@ async function arsivAra(H, konuKey, ws) {
   if (!q) return [];
   const one = (turler, lim) => fetch(SB_URL + "/rest/v1/rpc/arsiv_ara", { method: "POST", headers: { ...H, "Content-Type": "application/json" }, body: JSON.stringify({ q, turler, lim }), signal: AbortSignal.timeout(9000) })
     .then(r => r.ok ? r.json() : []).catch(() => []);
-  const [a, b] = await Promise.all([one(["Özelge"], 30), one(["Tebliğ", "Sirküler"], 20)]);
-  return [...(a || []), ...(b || [])].map(x => ({ tur: x.tur, title: x.title, meta: x.meta, url: x.url, metin: x.metin, ars: 1 }));
+  const [a, b, c] = await Promise.all([one(["Özelge"], 30), one(["Tebliğ", "Sirküler"], 20), one(["Danıştay kararı"], 15)]);
+  return [...(a || []), ...(b || []), ...(c || [])].map(x => ({ tur: x.tur, title: x.title, meta: x.meta, url: x.url, metin: x.metin, ars: 1 }));
 }
 async function emsal(req, env) {
   const token = (req.headers.get("Authorization") || "").replace(/^Bearer /, "");
