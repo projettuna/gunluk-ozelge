@@ -1025,6 +1025,10 @@ async function checkVersion(){
   if(verGt(APP_VERSION, seen)){ openVersionSheet("new"); store.set("seenVersion", APP_VERSION); }
 }
 document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible" && me && isActive(me)) checkVersion(); });
+// Son giriş zamanı: uygulama arka plandan açıldığında da güncellenir (en fazla 10 dakikada bir)
+let seenAt = Date.now();
+document.addEventListener("visibilitychange", () => { if(document.visibilityState !== "visible" || !me || Date.now() - seenAt < 6e5) return; seenAt = Date.now();
+  sb.rpc("set_app_version", { v: APP_VERSION, m: standalone ? "uygulama" : "tarayici" }).then(() => {}, () => {}); });
 
 async function boot(){
   const sq = new URLSearchParams(location.search).get("sifre");
@@ -2804,7 +2808,13 @@ async function refreshAdminBadge(){
   const count = (c1 || 0) + (c2 || 0);
   $("adminBadge").hidden = !count; $("adminBadge").textContent = count;
 }
+let adminTok = 0;
+const lastSeen = iso => { const d = new Date(iso), m = Math.round((Date.now() - d) / 6e4), t = d.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
+  if(m < 15) return "şimdi"; if(m < 60) return m + " dk önce";
+  const g = Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(d).setHours(0, 0, 0, 0)) / 864e5);
+  return g === 0 ? "bugün " + t : g === 1 ? "dün " + t : g < 7 ? g + " gün önce" : d.toLocaleDateString("tr-TR", { day: "numeric", month: "long" }); };
 async function renderAdmin(){
+  const tok = ++adminTok, segSl = $("adminSeg")?.scrollLeft || 0;  // geç biten eski yükleme yeni sekmenin üstüne yazmasın; sekme şeridi kaymasın
   $("sub").textContent = "";
   const [{ data: users }, { data: corders }] = await Promise.all([sb.from("profiles").select("*").order("created_at", { ascending: false }), sb.from("credit_orders").select("*").eq("status", "pending").order("id"), loadSettings()]);
   const co = corders || [];
@@ -2815,6 +2825,7 @@ async function renderAdmin(){
   const seg = (k, l, n) => `<button data-seg="${k}" class="${adminSeg === k ? "on" : ""}">${l}${n ? ` (${n})` : ""}</button>`;
   const person = (u, actions) => `<div class="li" style="display:block"><div class="row"><div class="grow"><b>${esc(u.full_name || u.username)}</b>
       <small>${u.unvan ? esc(u.unvan) + " · " : ""}@${esc(u.username)}${u.email ? " · " + esc(u.email) : ""}${u.phone ? " · " + esc(u.phone) : ""} · Kod: ${esc(u.pay_code || "")}</small>
+      ${u.app_seen_at ? `<small>Son giriş: ${lastSeen(u.app_seen_at)}</small>` : ""}
       <small>Talep: ${fmtDate(u.created_at)}${u.expires_at ? " · Bitiş: " + fmtDate(u.expires_at) : u.status === "active" ? " · Süresiz" : ""}</small>
       ${u.referred_by ? `<small style="color:var(--gold)">🎁 Davet eden: ${esc((users.find(x => x.id === u.referred_by) || {}).full_name || "üye")}${u.referral_rewarded ? " · 30 gün hediye eklendi" : " · onaylayınca davet edene 30 gün eklenir"}</small>` : ""}
       ${u.status === "active" || u.role === "admin" ? verLine(u) : ""}</div>
@@ -2878,6 +2889,7 @@ async function renderAdmin(){
       <div class="sect">Engellenenler</div><div class="list" id="banList"><div class="empty">Yükleniyor…</div></div>
       <p class="small muted" style="margin:8px 4px">Engellenen IP, e-posta, telefon veya kullanıcı adıyla yeniden kayıt olunamaz.</p>`;
   }
+  if(tok !== adminTok) return;
   $("admin").innerHTML = `<div class="seg" id="adminSeg">${seg("pending", "Talepler", pending.length + co.length)}${seg("active", "Aboneler", active.length)}${seg("feedback", "Geri Bildirim")}${seg("stats", "İstatistik")}${seg("settings", "Ayarlar")}</div>${body}`;
   $("admin").querySelectorAll("[data-fb]").forEach(b => b.onclick = async () => {
     const a = b.dataset.fb, id = +b.dataset.id; let ans = null;
@@ -2891,7 +2903,10 @@ async function renderAdmin(){
     $("banList").innerHTML = (bans || []).length ? bans.map(x => `<div class="li"><div class="grow"><b>${esc(x.value)}</b><small>${lbl[x.kind] || x.kind} · ${fmtDate(x.created_at)}</small></div><button class="btn small ghost" data-unban="${x.id}">Kaldır</button></div>`).join("") : `<div class="empty">Engellenen kimse yok.</div>`;
     $("banList").querySelectorAll("[data-unban]").forEach(b => b.onclick = async () => { if(!confirm("Engel kaldırılsın mı?")) return; await sb.from("banned").delete().eq("id", +b.dataset.unban); renderAdmin(); });
   }
-  $("adminSeg").onclick = e => { const b = e.target.closest("button"); if(!b) return; adminSeg = b.dataset.seg; renderAdmin(); };
+  { const sg = $("adminSeg"); sg.scrollLeft = segSl; const on = sg.querySelector(".on");
+    if(on && (on.offsetLeft < sg.scrollLeft || on.offsetLeft + on.offsetWidth > sg.scrollLeft + sg.clientWidth)) sg.scrollLeft = on.offsetLeft - 12; }
+  $("adminSeg").onclick = e => { const b = e.target.closest("button"); if(!b || b.dataset.seg === adminSeg) return; adminSeg = b.dataset.seg;
+    $("adminSeg").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); renderAdmin(); };
   $("admin").querySelectorAll("[data-act]").forEach(b => b.onclick = async () => {
     b.disabled = true; const id = b.dataset.id, act = b.dataset.act; let r;
     if(act === "approve") r = await sb.rpc("admin_approve", { uid: id, days: null });
