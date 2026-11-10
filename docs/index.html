@@ -2809,6 +2809,19 @@ async function refreshAdminBadge(){
   $("adminBadge").hidden = !count; $("adminBadge").textContent = count;
 }
 let adminTok = 0;
+function riskHtml(ku){
+  if(!Array.isArray(ku) || !ku.length) return "";
+  const gun = u => u.last ? Math.floor((Date.now() - new Date(u.last)) / 864e5) : null;
+  const rows = ku.map(u => ({ ...u, g: gun(u) })).sort((a, b) => (b.g ?? 999) - (a.g ?? 999));
+  const renk = g => g === null || g > 7 ? "🔴" : g >= 3 ? "🟡" : "🟢";
+  const durum = g => g === null ? "Hiç giriş yok" : g === 0 ? "Bugün girdi" : g === 1 ? "Dün girdi" : g + " gündür girmedi";
+  const eksik = u => [!u.cihaz && "Bildirim", !u.takip && !u.madde && "Takip Listem", !u.not && "Notlar", !u.asistan && "Asistan", !u.emsal && "Emsal Bul", !(u.kinds || []).includes("okuyucu") && "Metin okuma"].filter(Boolean);
+  const kopan = rows.filter(u => u.g === null || u.g > 7).length;
+  return `<div class="sect">Kopma Riski${kopan ? ` · ${kopan} üye 7 günden fazladır yok` : ""}</div><div class="list">${rows.map(u => { const e = eksik(u);
+    return `<div class="li" style="display:block"><b>${renk(u.g)} ${esc(u.name)}</b><small>${durum(u.g)} · son 30 günde ${u.gun30} gün aktif</small>
+      ${e.length ? `<small>Hiç kullanmadığı: ${esc(e.join(", "))}</small>` : `<small>Tüm ana özellikleri kullanıyor</small>`}</div>`; }).join("")}</div>
+    <p class="small muted" style="margin:4px 4px 8px">🟢 son 2 gün · 🟡 3-7 gün · 🔴 7 günden fazla. Yalnızca sayılar okunur, not ve mesaj içerikleri görülmez.</p>`;
+}
 const lastSeen = iso => { const d = new Date(iso), m = Math.round((Date.now() - d) / 6e4), t = d.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
   if(m < 15) return "şimdi"; if(m < 60) return m + " dk önce";
   const g = Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(d).setHours(0, 0, 0, 0)) / 864e5);
@@ -2864,13 +2877,13 @@ async function renderAdmin(){
         <div class="acts2"><button class="btn small ghost" data-fb="reply" data-id="${f.id}">Yanıtla</button><button class="btn small ${f.status === "cozuldu" ? "ghost" : "ok"}" data-fb="${f.status === "cozuldu" ? "open" : "done"}" data-id="${f.id}">${f.status === "cozuldu" ? "Yeniden Aç" : "Çözüldü"}</button></div></div>`).join("")}</div>`
       : `<div class="empty">Henüz geri bildirim yok.</div>`;
   }else if(adminSeg === "stats"){
-    const { data: st, error: se } = await sb.rpc("usage_summary", { days: 30 });
+    const [{ data: st, error: se }, { data: ku }] = await Promise.all([sb.rpc("usage_summary", { days: 30 }), sb.rpc("admin_kullanim").then(r => r, () => ({}))]);
     if(se || !st) body = `<div class="empty">İstatistik okunamadı.</div>`;
     else {
       const KL = { acilis: "Açılış", akis: "Akış", okuyucu: "Metin okuma", haberler: "Haberler", sohbet: "Sohbet", mesaj: "Mesaj gönderme", araclar: "Araçlar", asistan: "Asistan", hesap: "Hesap", takvim: "Takvim", bildirimler: "Bildirimler", yildizli: "Yıldızlılar" };
       const days = st.daily || [], mx = Math.max(1, ...days.map(d => d.users)), last7 = days.slice(-7);
       const kinds = Object.entries(st.kinds || {}).filter(([k]) => k !== "acilis").sort((a, b) => b[1] - a[1]);
-      body = `<div class="sect">Günlük Aktif Üye (30 gün)</div><div class="list"><div class="li" style="display:block">
+      body = riskHtml(ku) + `<div class="sect">Günlük Aktif Üye (30 gün)</div><div class="list"><div class="li" style="display:block">
           <div style="display:flex;align-items:flex-end;gap:3px;height:80px">${days.map(d => `<div title="${esc(d.day)}: ${d.users}" style="flex:1;background:var(--accent);opacity:.85;border-radius:3px 3px 0 0;height:${Math.max(4, d.users / mx * 100)}%"></div>`).join("")}</div>
           <small>Son 7 günde ortalama ${last7.length ? (last7.reduce((a, d) => a + d.users, 0) / 7).toFixed(1) : 0} üye/gün · En yüksek ${mx}</small></div></div>
         <div class="sect">En Çok Kullanılan Bölümler</div><div class="list">${kinds.map(([k, n]) => `<div class="li"><div class="grow"><b>${esc(KL[k] || k)}</b></div><span class="pill">${n}</span></div>`).join("") || `<div class="empty">Henüz veri yok.</div>`}</div>
