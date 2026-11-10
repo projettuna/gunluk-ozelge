@@ -14,7 +14,7 @@
   "1231707000"
  ],
  "teblig_full_scan": "10.11.2026",
- "last_teblig_id": 11884,
+ "last_teblig_id": 11919,
  "last_kanun_id": 661,
  "last_sirkuler_id": 1150,
  "last_cbk_id": 436,
@@ -83,7 +83,7 @@
  "release_day": {
   "2.7": "2026-11-09"
  },
- "madde_last_id": 439,
+ "madde_last_id": 440,
  "madde_text_day": "2026-11-10",
  "event_remind_day": "2026-11-10"
 }
