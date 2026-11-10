@@ -88,14 +88,21 @@ DANISTAY_SAYFA = int(os.environ.get("DANISTAY_SAYFA") or 4)  # sayfa başı 10 k
 
 def danistay(var_olan):
     import zlib
-    yeni, hata, t0 = 0, 0, time.time()
+    yeni, hata, t0, hatalar = 0, 0, time.time(), {}
     for konu, qs in DANISTAY_Q.items():
         for kw in qs:
             for pg in range(1, DANISTAY_SAYFA + 1):
-                try:
-                    d = json.loads(ozelge.http(ozelge.DANISTAY + "/aramalist", {"data": {"andKelimeler": kw, "pageSize": 10, "pageNumber": pg}}, timeout=90))
-                    lst = (d.get("data") or {}).get("data") or []
-                except Exception:  # noqa: BLE001
+                lst = None
+                for dn in range(4):
+                    try:
+                        time.sleep(1.5 + 4 * dn)
+                        d = json.loads(ozelge.http(ozelge.DANISTAY + "/aramalist", {"data": {"andKelimeler": kw, "pageSize": 10, "pageNumber": pg}}, timeout=90))
+                        lst = (d.get("data") or {}).get("data") or []
+                        break
+                    except Exception as e:  # noqa: BLE001
+                        kod = f"liste:{type(e).__name__}:{getattr(e, 'code', '')}"
+                        hatalar[kod] = hatalar.get(kod, 0) + 1
+                if lst is None:
                     hata += 1
                     break
                 rows = []
@@ -105,9 +112,16 @@ def danistay(var_olan):
                     if not kid or gid in var_olan:
                         continue
                     url = f"{ozelge.DANISTAY}/getDokuman?id={kid}&arananKelime={ozelge.quote(','.join(kw))}"
-                    try:
-                        txt = metin.danistay_text(url)[:30000]
-                    except Exception:  # noqa: BLE001
+                    txt = ""
+                    for dn in range(3):
+                        try:
+                            time.sleep(0.8 + 3 * dn)
+                            txt = metin.danistay_text(url)[:30000]
+                            break
+                        except Exception as e:  # noqa: BLE001
+                            kod = f"metin:{type(e).__name__}:{getattr(e, 'code', '')}"
+                            hatalar[kod] = hatalar.get(kod, 0) + 1
+                    if not txt:
                         hata += 1
                         continue
                     if len(txt) < 300:
@@ -120,7 +134,7 @@ def danistay(var_olan):
                     yeni += len(rows)
                 if len(lst) < 10:
                     break
-    print(f"Danıştay: {yeni} yeni karar arşive alındı, {hata} hata, {time.time() - t0:.0f} sn")
+    print(f"Danıştay: {yeni} yeni karar arşive alındı, {hata} hata, {time.time() - t0:.0f} sn, hata türleri: {hatalar}")
 
 
 def gidler(tur):
