@@ -316,11 +316,11 @@ function piiFound(t) {
 const EMSAL_COST = 2;
 // GİB arşivinde (mevzuat_arsiv, ~18 bin özelge + tebliğ + sirküler) tam metin arama ifadeleri (to_tsquery, simple sözlük)
 const ARSIV_Q = {
-  sahte_kullanma: "sahte:* & (fatura:* | belge:*)", sahte_duzenleme: "sahte:* & (fatura:* | belge:*) & düzenle:*",
-  yaniltici: "yanıltıcı:* & belge:*", kdv_iade: "iade:* & (kdv:* | katma:*)", ortulu_sermaye: "örtülü:* & sermaye:*",
-  transfer: "transfer:* & fiyatlandırma:*", hasilat: "hasılat:* & (kayıt:* | gizle:*)", ibraz: "ibraz:* & defter:*",
-  ortaklar_cari: "ortak:* & cari:*", kkeg: "kanunen & kabul & edilmeyen", degerleme: "değerleme:*",
-  gayrimenkul: "(gayrimenkul:* | taşınmaz:*) & (satış:* | kazan:*)", stopaj: "tevkifat:* | stopaj:*",
+  sahte_kullanma: "sahte <-> (fatura:* | belge:*)", sahte_duzenleme: "sahte <-> (fatura:* | belge:*) & düzenle:*",
+  yaniltici: "yanıltıcı <-> (belge:* | fatura:*)", kdv_iade: "(kdv <-> iade:*) | (katma <-> değer <-> vergisi <-> iade:*)", ortulu_sermaye: "örtülü <-> sermaye:*",
+  transfer: "transfer <-> fiyatlandırma:*", hasilat: "(hasılat:* <-> gizle:*) | (kayıt <-> dışı <-> hasılat:*)", ibraz: "ibraz:* & (defter:* <-> ve <-> belge:*)",
+  ortaklar_cari: "ortaklar <-> cari", kkeg: "kanunen <-> kabul <-> edilmeyen", degerleme: "değerleme:* & (vuk | usul:*)",
+  gayrimenkul: "(gayrimenkul:* | taşınmaz:*) <-> (satış:* | sat:*)", stopaj: "(tevkifat:* | stopaj:*) & (vergi:* | gelir:*)",
 };
 async function arsivAra(H, konuKey, ws) {
   const q = ARSIV_Q[konuKey] || ws.filter(w => /^[a-zçğıöşü0-9]+$/.test(w)).slice(0, 3).map(w => w + ":*").join(" & ");
@@ -328,7 +328,7 @@ async function arsivAra(H, konuKey, ws) {
   const one = (turler, lim) => fetch(SB_URL + "/rest/v1/rpc/arsiv_ara", { method: "POST", headers: { ...H, "Content-Type": "application/json" }, body: JSON.stringify({ q, turler, lim }), signal: AbortSignal.timeout(9000) })
     .then(r => r.ok ? r.json() : []).catch(() => []);
   const [a, b] = await Promise.all([one(["Özelge"], 30), one(["Tebliğ", "Sirküler"], 20)]);
-  return [...(a || []), ...(b || [])].map(x => ({ tur: x.tur, title: x.title, meta: x.meta, url: x.url, metin: x.metin }));
+  return [...(a || []), ...(b || [])].map(x => ({ tur: x.tur, title: x.title, meta: x.meta, url: x.url, metin: x.metin, ars: 1 }));
 }
 async function emsal(req, env) {
   const token = (req.headers.get("Authorization") || "").replace(/^Bearer /, "");
@@ -368,7 +368,7 @@ async function emsal(req, env) {
     const tll = tl.toLocaleLowerCase("tr"), mll = ml.toLocaleLowerCase("tr");
     return ws.reduce((a, w) => a + 6 * (tll.split(w).length - 1) + Math.min(15, mll.split(w).length - 1), 0); };
   const MIN = res.length ? 9 : 20;
-  const local = rows.map(x => ({ x, sc: score(x) })).filter(o => o.sc >= (KARAR.test(o.x.tur || "") ? MIN : MIN - 3)).sort((a, b) => b.sc - a.sc).map(o => o.x);
+  const local = rows.map(x => ({ x, sc: score(x) })).filter(o => o.x.ars || o.sc >= (KARAR.test(o.x.tur || "") ? MIN : MIN - 3)).sort((a, b) => b.sc - a.sc).map(o => o.x);
   const seen = new Set(), key = x => (x.title || "").replace(/\s+/g, " ").toLocaleLowerCase("tr");
   const uniq = a => a.filter(x => { const k = key(x); if (seen.has(k)) return false; seen.add(k); return true; });
   const kararlar = uniq([...local.filter(x => KARAR.test(x.tur || "") && !yg(x)).slice(0, 6), ...live, ...local.filter(yg).slice(0, 2)]).slice(0, 10);
