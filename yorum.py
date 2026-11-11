@@ -30,12 +30,20 @@ Kurallar:
 def ask(item):
     text = (item.get("metin") or "")[:16000]
     user = f"Tür: {item['tur']}\nBaşlık: {item['title']}\nKünye: {item.get('meta') or '-'}\n\nMetin:\n{text}"
-    body = {"model": MODEL, "max_tokens": 900, "system": SYSTEM, "messages": [{"role": "user", "content": user}]}
-    req = Request(API, data=json.dumps(body).encode(), method="POST", headers={
-        "x-api-key": KEY, "anthropic-version": "2023-06-01", "content-type": "application/json"})
-    with urlopen(req, timeout=120) as r:
-        d = json.loads(r.read().decode())
-    return "".join(b.get("text", "") for b in d.get("content", []) if b.get("type") == "text").strip()
+    for mt in (2500, 5000):  # sınır dolup not yarım kalırsa bir kez daha geniş sınırla denenir; yarım not kaydedilmez
+        body = {"model": MODEL, "max_tokens": mt, "system": SYSTEM, "messages": [{"role": "user", "content": user}]}
+        req = Request(API, data=json.dumps(body).encode(), method="POST", headers={
+            "x-api-key": KEY, "anthropic-version": "2023-06-01", "content-type": "application/json"})
+        with urlopen(req, timeout=180) as r:
+            d = json.loads(r.read().decode())
+        if d.get("stop_reason") != "max_tokens":
+            return "".join(b.get("text", "") for b in d.get("content", []) if b.get("type") == "text").strip()
+    return ""
+
+
+def kesik(note):
+    """Not cümle ortasında mı bitiyor? (nokta, soru/ünlem, kapanış tırnağı/parantezi ile bitmiyorsa kesik sayılır)"""
+    return not (note or "").rstrip().endswith((".", "!", "?", ")", '"', "”", "’", "…"))
 
 
 def fill(db, limit=None, budget=None):
@@ -68,6 +76,9 @@ def fill(db, limit=None, budget=None):
             print(f"Müfettiş notu yazılamadı (#{r['id']}): {type(e).__name__} {getattr(e, 'code', '')} {detail}")
             if getattr(e, "code", 0) in (401, 403) or "credit balance" in detail:
                 stop = True
+            return
+        if note and kesik(note):
+            print("Müfettiş notu: kesik not kaydedilmedi, sonraki turda yeniden denenecek")
             return
         if note:
             db("PATCH", f"items?id=eq.{r['id']}", {"yorum": note}, prefer="return=minimal")
