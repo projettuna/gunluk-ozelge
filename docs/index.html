@@ -1060,6 +1060,8 @@ async function boot(){
   await startChat();
   const qr = new URLSearchParams(location.search).get("room");
   if(qr){ history.replaceState(null, "", location.pathname); tab = "chat"; room = qr; }
+  { const sp = new URLSearchParams(location.search), qk = sp.get("kayit"), qks = sp.get("kayitlar");
+    if(qk || qks){ history.replaceState(null, "", location.pathname); setTimeout(() => qk ? openKayit(+qk) : openKayitlar(qks), 300); } }
   const qb = new URLSearchParams(location.search).get("bildirim");
   if(qb){ history.replaceState(null, "", location.pathname); showNtfAt(qb); }
   if(new URLSearchParams(location.search).has("takip")){ history.replaceState(null, "", location.pathname); tab = "watch"; render(); }
@@ -1400,6 +1402,7 @@ navigator.serviceWorker?.addEventListener("message", async e => {
   if(e.data?.type === "inbox"){ refreshBell(); if(tab === "inbox") renderInbox(); }
   if(e.data?.type === "refresh"){ await loadItems(); render(); }
   if(e.data?.type === "open" && new URL(e.data.url).searchParams.get("bildirim")){ showNtfAt(new URL(e.data.url).searchParams.get("bildirim")); return; }
+  if(e.data?.type === "open"){ const sp = new URL(e.data.url).searchParams; if(sp.get("kayit")){ openKayit(+sp.get("kayit")); return; } if(sp.get("kayitlar")){ openKayitlar(sp.get("kayitlar")); return; } }
   if(e.data?.type === "open"){ const r = new URL(e.data.url).searchParams.get("room"); if(r && me){ await fetchNewMsgs(); tab = "chat"; room = r; render(); } else { await loadItems(); if(new URL(e.data.url).searchParams.has("takip")) tab = "watch"; render(); } }
 });
 
@@ -2228,6 +2231,8 @@ async function renderInbox(){
 }
 function ntfTarget(n){
   let u; try{ u = new URL(n.url || "./", location.href); }catch{ return null; }
+  if(u.searchParams.get("kayit")) return ["Kaydı aç", () => openKayit(+u.searchParams.get("kayit"))];
+  if(u.searchParams.get("kayitlar")) return ["Kayıtları gör", () => openKayitlar(u.searchParams.get("kayitlar"))];
   if(u.searchParams.get("room")) return ["Sohbete git", async () => { await fetchNewMsgs(); tab = "chat"; room = u.searchParams.get("room"); render(); }];
   if(u.searchParams.has("hafta")) return ["Haftanın Özetini Aç", () => openWeekly()];
   if(u.searchParams.has("takip")) return ["Takip Listemi aç", () => { tab = "watch"; render(); scrollTo({ top: 0 }); }];
@@ -2249,6 +2254,34 @@ function openNtf(n){
   document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
   el.onclick = e => { if(e.target === el) return closeSheet(); const a = e.target.closest("button")?.dataset.a;
     if(a === "x") closeSheet(); if(a === "go"){ closeSheet(); go[1](); } };
+}
+/* Bildirimden kayda: kayıt akışta yoksa (eski ya da henüz yüklenmemiş) tek satır çekilir */
+async function kayitGetir(ids){
+  if(!items.length) await loadItems();
+  const eksik = ids.filter(id => !items.some(x => x.id === id));
+  if(eksik.length){ try{ const { data } = await sb.from("items").select("id,tur,title,meta,url,ozet,eklendi,created_at").in("id", eksik);
+    (data || []).forEach(r => { if(!items.some(x => x.id === r.id)) items.push(r); }); }catch{} }
+  return ids.map(id => items.find(x => x.id === id)).filter(Boolean);
+}
+async function openKayit(id){
+  if(!id || !me) return; closeSheet();
+  const [i] = await kayitGetir([id]);
+  if(i){ read.add(id); store.set("read", [...read]); openReader(id); }
+  else { tab = "feed"; filter = "Tümü"; render(); scrollTo({ top: 0 }); }
+}
+async function openKayitlar(csv){
+  if(!me) return; closeSheet();
+  const ids = String(csv || "").split(",").map(Number).filter(Boolean).slice(0, 30);
+  const list = await kayitGetir(ids);
+  if(list.length === 1) return openKayit(list[0].id);
+  if(!list.length){ tab = "feed"; filter = "Tümü"; render(); scrollTo({ top: 0 }); return; }
+  const el = document.createElement("div"); el.className = "sheetwrap"; el.id = "sheet";
+  el.innerHTML = `<div class="sheet"><div class="stitle">${list.length} yeni kayıt</div><div class="list" style="max-height:60vh;overflow:auto">${list.map(i =>
+    `<button class="li" data-kid="${i.id}" style="display:block;text-align:left;width:100%"><small>${esc(i.tur)}</small><b style="display:block">${esc(i.title)}</b></button>`).join("")}</div>
+    <button data-a="x" class="cancel">Kapat</button></div>`;
+  document.body.appendChild(el); requestAnimationFrame(() => el.classList.add("on"));
+  el.onclick = e => { if(e.target === el) return closeSheet(); const k = e.target.closest("[data-kid]");
+    if(k){ closeSheet(); openKayit(+k.dataset.kid); return; } if(e.target.closest("button")?.dataset.a === "x") closeSheet(); };
 }
 async function showNtfAt(at){ tab = "inbox"; room = null; render(); scrollTo({ top: 0 });
   for(let i = 0; i < 6; i++){ const n = (await inboxAll()).find(x => String(x.at) === String(at)); if(n) return openNtf(n); await new Promise(r => setTimeout(r, 300)); } }

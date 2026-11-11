@@ -48,9 +48,10 @@ self.addEventListener("push", event => {
 self.addEventListener("notificationclick", event => {
   event.notification.close();
   // Bildirim her zaman uygulamanın kendi adresinde açılır (eski adreslere yönlenmesin)
-  // Sohbet bildirimi doğrudan sohbete; diğerleri Bildirimler sayfasında açılır ve mesaj tekrar okunur
+  // Sohbet bildirimi doğrudan sohbete, kayıt bildirimi doğrudan kayda; diğerleri Bildirimler sayfasında açılır ve mesaj tekrar okunur
   const d = event.notification.data || {}, target = new URL(d.url || "/", APP);
-  const url = target.searchParams.has("room") || !d.at ? target.href : APP + "?bildirim=" + d.at;
+  const direct = ["room", "kayit", "kayitlar"].some(k => target.searchParams.has(k));
+  const url = direct || !d.at ? target.href : APP + "?bildirim=" + d.at;
   event.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
     for (const c of all) { if (c.url.startsWith(APP)) { await c.focus(); c.postMessage({ type: "open", url }); return; } }

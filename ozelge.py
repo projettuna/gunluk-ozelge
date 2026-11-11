@@ -577,7 +577,7 @@ def notify_users():
             continue
         since = u["last_notified_at"]
         types = ",".join('"' + t.replace('"', '') + '"' for t in tlist)
-        new = db("GET", f"items?select=tur,title&created_at=gt.{quote(since)}&eklendi=not.is.null"
+        new = db("GET", f"items?select=id,tur,title&created_at=gt.{quote(since)}&eklendi=not.is.null"
                         f"&tur=in.({quote(types)})&order=id.desc&limit=200")
         if not new:
             continue
@@ -586,7 +586,9 @@ def notify_users():
             counts[it["tur"]] = counts.get(it["tur"], 0) + 1
         title = f"{len(new)} yeni kayıt" if len(new) > 1 else new[0]["tur"]
         body = (", ".join(f"{n} {t}" for t, n in counts.items()) + " · " + new[0]["title"]) if len(new) > 1 else new[0]["title"]
-        payload = json.dumps({"title": title, "body": body[:180], "url": APP_URL, "tag": "tmpro-yeni"})
+        # Bildirime dokununca doğrudan kayıt açılsın (tek kayıtta okuyucu, birden fazlada liste)
+        link = APP_URL + (f"?kayit={new[0]['id']}" if len(new) == 1 else "?kayitlar=" + ",".join(str(it["id"]) for it in new[:30]))
+        payload = json.dumps({"title": title, "body": body[:180], "url": link, "tag": "tmpro-yeni"})
         for s in usubs:
             try:
                 webpush({"endpoint": s["endpoint"], "keys": {"p256dh": s["p256dh"], "auth": s["auth"]}}, payload,
