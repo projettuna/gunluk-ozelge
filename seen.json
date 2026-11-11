@@ -1,5 +1,5 @@
 {
- "last_id": 39132,
+ "last_id": 39133,
  "updated": "2026-11-07T14:58:44+03:00",
  "karar_seen": [
   "1222018300",
@@ -84,7 +84,7 @@
  "release_day": {
   "2.7": "2026-11-09"
  },
- "madde_last_id": 448,
+ "madde_last_id": 449,
  "madde_text_day": "2026-11-11",
  "event_remind_day": "2026-11-11"
 }
