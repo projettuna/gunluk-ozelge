@@ -1,0 +1,348 @@
+"""Meteorolojik uyarılar (MGM) ve iş dünyasını etkileyen hizmet kesintileri.
+
+Her taramada:
+- MGM'nin il/ilçe bazlı sarı/turuncu/kırmızı uyarılarını (bugün + yarın) alır,
+- Microsoft 365 (kurumsal + Outlook.com) durum sayfalarını ve GİB e-hizmetlerinin erişilebilirliğini kontrol eder,
+- Özeti herkesin okuyabildiği settings.uyarilar anahtarına yazar (uygulama ve Günaydın bildirimi buradan okur),
+- Yeni bir uyarı ya da kesinti çıkınca ilgili üyelere anlık bildirim yollar (sessiz saat 22-08 beklenir).
+
+Üye tercihleri: profiles.notify_types içinde "!meteo" / "!kesinti" varsa o tür bildirim gelmez;
+"Sessize Al"daki "meteo" / "kesinti" anahtarları da uyulur. Konumu olmayan üye Ankara sayılır.
+
+Depo herkese açık: loglara ve seen.json'a kimlik yazılmaz (yalnızca il plakası ve sayılar).
+"""
+import json
+import math
+import os
+import re
+from datetime import datetime, timedelta, timezone
+from html import unescape
+from urllib.request import Request, urlopen
+
+TR = timezone(timedelta(hours=3))
+QUIET = (22, 8)
+APP_URL = "https://tmpro.tmproapp.workers.dev/"
+UA = {"User-Agent": "Mozilla/5.0 (TMPRO uyari)"}
+MGM_H = {**UA, "Origin": "https://www.mgm.gov.tr", "Referer": "https://www.mgm.gov.tr/"}
+ANKARA = 6
+START = datetime(2026, 11, 13, 9, 0, tzinfo=TR)
+
+RENK = {"yellow": "Sarı", "orange": "Turuncu", "red": "Kırmızı"}
+RENK_SIRA = {"yellow": 1, "orange": 2, "red": 3}
+RENK_IKON = {"yellow": "🟡", "orange": "🟠", "red": "🔴"}
+HADISE = {"rain": "Kuvvetli yağış", "snow": "Kar", "wind": "Kuvvetli rüzgâr ve fırtına", "fog": "Sis",
+          "thunderstorm": "Gök gürültülü sağanak", "hot": "Aşırı sıcak", "cold": "Aşırı soğuk", "ice": "Buzlanma ve don",
+          "agricultural": "Zirai don", "frost": "Zirai don", "dust": "Toz taşınımı", "avalanche": "Çığ", "lightning": "Yıldırım"}
+
+# Kendimiz ölçtüğümüz kamu e-hizmetleri (resmî durum sayfaları yok). Ard arda DOWN_AFTER tur hata = kesinti.
+PROBES = [("gib_dvd", "GİB Dijital Vergi Dairesi", "https://dijital.gib.gov.tr/"),
+          ("earsiv", "e-Arşiv Portal", "https://earsivportal.efatura.gov.tr/intragiris.html")]
+DOWN_AFTER = 4
+UP_AFTER = 2
+GONE_AFTER = 2  # resmî kaynakta kaybolan kesinti bu kadar tur görünmezse "giderildi"
+CONSUMER_KEEP = {"Outlook.com": "Outlook.com", "Microsoft 365 (Consumer)": "Microsoft 365 (bireysel)",
+                 "OneDrive": "OneDrive", "Microsoft Teams Free": "Teams", "Office for the web (Consumer)": "Office (web)"}
+MS_DURUM = {"servicedegradation": "aksama", "service degradation": "aksama", "serviceinterruption": "kesinti",
+            "service interruption": "kesinti", "restoringservice": "düzeltiliyor", "restoring service": "düzeltiliyor",
+            "extendedrecovery": "düzeltiliyor", "extended recovery": "düzeltiliyor", "investigating": "inceleniyor",
+            "investigation suspended": "inceleniyor"}
+
+
+def get(url, headers=UA, timeout=20):
+    with urlopen(Request(url, headers=headers), timeout=timeout) as r:
+        return r.status, r.read(600000).decode("utf-8", "replace")
+
+
+def _load(name):
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", name)
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []
+
+
+def load_iller():
+    """İl merkezleri + ilçe merkezleri: [[plaka, ad, enlem, boylam], ...] (önce iller)."""
+    return _load("iller.json") + _load("ilceler.json")
+
+
+def tr_low(s):
+    return (s or "").replace("I", "ı").replace("İ", "i").lower().strip()
+
+
+def plaka_of(lat, lon, city, pts):
+    """Üyenin ili: şehir adı bir il ya da tek bir ilçe adıysa o; değilse en yakın il/ilçe merkezi; konum yoksa Ankara."""
+    c = tr_low(city)
+    if c:
+        hits = {p for p, ad, _, _ in pts if tr_low(ad) == c and ad != "Merkez"}
+        il_hit = [p for p, ad, _, _ in pts[:81] if tr_low(ad) == c]
+        if il_hit:
+            return il_hit[0]
+        if len(hits) == 1:
+            return hits.pop()
+    if not isinstance(lat, (int, float)) or not isinstance(lon, (int, float)):
+        return ANKARA
+    best, bd = ANKARA, 1e9
+    for p, _, la, lo in pts:
+        d = (la - lat) ** 2 + ((lo - lon) * math.cos(math.radians(lat))) ** 2
+        if d < bd:
+            best, bd = p, d
+    return best
+
+
+# ---------------------------------------------------------------- MGM
+
+def first_sentences(t, n=220):
+    t = re.sub(r"\s+", " ", t or "").strip()
+    if len(t) <= n:
+        return t
+    cut = t[:n]
+    return (cut[: cut.rfind(" ")] if " " in cut else cut) + "…"
+
+
+def fetch_meteo():
+    """{plaka: [ {n, r, h[], m, b, e}, ... ]} — her uyarı için ildeki en yüksek seviye."""
+    alerts = {}
+    for day in ("today", "tomorrow"):
+        _, body = get(f"https://servis.mgm.gov.tr/web/meteoalarm/{day}", MGM_H)
+        for a in json.loads(body) or []:
+            alerts[a.get("alertNo") or a.get("_id")] = a
+    out = {}
+    for no, a in alerts.items():
+        for color in ("red", "orange", "yellow"):  # en yüksekten başla
+            for town in (a.get("towns") or {}).get(color) or []:
+                p = int(town) // 100 - 900
+                if not 1 <= p <= 81:
+                    continue
+                lst = out.setdefault(str(p), [])
+                if any(x["n"] == str(no) for x in lst):
+                    continue  # bu ilde daha yüksek seviyesi zaten eklendi
+                kinds = (a.get("weather") or {}).get(color) or []
+                lst.append({"n": str(no), "r": color, "h": [HADISE.get(k, k) for k in kinds],
+                            "m": first_sentences((a.get("text") or {}).get(color), 400),
+                            "b": a.get("begin"), "e": a.get("end")})
+    for lst in out.values():
+        lst.sort(key=lambda x: -RENK_SIRA[x["r"]])
+    return out
+
+
+def tr_time(iso):
+    if not iso:
+        return ""
+    d = datetime.fromisoformat(iso.replace("Z", "+00:00")).astimezone(TR)
+    ay = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"][d.month - 1]
+    return f"{d.day} {ay} {d:%H:%M}"
+
+
+def meteo_line(x, il):
+    return f"{RENK_IKON[x['r']]} {il}: {RENK[x['r']]} uyarı · {', '.join(x['h']) or 'Meteorolojik uyarı'}"
+
+
+# ---------------------------------------------------------------- hizmet kesintileri
+
+def ms_status(s):
+    k = (s or "").strip().lower()
+    if k in ("", "operational", "serviceoperational", "service restored", "servicerestored", "falsepositive",
+             "false positive", "postincidentreviewpublished", "post-incident report published", "resolved"):
+        return None
+    return MS_DURUM.get(k, "aksama")
+
+
+def fetch_outages():
+    """Resmî durum sayfalarındaki etkin kesintiler: {anahtar: {s, d, a}} (servis, durum, ayrıntı)."""
+    out, errors = {}, 0
+    try:
+        _, body = get("https://status.office365.com/api/feed/mac")
+        for item in re.findall(r"<item>(.*?)</item>", body, re.S):
+            st = ms_status(unescape((re.search(r"<status>(.*?)</status>", item) or [None, ""])[1]))
+            if not st:
+                continue
+            desc = re.sub(r"<[^>]+>", " ", unescape(unescape((re.search(r"<description>(.*?)</description>", item, re.S) or [None, ""])[1])))
+            guid = (re.search(r"<guid[^>]*>(.*?)</guid>", item) or [None, "x"])[1]
+            exch = "Exchange" in desc or "Outlook" in desc
+            out["ms365:" + guid] = {"s": "Microsoft 365 (kurumsal)" + (" · Outlook/Exchange" if exch else ""), "d": st,
+                                    "a": ("Kurumsal e-posta (Outlook/Exchange) ve bağlı Microsoft 365 hizmetlerinde" if exch
+                                          else "Kurumsal Microsoft 365 hizmetlerinde") + " erişim sorunu bildiriliyor (Microsoft durum sayfası)."}
+    except Exception as e:  # noqa: BLE001
+        errors += 1
+        print("Uyarı: Microsoft 365 durumu alınamadı", type(e).__name__)
+    try:
+        _, body = get("https://status.cloud.microsoft/api/posts/m365Consumer")
+        for x in json.loads(body) or []:
+            name = CONSUMER_KEEP.get(x.get("ServiceDisplayName"))
+            st = ms_status(x.get("Status"))
+            if name and st:
+                out["msc:" + name] = {"s": name, "d": st, "a": f"{name} hizmetinde erişim sorunu bildiriliyor (Microsoft durum sayfası)."}
+    except Exception as e:  # noqa: BLE001
+        errors += 1
+        print("Uyarı: Outlook.com durumu alınamadı", type(e).__name__)
+    return out, errors
+
+
+def probe_ok(url):
+    for _ in range(2):
+        try:
+            code, body = get(url, timeout=20)
+            if 200 <= code < 400 and len(body) > 10:
+                return True
+        except Exception:  # noqa: BLE001
+            pass
+    return False
+
+
+# ---------------------------------------------------------------- bildirim
+
+def active(u, now):
+    exp = u.get("expires_at")
+    return u.get("role") == "admin" or (u.get("status") == "active" and (not exp or datetime.fromisoformat(exp) > now))
+
+
+def send_push(db, subs, uid, payload, vapid):
+    from pywebpush import webpush, WebPushException
+    n = 0
+    for s in subs.get(uid, []):
+        try:
+            webpush({"endpoint": s["endpoint"], "keys": {"p256dh": s["p256dh"], "auth": s["auth"]}}, payload,
+                    vapid_private_key=vapid, vapid_claims={"sub": "mailto:bildirim@tmpro.app"}, ttl=21600)
+            n += 1
+        except WebPushException as e:
+            if getattr(e.response, "status_code", None) in (404, 410):
+                db("DELETE", f"push_subs?id=eq.{s['id']}")
+    return n
+
+
+def run(db, state, muted=lambda u, k: False, dry=False):
+    now_tr = datetime.now(TR)
+    utc_now = datetime.now(timezone.utc)
+    quiet = now_tr.hour >= QUIET[0] or now_tr.hour < QUIET[1]
+    iller = load_iller()
+    il_ad = {str(p): ad for p, ad, _, _ in iller[:81]}
+    st = state.setdefault("uyari", {})
+
+    # 1) MGM
+    meteo = None
+    try:
+        meteo = fetch_meteo()
+        st.pop("meteo_err", None)
+    except Exception as e:  # noqa: BLE001
+        st["meteo_err"] = st.get("meteo_err", 0) + 1
+        print("Meteorolojik uyarılar alınamadı", type(e).__name__)
+    if meteo is None:
+        meteo = (state.get("uyari_son") or {}).get("meteo") or {}
+
+    # 2) Kesintiler (resmî kaynaklar + kendi ölçümümüz)
+    found, errs = fetch_outages()
+    probes = st.setdefault("probe", {})
+    for key, name, url in PROBES:
+        p = probes.setdefault(key, {"fail": 0, "ok": 0, "down": False})
+        if probe_ok(url):
+            p["ok"], p["fail"] = p["ok"] + 1, 0
+            if p["down"] and p["ok"] >= UP_AFTER:
+                p["down"] = False
+        else:
+            p["fail"], p["ok"] = p["fail"] + 1, 0
+            if p["fail"] >= DOWN_AFTER:
+                p["down"] = True
+        if p["down"]:
+            found["tr:" + key] = {"s": name, "d": "erişilemiyor", "a": "Site birkaç denemedir yanıt vermiyor; işlemlerinizi sonraya bırakmanız gerekebilir."}
+    outs = st.setdefault("kesinti", {})  # anahtar -> {s,d,a,t(başlangıç),gone,pushed}
+    resolved = []
+    for k, v in found.items():
+        o = outs.get(k)
+        if o:
+            o.update(s=v["s"], d=v["d"], a=v["a"], gone=0)
+        else:
+            outs[k] = {**v, "t": utc_now.isoformat(timespec="minutes"), "gone": 0, "pushed": False}
+    for k in list(outs):
+        if k in found:
+            continue
+        if errs and not k.startswith("tr:"):
+            continue  # kaynak alınamadıysa giderildi sayma
+        outs[k]["gone"] = outs[k].get("gone", 0) + 1
+        if outs[k]["gone"] >= (1 if k.startswith("tr:") else GONE_AFTER):
+            resolved.append(outs.pop(k))
+
+    # 3) Herkese açık özet (uygulama + Günaydın)
+    summary = {"t": utc_now.isoformat(timespec="minutes"), "meteo": meteo,
+               "kesinti": [{"s": o["s"], "d": o["d"], "a": o["a"], "t": o["t"]} for o in outs.values()]}
+    state["uyari_son"] = {"meteo": meteo}
+    if not dry:
+        try:
+            db("POST", "settings?on_conflict=key", {"key": "uyarilar", "value": json.dumps(summary, ensure_ascii=False)},
+               prefer="resolution=merge-duplicates,return=minimal")
+        except Exception as e:  # noqa: BLE001
+            print("Uyarı özeti kaydedilemedi", type(e).__name__, getattr(e, "code", ""))
+    print(f"Uyarılar: meteorolojik uyarılı il {len(meteo)}, etkin kesinti {len(outs)}, giderilen {len(resolved)}")
+
+    # 4) Anlık bildirimler
+    sent_m = st.setdefault("meteo_sent", {})  # plaka -> ["alertNo:renk", ...]
+    new_meteo = {}
+    for p, lst in meteo.items():
+        keys = [f"{x['n']}:{x['r']}" for x in lst]
+        fresh = [x for x, k in zip(lst, keys) if k not in sent_m.get(p, [])]
+        if fresh:
+            new_meteo[p] = fresh
+    new_out = [o for o in outs.values() if not o.get("pushed")]
+    resolved = [o for o in resolved if o.get("pushed")]
+    if now_tr < START:
+        quiet = True  # ilk yayın günü: bildirimler 13.11.2026 09:00'da başlar
+    if quiet or dry or not (new_meteo or new_out or resolved):
+        if quiet and (new_meteo or new_out):
+            print("Uyarılar: sessiz saat, bildirim sabaha kaldı")
+        return summary
+
+    users = db("GET", "profiles?select=id,role,status,expires_at,notify_types,mute,wx_lat,wx_lon,wx_city") or []
+    subs = {}
+    for s in db("GET", "push_subs?select=id,user_id,endpoint,p256dh,auth") or []:
+        subs.setdefault(s["user_id"], []).append(s)
+    vapid = db("GET", "private_settings?key=eq.vapid_private&select=value")[0]["value"]
+    n_m = n_k = 0
+    for u in users:
+        if u["id"] not in subs or not active(u, utc_now):
+            continue
+        types = u.get("notify_types") or []
+        if muted(u, "hepsi"):
+            continue
+        if new_meteo and "!meteo" not in types and not muted(u, "meteo"):
+            p = str(plaka_of(u.get("wx_lat"), u.get("wx_lon"), u.get("wx_city"), iller))
+            fresh = new_meteo.get(p)
+            if fresh:
+                x = fresh[0]
+                title = f"{RENK_IKON[x['r']]} {RENK[x['r']]} uyarı · {il_ad.get(p, '')}"
+                when = f"{tr_time(x['b'])} – {tr_time(x['e'])}" if x.get("b") else ""
+                body = " · ".join(filter(None, [", ".join(x["h"]), when])) + (f"\n{first_sentences(x['m'], 140)}" if x.get("m") else "")
+                payload = json.dumps({"title": title, "body": body[:230], "url": APP_URL + "?uyari=1", "tag": "tmpro-meteo"})
+                n_m += send_push(db, subs, u["id"], payload, vapid) and 1
+        if (new_out or resolved) and "!kesinti" not in types and not muted(u, "kesinti"):
+            if new_out:
+                o = new_out[0]
+                title = f"⚡ {o['s']}: {o['d']}" if len(new_out) == 1 else f"⚡ {len(new_out)} hizmette kesinti"
+                body = o["a"] if len(new_out) == 1 else ", ".join(f"{x['s']} ({x['d']})" for x in new_out)
+            else:
+                title = "✅ Hizmet yeniden çalışıyor"
+                body = ", ".join(x["s"] for x in resolved) + " için kesinti giderildi."
+            payload = json.dumps({"title": title, "body": body[:230], "url": APP_URL + "?uyari=1", "tag": "tmpro-kesinti"})
+            n_k += send_push(db, subs, u["id"], payload, vapid) and 1
+    for p, lst in meteo.items():
+        sent_m[p] = [f"{x['n']}:{x['r']}" for x in lst]
+    for p in list(sent_m):
+        if p not in meteo:
+            del sent_m[p]
+    for o in new_out:
+        o["pushed"] = True
+    print(f"Uyarı bildirimi: meteorolojik {n_m} üye, kesinti {n_k} üye")
+    return summary
+
+
+if __name__ == "__main__":  # deneme: kaynakları okur, yazmaz ve bildirim göndermez
+    m = fetch_meteo()
+    il = {str(p): ad for p, ad, _, _ in load_iller()[:81]}
+    print("Meteorolojik uyarılı iller:", ", ".join(f"{il[p]} ({RENK[v[0]['r']]})" for p, v in sorted(m.items(), key=lambda x: int(x[0]))))
+    for p in ("6", "34", "35"):
+        for x in m.get(p, []):
+            print(" ", meteo_line(x, il[p]), "|", tr_time(x["b"]), "-", tr_time(x["e"]))
+    o, e = fetch_outages()
+    print("Kesintiler:", json.dumps(o, ensure_ascii=False)[:1500], "hata:", e)
+    for key, name, url in PROBES:
+        print("Erişim", name, probe_ok(url))

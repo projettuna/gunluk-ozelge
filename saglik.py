@@ -326,6 +326,13 @@ def news_fresh():
         bad("haberler", "uyari", "24 saattir yeni haber gelmedi; haber kaynağı değişmiş olabilir")
 
 
+def uyarilar():
+    rows, _ = db("settings?key=eq.uyarilar&select=value")
+    t = ts(json.loads(rows[0]["value"]).get("t")) if rows else None
+    if not t or NOW - t > timedelta(hours=3):
+        bad("uyarılar", "uyari", "Meteorolojik uyarı / hizmet kesintisi özeti 3 saattir güncellenmedi")
+
+
 def phone():
     # arşive giden eski kararlar da telefonun çalıştığını gösterir, bu yüzden created_at
     rows, _ = db("items?select=created_at&tur=eq.Yarg%C4%B1tay%20(Ceza)&order=created_at.desc&limit=1")
@@ -360,7 +367,7 @@ def main():
         print("Supabase ayarı yok")
         return
     for name, fn in (("site", site), ("aktarıcı", relay), ("veritabanı", database), ("kurulum", setup),
-                     ("tarama", main_job), ("kaynaklar", sources), ("üye girişi ve ekranlar", e2e), ("e-posta", mails), ("yedek", backup), ("yapay zekâ", ai), ("haberler", news_fresh), ("döviz ve altın", piyasa), ("zamanlayıcı", zamanlayici), ("telefon", phone)):
+                     ("tarama", main_job), ("kaynaklar", sources), ("üye girişi ve ekranlar", e2e), ("e-posta", mails), ("yedek", backup), ("yapay zekâ", ai), ("haberler", news_fresh), ("döviz ve altın", piyasa), ("zamanlayıcı", zamanlayici), ("uyarılar", uyarilar), ("telefon", phone)):
         check(name, fn)
     if TEST:
         bad("deneme", "kritik", "Bu bir deneme uyarısıdır, nöbetçi çalışıyor")

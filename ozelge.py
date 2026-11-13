@@ -1012,6 +1012,13 @@ def main():
             notify_users()
         except Exception as e:  # noqa: BLE001
             print(f"Bildirim gönderilemedi: {e}")
+        if not ONLY_RG:
+            try:
+                import uyari
+                uyari.run(db, state, muted=muted)
+                save_state(state)
+            except Exception as e:  # noqa: BLE001
+                print(f"Meteorolojik uyarı / kesinti turu atlandı: {type(e).__name__}")
         try:
             release_push(state)
             save_state(state)

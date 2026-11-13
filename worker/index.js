@@ -84,7 +84,7 @@ export function weatherAdvice(w) {
   return "";
 }
 
-export function composeMorning(u, w, hol, today, tomorrow) {
+export function composeMorning(u, w, hol, today, tomorrow, alerts) {
   const city = u.city || "Ankara", first = String(u.name || "").trim().split(/\s+/)[0];
   const th = holidaysOn(hol, today), tm = holidaysOn(hol, tomorrow);
   const special = th.find(h => h.mesaj);
@@ -103,8 +103,36 @@ export function composeMorning(u, w, hol, today, tomorrow) {
   const nt = tm.find(h => h.tur !== "anma");
   if (nt && !th.some(h => h.tur === "tatil")) lines.push(`📅 Yarın ${nt.ad}${nt.tur === "yarim" ? " (yarım gün)" : ""}`);
   if (u.events?.length) lines.push("📌 " + u.events.join(", "));
+  if (alerts) {
+    // MGM uyarısı yalnız üyenin ilindeki en yüksek seviye; kesintiler herkese
+    const m = (alerts.meteo || {})[String(u.plaka || 6)];
+    if (m?.length) {
+      const x = m[0], ic = { yellow: "🟡", orange: "🟠", red: "🔴" }[x.r] || "⚠️", rn = { yellow: "Sarı", orange: "Turuncu", red: "Kırmızı" }[x.r] || "";
+      const end = x.e ? new Date(new Date(x.e).getTime() + 3 * 3600e3) : null;
+      const until = end ? ` (${end.getUTCDate()} ${["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"][end.getUTCMonth()]} ${String(end.getUTCHours()).padStart(2, "0")}:00'a kadar)` : "";
+      lines.splice(w ? lines.findIndex(l => l.startsWith(WICON(w.code))) + 1 : lines.length, 0, `${ic} MGM ${rn} uyarı: ${(x.h || []).join(", ") || "meteorolojik uyarı"}${until}`);
+    }
+    const k = alerts.kesinti || [];
+    if (k.length) lines.push(`⚡ Kesinti: ${k.slice(0, 3).map(o => `${o.s} (${o.d})`).join(", ")}${k.length > 3 ? "…" : ""}`);
+  }
   const title = special ? special.ad : `Günaydın${first ? " " + first : ""}`;
   return { title, body: (lines.join("\n") || "İyi çalışmalar.").slice(0, 400), url: "https://tmpro.tmproapp.workers.dev/", tag: "tmpro-gunaydin" };
+}
+
+const trLow = s => String(s || "").replace(/I/g, "ı").replace(/İ/g, "i").toLowerCase().trim();
+// Üyenin ili: şehir adı bir il ya da tek bir ilçe adıysa o; değilse en yakın il/ilçe merkezi; konum yoksa Ankara (uyari.py ile aynı kural)
+export function plakaOf(lat, lon, city, pts) {
+  const c = trLow(city);
+  if (c) {
+    const il = pts.slice(0, 81).find(x => trLow(x[1]) === c);
+    if (il) return il[0];
+    const hits = new Set(pts.filter(x => x[1] !== "Merkez" && trLow(x[1]) === c).map(x => x[0]));
+    if (hits.size === 1) return [...hits][0];
+  }
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return 6;
+  let best = 6, bd = 1e9;
+  for (const [p, , la, lo] of pts) { const d = (la - lat) ** 2 + ((lo - lon) * Math.cos(lat * Math.PI / 180)) ** 2; if (d < bd) { best = p; bd = d; } }
+  return best;
 }
 
 async function morning(j, env) {
@@ -112,13 +140,21 @@ async function morning(j, env) {
   const now = new Date(Date.now() + 3 * 3600e3), today = now.toISOString().slice(0, 10);
   const tomorrow = new Date(now.getTime() + 864e5).toISOString().slice(0, 10);
   const wx = {}, out = [];
-  let sent = 0;
+  let sent = 0, alerts = null, iller = [];
+  try {
+    iller = await (await env.ASSETS.fetch(new Request("https://assets.local/iller.json"))).json();
+    try { iller = iller.concat(await (await env.ASSETS.fetch(new Request("https://assets.local/ilceler.json"))).json()); } catch {}
+    const r = await fetch(`${SB_URL}/rest/v1/settings?key=eq.uyarilar&select=value`, { headers: { apikey: SB_KEY } });
+    const v = (await r.json())?.[0]?.value;
+    if (v) { alerts = JSON.parse(v); if (Date.now() - new Date(alerts.t).getTime() > 6 * 3600e3) alerts = null; }  // bayat özet kullanılmaz
+  } catch { alerts = null; }
   for (const u of (j.users || []).slice(0, 1000)) {
     const lat = Number.isFinite(u.lat) ? u.lat : 39.93, lon = Number.isFinite(u.lon) ? u.lon : 32.86;
     if (!Number.isFinite(u.lat)) u.city = "Ankara";
     const k = lat.toFixed(2) + "," + lon.toFixed(2);
     wx[k] ||= fetchWx(lat, lon).catch(() => null);
-    const msg = composeMorning(u, await wx[k], hol, today, tomorrow);
+    u.plaka = plakaOf(u.lat, u.lon, u.city, iller);
+    const msg = composeMorning(u, await wx[k], hol, today, tomorrow, alerts);
     if (j.preview) { out.push(msg); continue; }
     const res = await Promise.all((u.subs || []).map(s => sendOne(s, JSON.stringify(msg), j.vapid).catch(() => 0)));
     sent += res.filter(x => x >= 200 && x < 300).length;
