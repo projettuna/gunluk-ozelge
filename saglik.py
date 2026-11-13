@@ -327,9 +327,15 @@ def news_fresh():
 
 
 def uyarilar():
+    # yalnız gündüz ve ancak sistem en az bir kez yazdıktan sonra; ara sıra kaynak gecikmesi için 6 saat payı
+    hour = datetime.now(TR).hour
+    if hour < 8 or hour >= 22:
+        return
     rows, _ = db("settings?key=eq.uyarilar&select=value")
-    t = ts(json.loads(rows[0]["value"]).get("t")) if rows else None
-    if not t or NOW - t > timedelta(hours=3):
+    if not rows:
+        return
+    t = ts(json.loads(rows[0]["value"]).get("t"))
+    if t and NOW - t > timedelta(hours=6):
         bad("uyarılar", "uyari", "Meteorolojik uyarı / hizmet kesintisi özeti 3 saattir güncellenmedi")
 
 

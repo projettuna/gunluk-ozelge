@@ -109,7 +109,7 @@ export function composeMorning(u, w, hol, today, tomorrow, alerts) {
     if (m?.length) {
       const x = m[0], ic = { yellow: "🟡", orange: "🟠", red: "🔴" }[x.r] || "⚠️", rn = { yellow: "Sarı", orange: "Turuncu", red: "Kırmızı" }[x.r] || "";
       const end = x.e ? new Date(new Date(x.e).getTime() + 3 * 3600e3) : null;
-      const until = end ? ` (${end.getUTCDate()} ${["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"][end.getUTCMonth()]} ${String(end.getUTCHours()).padStart(2, "0")}:00'a kadar)` : "";
+      const until = end ? ` (bitiş ${end.getUTCDate()} ${["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"][end.getUTCMonth()]} ${String(end.getUTCHours()).padStart(2, "0")}:${String(end.getUTCMinutes()).padStart(2, "0")})` : "";
       lines.splice(w ? lines.findIndex(l => l.startsWith(WICON(w.code))) + 1 : lines.length, 0, `${ic} MGM ${rn} uyarı: ${(x.h || []).join(", ") || "meteorolojik uyarı"}${until}`);
     }
     const k = alerts.kesinti || [];

@@ -298,32 +298,35 @@ def run(db, state, muted=lambda u, k: False, dry=False):
         subs.setdefault(s["user_id"], []).append(s)
     vapid = db("GET", "private_settings?key=eq.vapid_private&select=value")[0]["value"]
     n_m = n_k = 0
-    for u in users:
+    for u in users:  # her üyeye tek bildirim: ilindeki yeni MGM uyarısı + kesintiler
         if u["id"] not in subs or not active(u, utc_now):
             continue
         types = u.get("notify_types") or []
         if muted(u, "hepsi"):
             continue
+        titles, lines = [], []
         if new_meteo and "!meteo" not in types and not muted(u, "meteo"):
             p = str(plaka_of(u.get("wx_lat"), u.get("wx_lon"), u.get("wx_city"), iller))
-            fresh = new_meteo.get(p)
-            if fresh:
-                x = fresh[0]
-                title = f"{RENK_IKON[x['r']]} {RENK[x['r']]} uyarı · {il_ad.get(p, '')}"
-                when = f"{tr_time(x['b'])} – {tr_time(x['e'])}" if x.get("b") else ""
-                body = " · ".join(filter(None, [", ".join(x["h"]), when])) + (f"\n{first_sentences(x['m'], 140)}" if x.get("m") else "")
-                payload = json.dumps({"title": title, "body": body[:230], "url": APP_URL + "?uyari=1", "tag": "tmpro-meteo"})
-                n_m += send_push(db, subs, u["id"], payload, vapid) and 1
+            x = (new_meteo.get(p) or [None])[0]
+            if x:
+                until = f" (bitiş {tr_time(x['e'])})" if x.get("e") else ""
+                titles.append(f"{RENK_IKON[x['r']]} {il_ad.get(p, '')}: {RENK[x['r']]} uyarı")
+                lines.append(f"{RENK_IKON[x['r']]} MGM {RENK[x['r']]} uyarı · {il_ad.get(p, '')}: {', '.join(x['h']) or 'meteorolojik uyarı'}{until}")
+                n_m += 1
         if (new_out or resolved) and "!kesinti" not in types and not muted(u, "kesinti"):
             if new_out:
-                o = new_out[0]
-                title = f"⚡ {o['s']}: {o['d']}" if len(new_out) == 1 else f"⚡ {len(new_out)} hizmette kesinti"
-                body = o["a"] if len(new_out) == 1 else ", ".join(f"{x['s']} ({x['d']})" for x in new_out)
-            else:
-                title = "✅ Hizmet yeniden çalışıyor"
-                body = ", ".join(x["s"] for x in resolved) + " için kesinti giderildi."
-            payload = json.dumps({"title": title, "body": body[:230], "url": APP_URL + "?uyari=1", "tag": "tmpro-kesinti"})
-            n_k += send_push(db, subs, u["id"], payload, vapid) and 1
+                titles.append("⚡ " + (f"{new_out[0]['s'].split(' · ')[0]} kesintisi" if len(new_out) == 1 else "Hizmet kesintisi"))
+                lines += [f"⚡ {o['s']}: {o['d']}" for o in new_out]
+            if resolved:
+                if not new_out:
+                    titles.append("✅ Kesinti giderildi")
+                lines.append("✅ Yeniden çalışıyor: " + ", ".join(o["s"] for o in resolved))
+            n_k += 1
+        if not lines:
+            continue
+        title = titles[0] if len(titles) == 1 else "⚠️ " + " · ".join(t.split(" ", 1)[1] for t in titles)
+        payload = json.dumps({"title": title[:80], "body": "\n".join(lines)[:300], "url": APP_URL + "?uyari=1", "tag": "tmpro-uyari"})
+        send_push(db, subs, u["id"], payload, vapid)
     for p, lst in meteo.items():
         sent_m[p] = [f"{x['n']}:{x['r']}" for x in lst]
     for p in list(sent_m):

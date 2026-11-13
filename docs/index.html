@@ -2140,8 +2140,8 @@ async function renderAlerts(){
   const d = await loadAlerts(); const bar = $("alertBar");
   if(!d || tab !== "feed" || filter !== "Tümü"){ bar.hidden = true; return; }
   const m = (d.meteo || {})[String(myPlaka())] || [], k = d.kesinti || [], il = myIl();
-  const rows = m.slice(0, 1).map(x => `<button class="m-${esc(x.r)}"><span class="lv" style="--c:${UY_RENK[x.r]?.[1]}"></span><div class="grow">${esc(il)}: ${esc(UY_RENK[x.r]?.[0] || "")} uyarı<small>${esc((x.h || []).join(", ") || "Meteorolojik uyarı")}${x.e ? " · " + esc(uyTime(x.e)) + "'e kadar" : ""}</small></div><span style="color:var(--muted)">›</span></button>`)
-    .concat(k.length ? [`<button class="k"><span class="lv" style="--c:#5b4bff"></span><div class="grow">Hizmet kesintisi: ${esc(k.slice(0, 2).map(o => o.s.split(" · ")[0]).join(", "))}${k.length > 2 ? "…" : ""}<small>${esc(k[0].d)} · ${esc(uyTime(k[0].t))}'den beri</small></div><span style="color:var(--muted)">›</span></button>`] : []);
+  const rows = m.slice(0, 1).map(x => `<button class="m-${esc(x.r)}"><span class="lv" style="--c:${UY_RENK[x.r]?.[1]}"></span><div class="grow">${esc(il)}: ${esc(UY_RENK[x.r]?.[0] || "")} uyarı<small>${esc((x.h || []).join(", ") || "Meteorolojik uyarı")}${x.e ? " · bitiş " + esc(uyTime(x.e)) : ""}</small></div><span style="color:var(--muted)">›</span></button>`)
+    .concat(k.length ? [`<button class="k"><span class="lv" style="--c:#5b4bff"></span><div class="grow">Hizmet kesintisi: ${esc(k.slice(0, 2).map(o => o.s.split(" · ")[0]).join(", "))}${k.length > 2 ? "…" : ""}<small>${esc(k[0].d)} · başlangıç ${esc(uyTime(k[0].t))}</small></div><span style="color:var(--muted)">›</span></button>`] : []);
   bar.innerHTML = rows.join(""); bar.hidden = !rows.length;
   bar.onclick = e => { if(e.target.closest("button")) openAlerts(); };
 }
@@ -2157,7 +2157,7 @@ async function openAlerts(){
       : `<div class="uybox">${d ? "İlinizde şu an meteorolojik uyarı yok." : "Uyarı bilgisi şu an alınamadı."}</div>`}
     ${others.length ? `<div class="foot" style="margin:0 4px 8px">Uyarı olan diğer iller: ${esc(others.join(", "))}</div>` : ""}
     <div class="sect">Hizmet Kesintileri</div>
-    ${k.length ? k.map(o => `<div class="uybox"><b>${esc(o.s)} · ${esc(o.d)}</b>${esc(o.a || "")}<small>${esc(uyTime(o.t))}'den beri</small></div>`).join("")
+    ${k.length ? k.map(o => `<div class="uybox"><b>${esc(o.s)} · ${esc(o.d)}</b>${esc(o.a || "")}<small>Başlangıç: ${esc(uyTime(o.t))}</small></div>`).join("")
       : `<div class="uybox">${d ? "Takip edilen hizmetlerde (Outlook, Microsoft 365, GİB Dijital Vergi Dairesi, e-Arşiv) bilinen kesinti yok." : "Kesinti bilgisi şu an alınamadı."}</div>`}
     ${d ? `<div class="foot" style="margin:0 4px 8px">Son kontrol: ${esc(uyTime(d.t))}. İl, Hesap › Hava Durumu Konumu'na göre belirlenir.</div>` : ""}
     <button data-a="x" class="cancel">Kapat</button></div>`;
