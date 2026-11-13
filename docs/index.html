@@ -2141,7 +2141,7 @@ async function renderAlerts(){
   if(!d || tab !== "feed" || filter !== "Tümü"){ bar.hidden = true; return; }
   const m = (d.meteo || {})[String(myPlaka())] || [], k = d.kesinti || [], il = myIl();
   const rows = m.slice(0, 1).map(x => `<button class="m-${esc(x.r)}"><span class="lv" style="--c:${UY_RENK[x.r]?.[1]}"></span><div class="grow">${esc(il)}: ${esc(UY_RENK[x.r]?.[0] || "")} uyarı<small>${esc((x.h || []).join(", ") || "Meteorolojik uyarı")}${x.e ? " · bitiş " + esc(uyTime(x.e)) : ""}</small></div><span style="color:var(--muted)">›</span></button>`)
-    .concat(k.length ? [`<button class="k"><span class="lv" style="--c:#5b4bff"></span><div class="grow">Hizmet kesintisi: ${esc(k.slice(0, 2).map(o => o.s.split(" · ")[0]).join(", "))}${k.length > 2 ? "…" : ""}<small>${esc(k[0].d)} · başlangıç ${esc(uyTime(k[0].t))}</small></div><span style="color:var(--muted)">›</span></button>`] : []);
+    .concat(k.length ? [`<button class="k"><span class="lv" style="--c:#5b4bff"></span><div class="grow">Erişim sorunu: ${esc([...new Set(k.map(o => o.p || o.s))].slice(0, 2).join(", "))}${new Set(k.map(o => o.p || o.s)).size > 2 ? "…" : ""}<small>${esc(k[0].d)} · başlangıç ${esc(uyTime(k[0].t))}</small></div><span style="color:var(--muted)">›</span></button>`] : []);
   bar.innerHTML = rows.join(""); bar.hidden = !rows.length;
   bar.onclick = e => { if(e.target.closest("button")) openAlerts(); };
 }
@@ -2236,7 +2236,7 @@ function openWeekly(){
 }
 
 /* ---------------- süreli susturma ---------------- */
-const MUTE_KEYS = () => [["hepsi", "Tüm bildirimler"], ["mevzuat", "Mevzuat ve kararlar (hepsi)"], ...ORDER.map(t => [t, t]), ["takip", "Takip Listem"], ["sohbet", "Sohbet"], ["gunaydin", "Günaydın"], ["meteo", "Meteorolojik uyarılar"], ["kesinti", "Hizmet kesintileri"], ["takvim", "Takvim hatırlatmaları"], ["haftalik", "Haftalık Özet"]];
+const MUTE_KEYS = () => [["hepsi", "Tüm bildirimler"], ["mevzuat", "Mevzuat ve kararlar (hepsi)"], ...ORDER.map(t => [t, t]), ["takip", "Takip Listem"], ["sohbet", "Sohbet"], ["gunaydin", "Günaydın"], ["takvim", "Takvim hatırlatmaları"], ["haftalik", "Haftalık Özet"]];
 const muteLabel = k => (MUTE_KEYS().find(x => x[0] === k) || [k, k])[1];
 const activeMutes = () => Object.entries(me?.mute || {}).filter(([, v]) => new Date(v) > new Date()).sort((a, b) => a[0] === "hepsi" ? -1 : 0);
 const untilText = v => { const d = new Date(v), today = new Date().toDateString() === d.toDateString();
@@ -2795,9 +2795,7 @@ function myTitles(){
   if(me.birim && parts[parts.length - 1] === me.birim) parts.pop();
   return { u: parts.join(" · ") };
 }
-let ilTried = false;
 async function renderAccount(){
-  if(!ilPts && !ilTried){ ilTried = true; loadAlerts().then(() => { if(tab === "account" && ilPts) renderAccount(); }); }
   const on = await pushEnabled();
   const types = me.notify_types || ORDER;
   const sub = me.role === "admin" ? "Yönetici" : me.expires_at ? `Bitiş: ${fmtDate(me.expires_at)}` : "Süresiz";
@@ -2833,14 +2831,7 @@ async function renderAccount(){
       <div class="li"><div class="tdot" style="--c:var(--accent)"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4M7 14h4M7 17h7"/></svg></div><div class="grow"><b>Haftalık Özet</b><small>Her Cuma 17:00 · <button class="linkbtn" id="weekPeek" style="font-size:13px;padding:0">Bu haftayı gör</button></small></div>
       <label class="switch"><input type="checkbox" id="weeklyOn" ${me.weekly_on !== false ? "checked" : ""}><span></span></label></div>
       <button class="li" id="locSet" style="width:100%;border:0;background:none;text-align:left;cursor:pointer;color:inherit;font:inherit"><div class="tdot" style="--c:var(--ok)"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M21 3 3 10.5l7.5 3L14 21z"/></svg></div><div class="grow"><b>Hava Durumu Konumu</b><small>${esc(me.wx_city || "Ankara (Varsayılan)")}</small></div><span class="linkbtn" style="color:var(--accent);font-size:15px">Konumumu Kullan</span></button></div>
-    <div class="foot">Sabah bildiriminde bulunduğunuz yerin hava durumu, MGM uyarıları, buzlanma ve yağış uyarıları, süren hizmet kesintileri, resmî tatiller ve takviminize eklediğiniz günler yer alır.</div>
-    <div class="sect">Uyarılar</div>
-    <div class="list" id="uyList">
-      <div class="li"><div class="tdot" style="--c:#ff9500"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></svg></div><div class="grow"><b>Meteorolojik Uyarılar</b><small>MGM sarı, turuncu, kırmızı · ${esc(myIl())}</small></div>
-        <label class="switch"><input type="checkbox" data-uy="!meteo" ${(me.notify_types || []).includes("!meteo") ? "" : "checked"}><span></span></label></div>
-      <div class="li"><div class="tdot" style="--c:#5b4bff"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg></div><div class="grow"><b>Hizmet Kesintileri</b><small>Outlook, Microsoft 365, GİB Dijital VD, e-Arşiv</small></div>
-        <label class="switch"><input type="checkbox" data-uy="!kesinti" ${(me.notify_types || []).includes("!kesinti") ? "" : "checked"}><span></span></label></div></div>
-    <div class="foot">Uyarılar Hava Durumu Konumu'nuzdaki ile göre gelir; konum seçmediyseniz Ankara esas alınır. Yeni uyarı çıkınca anlık bildirim gelir (22:00–08:00 arası bekletilir); güncel uyarılar ana ekranda ve Günaydın bildiriminde de görünür.</div>
+    <div class="foot">Sabah bildiriminde bulunduğunuz ilin hava durumu ve o güne ait MGM uyarısı, büyük hizmet kesintileri (ör. Microsoft/Outlook), buzlanma ve yağış uyarıları, resmî tatiller ve takviminize eklediğiniz günler yer alır.</div>
     <div class="sect">Bildirim Gelecek Türler</div>
     <div class="list" id="typeList">${ORDER.map(t => `<div class="li"><div class="tdot" style="--c:var(${TYPES[t]})">${icon(t, 17)}</div><div class="grow"><b>${esc(t)}</b></div><label class="switch"><input type="checkbox" data-type="${esc(t)}" ${types.includes(t) ? "checked" : ""}><span></span></label></div>`).join("")}</div>
     <div class="sect">Davet Et, 1 Ay Kazan</div>
@@ -2906,12 +2897,10 @@ async function renderAccount(){
     }catch(err){ e.target.checked = false; toast("Bildirim açılamadı: " + (err?.message || err), 6000); }
   };
   $("muteOpen2").onclick = openMute;
-  const saveTypes = async () => {
-    const sel = [...document.querySelectorAll("#typeList input:checked")].map(x => x.dataset.type)
-      .concat([...document.querySelectorAll("#uyList input:not(:checked)")].map(x => x.dataset.uy));
+  $("typeList").onchange = async () => {
+    const sel = [...document.querySelectorAll("#typeList input:checked")].map(x => x.dataset.type);
     me.notify_types = sel; await sb.rpc("set_my_notify_types", { types: sel }); toast("Kaydedildi");
   };
-  $("typeList").onchange = saveTypes; $("uyList").onchange = saveTypes;
 }
 
 /* ---------------- yönetim ---------------- */

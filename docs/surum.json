@@ -3,13 +3,12 @@
     {
       "surum": "2.9",
       "tarih": "2026-11-13",
-      "baslik": "Yeni: Meteorolojik uyarılar ve hizmet kesintisi bildirimi",
+      "baslik": "Yeni: Günaydın'da meteorolojik uyarı ve hizmet kesintisi",
       "bildir": false,
       "notlar": [
-        "Meteorolojik uyarılar: Meteoroloji Genel Müdürlüğü'nün ilinize verdiği sarı, turuncu ve kırmızı uyarılar ana ekranda görünür, yeni uyarı çıkınca bildirim gelir. İl, Hava Durumu Konumu'nuza göre belirlenir; konum seçmediyseniz Ankara.",
-        "Hizmet kesintileri: Outlook, Microsoft 365, GİB Dijital Vergi Dairesi ve e-Arşiv Portal'da kesinti olduğunda ve giderildiğinde bildirim gelir.",
-        "Günaydın bildiriminde ilinizdeki güncel uyarı ve süren kesintiler de yer alır.",
-        "Hesap → Uyarılar bölümünden iki bildirimi ayrı ayrı kapatabilir, Sessize Al ile süreli susturabilirsiniz. Bildirimler 22:00–08:00 arası bekletilir."
+        "Günaydın bildirimine, ilinizde o gün geçerli Meteoroloji Genel Müdürlüğü uyarısı (ör. fırtına, kuvvetli yağış) kısa ayrıntısıyla eklenir. İl, Hava Durumu Konumu'nuza göre belirlenir; konum seçmediyseniz Ankara.",
+        "Microsoft (Outlook, Teams, OneDrive…), GİB Dijital Vergi Dairesi veya e-Arşiv Portal'da büyük bir erişim sorunu sürüyorsa Günaydın'da ne zamandan beri sürdüğü ve etkilenen uygulamalarla birlikte yazar.",
+        "Ana ekranda da ilinizdeki güncel uyarı ve süren kesintiler görünür; dokununca ayrıntısı açılır. Ayrı bildirim gönderilmez."
       ]
     },
     {

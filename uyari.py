@@ -3,11 +3,9 @@
 Her taramada:
 - MGM'nin il/ilçe bazlı sarı/turuncu/kırmızı uyarılarını (bugün + yarın) alır,
 - Microsoft 365 (kurumsal + Outlook.com) durum sayfalarını ve GİB e-hizmetlerinin erişilebilirliğini kontrol eder,
-- Özeti herkesin okuyabildiği settings.uyarilar anahtarına yazar (uygulama ve Günaydın bildirimi buradan okur),
-- Yeni bir uyarı ya da kesinti çıkınca ilgili üyelere anlık bildirim yollar (sessiz saat 22-08 beklenir).
-
-Üye tercihleri: profiles.notify_types içinde "!meteo" / "!kesinti" varsa o tür bildirim gelmez;
-"Sessize Al"daki "meteo" / "kesinti" anahtarları da uyulur. Konumu olmayan üye Ankara sayılır.
+- Özeti herkesin okuyabildiği settings.uyarilar anahtarına yazar; uygulama (ana ekran) ve 08:30 Günaydın
+  bildirimi buradan okur. Ayrı anlık bildirim GÖNDERİLMEZ (Tuna, 2026-11-13: "tek bildirim", Günaydın'ın içinde).
+Konumu olmayan üye Ankara sayılır.
 
 Depo herkese açık: loglara ve seen.json'a kimlik yazılmaz (yalnızca il plakası ve sayılar).
 """
@@ -25,7 +23,6 @@ APP_URL = "https://tmpro.tmproapp.workers.dev/"
 UA = {"User-Agent": "Mozilla/5.0 (TMPRO uyari)"}
 MGM_H = {**UA, "Origin": "https://www.mgm.gov.tr", "Referer": "https://www.mgm.gov.tr/"}
 ANKARA = 6
-START = datetime(2099, 1, 1, tzinfo=TR)  # ayrı uyarı bildirimi kapalı: uyarılar yalnız Günaydın içinde
 
 RENK = {"yellow": "Sarı", "orange": "Turuncu", "red": "Kırmızı"}
 RENK_SIRA = {"yellow": 1, "orange": 2, "red": 3}
@@ -33,6 +30,10 @@ RENK_IKON = {"yellow": "🟡", "orange": "🟠", "red": "🔴"}
 HADISE = {"rain": "Kuvvetli yağış", "snow": "Kar", "wind": "Kuvvetli rüzgâr ve fırtına", "fog": "Sis",
           "thunderstorm": "Gök gürültülü sağanak", "hot": "Aşırı sıcak", "cold": "Aşırı soğuk", "ice": "Buzlanma ve don",
           "agricultural": "Zirai don", "frost": "Zirai don", "dust": "Toz taşınımı", "avalanche": "Çığ", "lightning": "Yıldırım"}
+
+KISA = {"rain": "kuvvetli yağış", "snow": "kar", "wind": "fırtına", "fog": "sis", "thunderstorm": "sağanak ve fırtına",
+        "hot": "aşırı sıcak", "cold": "aşırı soğuk", "ice": "buzlanma", "agricultural": "zirai don", "frost": "zirai don",
+        "dust": "toz taşınımı", "avalanche": "çığ", "lightning": "yıldırım"}
 
 # Kendimiz ölçtüğümüz kamu e-hizmetleri (resmî durum sayfaları yok). Ard arda DOWN_AFTER tur hata = kesinti.
 PROBES = [("gib_dvd", "GİB Dijital Vergi Dairesi", "https://dijital.gib.gov.tr/"),
@@ -119,7 +120,7 @@ def fetch_meteo():
                 if any(x["n"] == str(no) for x in lst):
                     continue  # bu ilde daha yüksek seviyesi zaten eklendi
                 kinds = (a.get("weather") or {}).get(color) or []
-                lst.append({"n": str(no), "r": color, "h": [HADISE.get(k, k) for k in kinds],
+                lst.append({"n": str(no), "r": color, "h": [HADISE.get(k, k) for k in kinds], "k": [KISA.get(k, HADISE.get(k, k)) for k in kinds],
                             "m": first_sentences((a.get("text") or {}).get(color), 400),
                             "b": a.get("begin"), "e": a.get("end")})
     for lst in out.values():
@@ -149,6 +150,15 @@ def ms_status(s):
     return MS_DURUM.get(k, "aksama")
 
 
+APPS = [("Outlook", ("Outlook", "Exchange")), ("Teams", ("Teams",)), ("OneDrive", ("OneDrive",)), ("SharePoint", ("SharePoint",)),
+        ("OneNote", ("OneNote",)), ("Word/Excel/PowerPoint", ("Microsoft 365 for the web", "Office for the web", "Microsoft 365 apps")),
+        ("Copilot", ("Copilot",)), ("To Do", ("To Do", "To-Do"))]
+
+
+def apps_in(text):
+    return [name for name, keys in APPS if any(k in text for k in keys)]
+
+
 def fetch_outages():
     """Resmî durum sayfalarındaki etkin kesintiler: {anahtar: {s, d, a}} (servis, durum, ayrıntı)."""
     out, errors = {}, 0
@@ -161,9 +171,11 @@ def fetch_outages():
             desc = re.sub(r"<[^>]+>", " ", unescape(unescape((re.search(r"<description>(.*?)</description>", item, re.S) or [None, ""])[1])))
             guid = (re.search(r"<guid[^>]*>(.*?)</guid>", item) or [None, "x"])[1]
             exch = "Exchange" in desc or "Outlook" in desc
+            apps = apps_in(desc)
             out["ms365:" + guid] = {"s": "Microsoft 365 (kurumsal)" + (" · Outlook/Exchange" if exch else ""), "d": st,
                                     "a": ("Kurumsal e-posta (Outlook/Exchange) ve bağlı Microsoft 365 hizmetlerinde" if exch
-                                          else "Kurumsal Microsoft 365 hizmetlerinde") + " erişim sorunu bildiriliyor (Microsoft durum sayfası)."}
+                                          else "Kurumsal Microsoft 365 hizmetlerinde") + " erişim sorunu bildiriliyor (Microsoft durum sayfası).",
+                                    "p": "Microsoft", "apps": apps}
     except Exception as e:  # noqa: BLE001
         errors += 1
         print("Uyarı: Microsoft 365 durumu alınamadı", type(e).__name__)
@@ -173,7 +185,8 @@ def fetch_outages():
             name = CONSUMER_KEEP.get(x.get("ServiceDisplayName"))
             st = ms_status(x.get("Status"))
             if name and st:
-                out["msc:" + name] = {"s": name, "d": st, "a": f"{name} hizmetinde erişim sorunu bildiriliyor (Microsoft durum sayfası)."}
+                out["msc:" + name] = {"s": name, "d": st, "a": f"{name} hizmetinde erişim sorunu bildiriliyor (Microsoft durum sayfası).",
+                                      "p": "Microsoft", "apps": apps_in(f"{name} {x.get('Title', '')} {x.get('Message', '')}")}
     except Exception as e:  # noqa: BLE001
         errors += 1
         print("Uyarı: Outlook.com durumu alınamadı", type(e).__name__)
@@ -191,31 +204,9 @@ def probe_ok(url):
     return False
 
 
-# ---------------------------------------------------------------- bildirim
-
-def active(u, now):
-    exp = u.get("expires_at")
-    return u.get("role") == "admin" or (u.get("status") == "active" and (not exp or datetime.fromisoformat(exp) > now))
-
-
-def send_push(db, subs, uid, payload, vapid):
-    from pywebpush import webpush, WebPushException
-    n = 0
-    for s in subs.get(uid, []):
-        try:
-            webpush({"endpoint": s["endpoint"], "keys": {"p256dh": s["p256dh"], "auth": s["auth"]}}, payload,
-                    vapid_private_key=vapid, vapid_claims={"sub": "mailto:bildirim@tmpro.app"}, ttl=21600)
-            n += 1
-        except WebPushException as e:
-            if getattr(e.response, "status_code", None) in (404, 410):
-                db("DELETE", f"push_subs?id=eq.{s['id']}")
-    return n
-
-
-def run(db, state, muted=lambda u, k: False, dry=False):
+def run(db, state, muted=None, dry=False):
     now_tr = datetime.now(TR)
     utc_now = datetime.now(timezone.utc)
-    quiet = now_tr.hour >= QUIET[0] or now_tr.hour < QUIET[1]
     iller = load_iller()
     il_ad = {str(p): ad for p, ad, _, _ in iller[:81]}
     st = state.setdefault("uyari", {})
@@ -245,15 +236,19 @@ def run(db, state, muted=lambda u, k: False, dry=False):
             if p["fail"] >= DOWN_AFTER:
                 p["down"] = True
         if p["down"]:
-            found["tr:" + key] = {"s": name, "d": "erişilemiyor", "a": "Site birkaç denemedir yanıt vermiyor; işlemlerinizi sonraya bırakmanız gerekebilir."}
+            found["tr:" + key] = {"s": name, "d": "erişilemiyor", "a": "Site birkaç denemedir yanıt vermiyor; işlemlerinizi sonraya bırakmanız gerekebilir.",
+                                  "p": name, "apps": []}
     outs = st.setdefault("kesinti", {})  # anahtar -> {s,d,a,t(başlangıç),gone,pushed}
     resolved = []
+    known = st.get("init")  # ilk turda zaten süren kesintilerin başlangıç saati bilinmez
+    st["init"] = True
     for k, v in found.items():
         o = outs.get(k)
         if o:
-            o.update(s=v["s"], d=v["d"], a=v["a"], gone=0)
+            o.update(s=v["s"], d=v["d"], a=v["a"], p=v["p"], apps=v["apps"], gone=0)
+            o.setdefault("tb", False)
         else:
-            outs[k] = {**v, "t": utc_now.isoformat(timespec="minutes"), "gone": 0, "pushed": False}
+            outs[k] = {**v, "t": utc_now.isoformat(timespec="minutes"), "tb": bool(known), "gone": 0}
     for k in list(outs):
         if k in found:
             continue
@@ -265,7 +260,8 @@ def run(db, state, muted=lambda u, k: False, dry=False):
 
     # 3) Herkese açık özet (uygulama + Günaydın)
     summary = {"t": utc_now.isoformat(timespec="minutes"), "meteo": meteo,
-               "kesinti": [{"s": o["s"], "d": o["d"], "a": o["a"], "t": o["t"]} for o in outs.values()]}
+               "kesinti": [{"s": o["s"], "d": o["d"], "a": o["a"], "t": o["t"], "tb": o.get("tb", False),
+                            "p": o.get("p") or o["s"], "apps": o.get("apps") or []} for o in outs.values()]}
     state["uyari_son"] = {"meteo": meteo}
     if not dry:
         try:
@@ -275,68 +271,7 @@ def run(db, state, muted=lambda u, k: False, dry=False):
             print("Uyarı özeti kaydedilemedi", type(e).__name__, getattr(e, "code", ""))
     print(f"Uyarılar: meteorolojik uyarılı il {len(meteo)}, etkin kesinti {len(outs)}, giderilen {len(resolved)}")
 
-    # 4) Anlık bildirimler
-    sent_m = st.setdefault("meteo_sent", {})  # plaka -> ["alertNo:renk", ...]
-    new_meteo = {}
-    for p, lst in meteo.items():
-        keys = [f"{x['n']}:{x['r']}" for x in lst]
-        fresh = [x for x, k in zip(lst, keys) if k not in sent_m.get(p, [])]
-        if fresh:
-            new_meteo[p] = fresh
-    new_out = [o for o in outs.values() if not o.get("pushed")]
-    resolved = [o for o in resolved if o.get("pushed")]
-    if now_tr < START:
-        quiet = True  # ilk yayın günü: bildirimler 13.11.2026 09:00'da başlar
-    if quiet or dry or not (new_meteo or new_out or resolved):
-        if quiet and (new_meteo or new_out):
-            print("Uyarılar: sessiz saat, bildirim sabaha kaldı")
-        return summary
-
-    users = db("GET", "profiles?select=id,role,status,expires_at,notify_types,mute,wx_lat,wx_lon,wx_city") or []
-    subs = {}
-    for s in db("GET", "push_subs?select=id,user_id,endpoint,p256dh,auth") or []:
-        subs.setdefault(s["user_id"], []).append(s)
-    vapid = db("GET", "private_settings?key=eq.vapid_private&select=value")[0]["value"]
-    n_m = n_k = 0
-    for u in users:  # her üyeye tek bildirim: ilindeki yeni MGM uyarısı + kesintiler
-        if u["id"] not in subs or not active(u, utc_now):
-            continue
-        types = u.get("notify_types") or []
-        if muted(u, "hepsi"):
-            continue
-        titles, lines = [], []
-        if new_meteo and "!meteo" not in types and not muted(u, "meteo"):
-            p = str(plaka_of(u.get("wx_lat"), u.get("wx_lon"), u.get("wx_city"), iller))
-            x = (new_meteo.get(p) or [None])[0]
-            if x:
-                until = f" (bitiş {tr_time(x['e'])})" if x.get("e") else ""
-                titles.append(f"{RENK_IKON[x['r']]} {il_ad.get(p, '')}: {RENK[x['r']]} uyarı")
-                lines.append(f"{RENK_IKON[x['r']]} MGM {RENK[x['r']]} uyarı · {il_ad.get(p, '')}: {', '.join(x['h']) or 'meteorolojik uyarı'}{until}")
-                n_m += 1
-        if (new_out or resolved) and "!kesinti" not in types and not muted(u, "kesinti"):
-            if new_out:
-                titles.append("⚡ " + (f"{new_out[0]['s'].split(' · ')[0]} kesintisi" if len(new_out) == 1 else "Hizmet kesintisi"))
-                lines += [f"⚡ {o['s']}: {o['d']}" for o in new_out]
-            if resolved:
-                if not new_out:
-                    titles.append("✅ Kesinti giderildi")
-                lines.append("✅ Yeniden çalışıyor: " + ", ".join(o["s"] for o in resolved))
-            n_k += 1
-        if not lines:
-            continue
-        title = titles[0] if len(titles) == 1 else "⚠️ " + " · ".join(t.split(" ", 1)[1] for t in titles)
-        payload = json.dumps({"title": title[:80], "body": "\n".join(lines)[:300], "url": APP_URL + "?uyari=1", "tag": "tmpro-uyari"})
-        send_push(db, subs, u["id"], payload, vapid)
-    for p, lst in meteo.items():
-        sent_m[p] = [f"{x['n']}:{x['r']}" for x in lst]
-    for p in list(sent_m):
-        if p not in meteo:
-            del sent_m[p]
-    for o in new_out:
-        o["pushed"] = True
-    print(f"Uyarı bildirimi: meteorolojik {n_m} üye, kesinti {n_k} üye")
     return summary
-
 
 if __name__ == "__main__":  # deneme: kaynakları okur, yazmaz ve bildirim göndermez
     m = fetch_meteo()

@@ -84,7 +84,7 @@ export function weatherAdvice(w) {
   return "";
 }
 
-export function composeMorning(u, w, hol, today, tomorrow, alerts) {
+export function composeMorning(u, w, hol, today, tomorrow, alerts, iller = []) {
   const city = u.city || "Ankara", first = String(u.name || "").trim().split(/\s+/)[0];
   const th = holidaysOn(hol, today), tm = holidaysOn(hol, tomorrow);
   const special = th.find(h => h.mesaj);
@@ -103,20 +103,9 @@ export function composeMorning(u, w, hol, today, tomorrow, alerts) {
   const nt = tm.find(h => h.tur !== "anma");
   if (nt && !th.some(h => h.tur === "tatil")) lines.push(`📅 Yarın ${nt.ad}${nt.tur === "yarim" ? " (yarım gün)" : ""}`);
   if (u.events?.length) lines.push("📌 " + u.events.join(", "));
-  if (alerts) {
-    // MGM uyarısı yalnız üyenin ilindeki en yüksek seviye; kesintiler herkese
-    const m = (alerts.meteo || {})[String(u.plaka || 6)];
-    if (m?.length) {
-      const x = m[0], ic = { yellow: "🟡", orange: "🟠", red: "🔴" }[x.r] || "⚠️", rn = { yellow: "Sarı", orange: "Turuncu", red: "Kırmızı" }[x.r] || "";
-      const end = x.e ? new Date(new Date(x.e).getTime() + 3 * 3600e3) : null;
-      const until = end ? ` (bitiş ${end.getUTCDate()} ${["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"][end.getUTCMonth()]} ${String(end.getUTCHours()).padStart(2, "0")}:${String(end.getUTCMinutes()).padStart(2, "0")})` : "";
-      lines.splice(w ? lines.findIndex(l => l.startsWith(WICON(w.code))) + 1 : lines.length, 0, `${ic} MGM ${rn} uyarı: ${(x.h || []).join(", ") || "meteorolojik uyarı"}${until}`);
-    }
-    const k = alerts.kesinti || [];
-    if (k.length) lines.push(`⚡ Kesinti: ${k.slice(0, 3).map(o => `${o.s} (${o.d})`).join(", ")}${k.length > 3 ? "…" : ""}`);
-  }
+  if (alerts) lines.push(...alertLines(alerts, u.plaka || 6, iller, today));
   const title = special ? special.ad : `Günaydın${first ? " " + first : ""}`;
-  return { title, body: (lines.join("\n") || "İyi çalışmalar.").slice(0, 400), url: "https://tmpro.tmproapp.workers.dev/", tag: "tmpro-gunaydin" };
+  return { title, body: (lines.join("\n") || "İyi çalışmalar.").slice(0, 700), url: "https://tmpro.tmproapp.workers.dev/", tag: "tmpro-gunaydin" };
 }
 
 const trLow = s => String(s || "").replace(/I/g, "ı").replace(/İ/g, "i").toLowerCase().trim();
@@ -133,6 +122,47 @@ export function plakaOf(lat, lon, city, pts) {
   let best = 6, bd = 1e9;
   for (const [p, , la, lo] of pts) { const d = (la - lat) ** 2 + ((lo - lon) * Math.cos(lat * Math.PI / 180)) ** 2; if (d < bd) { best = p; bd = d; } }
   return best;
+}
+
+// ---- Günaydın: bugüne özel MGM uyarısı ve süren büyük kesintiler (uyari.py → settings.uyarilar)
+const VOW = "aıoueiöü", BACK = "aıou", HARD = "fsçşhkpt";
+export function trSuffix(word, back, front) {  // ek uyumu: İstanbul'da, Microsoft'ta, İzmir'de, 21:30'dan
+  const w = trLow(word); let v = "e";
+  for (let i = w.length - 1; i >= 0; i--) if (VOW.includes(w[i])) { v = w[i]; break; }
+  const hard = HARD.includes(w[w.length - 1]);
+  const ek = (BACK.includes(v) ? back : front);
+  return `${word}'${hard ? ek.replace(/^d/, "t") : ek}`;
+}
+const NUMW = ["sıfır", "bir", "iki", "üç", "dört", "beş", "altı", "yedi", "sekiz", "dokuz"], TENW = ["", "on", "yirmi", "otuz", "kırk", "elli"];
+function clockFrom(d) {  // "21:30'dan", "21:00'den", "09:40'tan"
+  const h = d.getUTCHours(), m = d.getUTCMinutes(), n = m || h;
+  const word = n === 0 ? "sıfır" : n % 10 ? NUMW[n % 10] : TENW[n / 10];
+  const v = [...word].reverse().find(c => VOW.includes(c)) || "e", hard = HARD.includes(word.slice(-1));
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}'${hard ? "t" : "d"}${BACK.includes(v) ? "an" : "en"}`;
+}
+export function alertLines(alerts, plaka, iller, today) {
+  const out = [], il = (iller[plaka - 1] || [])[1] || "";
+  const endOfToday = new Date(today + "T21:00:00Z").getTime(), now = Date.now();  // 24:00 TR
+  const m = ((alerts.meteo || {})[String(plaka)] || []).filter(x => (!x.b || new Date(x.b).getTime() < endOfToday) && (!x.e || new Date(x.e).getTime() > now));
+  if (m.length && il) {
+    const x = m[0], ic = { yellow: "🟡", orange: "🟠", red: "🔴" }[x.r] || "⚠️", rn = { yellow: "sarı", orange: "turuncu", red: "kırmızı" }[x.r] || "";
+    const kind = (x.k || x.h || []).join(" ve ") || "meteorolojik";
+    const kmh = [...String(x.m || "").matchAll(/(\d+\s*-\s*\d+)\s*km\/saat/g)].pop();
+    const mm = [...String(x.m || "").matchAll(/(\d+\s*-\s*\d+)\s*(mm|kg\/m)/g)].pop();
+    let det = kmh ? `rüzgâr ${kmh[1].replace(/\s/g, "")} km/sa` : mm ? `${mm[1].replace(/\s/g, "")} mm yağış` : "";
+    if (x.e) { const e = new Date(new Date(x.e).getTime() + 3 * 3600e3), d = Math.round((Date.UTC(e.getUTCFullYear(), e.getUTCMonth(), e.getUTCDate()) - new Date(today + "T00:00:00Z").getTime()) / 864e5);
+      det += (det ? ", " : "") + "bitiş " + (d === 0 ? "bugün" : d === 1 ? "yarın" : `${e.getUTCDate()} ${["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"][e.getUTCMonth()]}`) + ` ${String(e.getUTCHours()).padStart(2, "0")}:${String(e.getUTCMinutes()).padStart(2, "0")}`; }
+    out.push(`${ic} ${trSuffix(il, "da", "de")} ${kind} uyarısı (${rn})${det ? ": " + det : ""}`);
+  }
+  const groups = {};
+  for (const o of alerts.kesinti || []) { const g = groups[o.p || o.s] ||= { apps: new Set(), t: null, tb: false, d: o.d };
+    (o.apps || []).forEach(a => g.apps.add(a)); if (o.tb && (!g.t || o.t < g.t)) { g.t = o.t; g.tb = true; } }
+  for (const [p, g] of Object.entries(groups).slice(0, 3)) {
+    const since = g.tb ? ` (saat ${clockFrom(new Date(new Date(g.t).getTime() + 3 * 3600e3))} beri)` : "";
+    const apps = [...g.apps].slice(0, 5);
+    out.push(`⚡ ${trSuffix(p, "da", "de")} erişim sorunu${since}${apps.length ? ". Etkilenen: " + apps.join(", ") : ""}`);
+  }
+  return out;
 }
 
 async function morning(j, env) {
@@ -154,7 +184,7 @@ async function morning(j, env) {
     const k = lat.toFixed(2) + "," + lon.toFixed(2);
     wx[k] ||= fetchWx(lat, lon).catch(() => null);
     u.plaka = plakaOf(u.lat, u.lon, u.city, iller);
-    const msg = composeMorning(u, await wx[k], hol, today, tomorrow, alerts);
+    const msg = composeMorning(u, await wx[k], hol, today, tomorrow, alerts, iller);
     if (j.preview) { out.push(msg); continue; }
     const res = await Promise.all((u.subs || []).map(s => sendOne(s, JSON.stringify(msg), j.vapid).catch(() => 0)));
     sent += res.filter(x => x >= 200 && x < 300).length;
