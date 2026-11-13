@@ -92,12 +92,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 141,
+    "ok": 142,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 141,
+    "ok": 142,
     "down": false
    }
   },
@@ -119,23 +119,6 @@
      "To Do"
     ],
     "tb": false
-   },
-   "ms365:17d8f322-6daf-4cd0-8505-7fc513376965": {
-    "s": "Microsoft 365 (kurumsal) · Outlook/Exchange",
-    "d": "aksama",
-    "a": "Kurumsal e-posta (Outlook/Exchange) ve bağlı Microsoft 365 hizmetlerinde erişim sorunu bildiriliyor (Microsoft durum sayfası).",
-    "p": "Microsoft",
-    "apps": [
-     "Outlook",
-     "Teams",
-     "SharePoint",
-     "Word/Excel/PowerPoint",
-     "Copilot",
-     "To Do"
-    ],
-    "t": "2026-11-13T16:28+00:00",
-    "tb": true,
-    "gone": 1
    },
    "ms365:389205a0-f8d9-4acb-9572-d501c1d8de97": {
     "s": "Microsoft 365 (kurumsal) · Outlook/Exchange",
@@ -169,7 +152,7 @@
     ],
     "t": "2026-11-13T05:31+00:00",
     "tb": false,
-    "end": "2026-11-13T16:55+00:00"
+    "end": "2026-11-13T18:53+00:00"
    }
   }
  },
