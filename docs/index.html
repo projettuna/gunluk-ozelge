@@ -2306,7 +2306,8 @@ function ntfTarget(n){
   if(u.searchParams.has("takip")) return ["Takip Listemi aç", () => { tab = "watch"; render(); scrollTo({ top: 0 }); }];
   if(u.searchParams.has("yenilikler")) return ["Yenilikleri gör", () => openVersionSheet("all")];
   if(u.searchParams.has("uyari")) return ["Uyarıları gör", () => openAlerts()];
-  if(n.tag === "tmpro-gunaydin" || n.tag === "tmpro-takvim") return ["Takvimi aç", () => { tab = "cal"; render(); scrollTo({ top: 0 }); }];
+  if(n.tag === "tmpro-gunaydin") return /⚡|uyarısı \(/.test(n.body || "") ? ["Uyarıları gör", () => openAlerts()] : ["Hava durumunu aç", () => openWxView()];
+  if(n.tag === "tmpro-takvim") return ["Takvimi aç", () => { tab = "cal"; render(); scrollTo({ top: 0 }); }];
   if(/kayıt|mevzuat|özelge|karar|tebliğ|gazete|sirküler|kanun/i.test((n.title || "") + " " + (n.body || ""))) return ["Akışı aç", () => { tab = "feed"; filter = "Tümü"; render(); scrollTo({ top: 0 }); }];
   return null;
 }
