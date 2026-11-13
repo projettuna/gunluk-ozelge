@@ -92,12 +92,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 4,
+    "ok": 5,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 4,
+    "ok": 5,
     "down": false
    }
   },
@@ -107,7 +107,7 @@
     "d": "aksama",
     "a": "Kurumsal e-posta (Outlook/Exchange) ve bağlı Microsoft 365 hizmetlerinde erişim sorunu bildiriliyor (Microsoft durum sayfası).",
     "t": "2026-11-13T05:31+00:00",
-    "gone": 0,
+    "gone": 1,
     "pushed": false,
     "p": "Microsoft",
     "apps": [
@@ -137,10 +137,28 @@
      "To Do"
     ],
     "tb": false
+   },
+   "ms365:b47d34bb-28b4-4fa3-a0c2-7a5932ec7597": {
+    "s": "Microsoft 365 (kurumsal) · Outlook/Exchange",
+    "d": "aksama",
+    "a": "Kurumsal e-posta (Outlook/Exchange) ve bağlı Microsoft 365 hizmetlerinde erişim sorunu bildiriliyor (Microsoft durum sayfası).",
+    "p": "Microsoft",
+    "apps": [
+     "Outlook",
+     "Teams",
+     "SharePoint",
+     "Word/Excel/PowerPoint",
+     "Copilot",
+     "To Do"
+    ],
+    "t": "2026-11-13T05:51+00:00",
+    "tb": true,
+    "gone": 0
    }
   },
   "meteo_sent": {},
-  "init": true
+  "init": true,
+  "bitti": {}
  },
  "uyari_son": {
   "meteo": {
