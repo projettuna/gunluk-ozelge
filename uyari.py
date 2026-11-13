@@ -13,6 +13,7 @@ import json
 import math
 import os
 import re
+import sys
 from datetime import datetime, timedelta, timezone
 from html import unescape
 from urllib.request import Request, urlopen
@@ -271,9 +272,83 @@ def run(db, state, muted=None, dry=False):
             print("Uyarı özeti kaydedilemedi", type(e).__name__, getattr(e, "code", ""))
     print(f"Uyarılar: meteorolojik uyarılı il {len(meteo)}, etkin kesinti {len(outs)}, giderilen {len(resolved)}")
 
+    # 4) "Giderildi" bildirimi (Tuna, 2026-11-13): büyük kesinti (≥30 dk ya da sistem açılmadan önce başlamış)
+    #    kaynakta art arda GONE_AFTER tur görünmeyip teyit edilince, aynı sağlayıcıda süren başka sorun yoksa
+    #    tüm aktif üyelere tek bildirim. Sessiz saatte (22-08) çözülürse sabah 08:00'den sonra gider.
+    pend = st.setdefault("bitti", {})
+    for o in resolved:
+        start = datetime.fromisoformat(o["t"])
+        if o.get("tb", False) and utc_now - start < timedelta(minutes=30):
+            continue  # kısa süreli dalgalanma: bildirim yok
+        g = pend.setdefault(o.get("p") or o["s"], {"apps": [], "t": o["t"], "tb": o.get("tb", False)})
+        g["apps"] = list(dict.fromkeys(g["apps"] + (o.get("apps") or [])))
+        g["end"] = utc_now.isoformat(timespec="minutes")
+        if o["t"] < g["t"]:
+            g["t"] = o["t"]
+        g["tb"] = g["tb"] and o.get("tb", False)
+    active_p = {o.get("p") or o["s"] for o in outs.values()}
+    ready = {k: v for k, v in pend.items() if k not in active_p}  # sağlayıcıda süren başka sorun varsa bekler
+    quiet = now_tr.hour >= QUIET[0] or now_tr.hour < QUIET[1]
+    if ready and not quiet and not dry:
+        try:
+            recovery_push(db, ready, muted)
+            for k in ready:
+                del pend[k]
+        except Exception as e:  # noqa: BLE001
+            print("Giderildi bildirimi gönderilemedi", type(e).__name__)
     return summary
 
-if __name__ == "__main__":  # deneme: kaynakları okur, yazmaz ve bildirim göndermez
+
+def ek(word, back, front):
+    """Türkçe ek uyumu: Microsoft'ta, GİB Dijital Vergi Dairesi'nde değil 'de' (basit kural)."""
+    w = tr_low(word)
+    v = next((c for c in reversed(w) if c in "aıoueiöü"), "e")
+    hard = w[-1:] in "fsçşhkpt"
+    e = back if v in "aıou" else front
+    return f"{word}'{('t' + e[1:]) if hard and e[0] == 'd' else e}"
+
+
+def sure(start, end):
+    m = int((end - start).total_seconds() // 60)
+    return f"{m // 60} saat {m % 60} dk" if m >= 60 and m % 60 else f"{m // 60} saat" if m >= 60 else f"{m} dk"
+
+
+def recovery_push(db, pend, muted=None, only_admin=False):
+    from pywebpush import webpush, WebPushException
+    lines, provs = [], list(pend)
+    for prov, g in pend.items():
+        apps = ", ".join(g["apps"][:5])
+        dur = f" Kesinti yaklaşık {sure(datetime.fromisoformat(g['t']), datetime.fromisoformat(g['end']))} sürdü." if g.get("tb") else ""
+        lines.append(f"{ek(prov, 'da', 'de')} yaşanan erişim sorunu giderildi" + (f"; {apps} yeniden çalışıyor." if apps else ".") + dur)
+    title = "✅ Sorun giderildi: " + ", ".join(provs)
+    payload = json.dumps({"title": title[:80], "body": " ".join(lines)[:300], "url": APP_URL + "?uyari=1", "tag": "tmpro-kesinti"})
+    utc_now = datetime.now(timezone.utc)
+    users = {u["id"]: u for u in db("GET", "profiles?select=id,role,status,expires_at,mute") or []}
+    vapid = db("GET", "private_settings?key=eq.vapid_private&select=value")[0]["value"]
+    sent, people = 0, set()
+    for s in db("GET", "push_subs?select=id,user_id,endpoint,p256dh,auth") or []:
+        u = users.get(s["user_id"])
+        if not u or (only_admin and u.get("role") != "admin"):
+            continue
+        exp = u.get("expires_at")
+        if not (u.get("role") == "admin" or (u.get("status") == "active" and (not exp or datetime.fromisoformat(exp) > utc_now))):
+            continue
+        if muted and muted(u, "hepsi"):
+            continue
+        try:
+            webpush({"endpoint": s["endpoint"], "keys": {"p256dh": s["p256dh"], "auth": s["auth"]}}, payload,
+                    vapid_private_key=vapid, vapid_claims={"sub": "mailto:bildirim@tmpro.app"}, ttl=21600)
+            sent += 1
+            people.add(s["user_id"])
+        except WebPushException as e:
+            if getattr(e.response, "status_code", None) in (404, 410):
+                db("DELETE", f"push_subs?id=eq.{s['id']}")
+    print(f"Giderildi bildirimi: {', '.join(provs)} · {len(people)} üye, {sent} cihaz")
+
+if __name__ == "__main__" and "--giderildi-test" in sys.argv:  # yalnız yöneticilere örnek "giderildi" bildirimi
+    import ozelge
+    recovery_push(ozelge.db, {"Microsoft": {"apps": ["Outlook", "Teams", "OneDrive"], "tb": False}}, only_admin=True)
+elif __name__ == "__main__":  # deneme: kaynakları okur, yazmaz ve bildirim göndermez
     m = fetch_meteo()
     il = {str(p): ad for p, ad, _, _ in load_iller()[:81]}
     print("Meteorolojik uyarılı iller:", ", ".join(f"{il[p]} ({RENK[v[0]['r']]})" for p, v in sorted(m.items(), key=lambda x: int(x[0]))))

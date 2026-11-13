@@ -141,6 +141,7 @@ jobs:
           fi
           if [ -n "${{ inputs.ayar }}" ]; then AYAR="${{ inputs.ayar }}" python tools/ayar.py; exit 0; fi
           if [ "${{ inputs.madde_cek }}" = "true" ]; then python tools/madde_cek.py; exit 0; fi
+          if [ "${{ inputs.ictihat_test }}" = "giderildi_dene" ]; then python uyari.py --giderildi-test; exit 0; fi
           if [ "${{ inputs.ictihat_test }}" = "uyari_dene" ]; then python uyari.py; exit 0; fi
           if [ "${{ inputs.ictihat_test }}" = "kontrol" ]; then SUPABASE_PUBLISHABLE_KEY=x KONTROL=1 python tools/taslak_test.py; exit 0; fi
           if [ "${{ inputs.ictihat_test }}" = "arsiv_uye" ]; then SUPABASE_PUBLISHABLE_KEY=sb_publishable_tlfwqtscxxv2vdSHe3PstQ_XO1db8p9 YALNIZ_ARSIV=1 python tools/taslak_test.py; exit 0; fi

@@ -8,7 +8,8 @@
       "notlar": [
         "Günaydın bildirimine, ilinizde o gün geçerli Meteoroloji Genel Müdürlüğü uyarısı (ör. fırtına, kuvvetli yağış) kısa ayrıntısıyla eklenir. İl, Hava Durumu Konumu'nuza göre belirlenir; konum seçmediyseniz Ankara.",
         "Microsoft (Outlook, Teams, OneDrive…), GİB Dijital Vergi Dairesi veya e-Arşiv Portal'da büyük bir erişim sorunu sürüyorsa Günaydın'da ne zamandan beri sürdüğü ve etkilenen uygulamalarla birlikte yazar.",
-        "Ana ekranda da ilinizdeki güncel uyarı ve süren kesintiler görünür; dokununca ayrıntısı açılır. Ayrı bildirim gönderilmez."
+        "Büyük bir kesinti giderildiğinde, durum sayfasından teyit edildikten sonra \"Sorun giderildi\" bildirimi gelir (gece çözülürse sabah 08:00'den sonra).",
+        "Ana ekranda da ilinizdeki güncel uyarı ve süren kesintiler görünür; dokununca ayrıntısı açılır."
       ]
     },
     {
