@@ -103,6 +103,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main   # sırada bekleyen tur, tetiklendiği andaki değil en güncel durumla (seen.json) başlasın
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -165,5 +167,6 @@ jobs:
           git add seen.json docs/feed.json 2>/dev/null || git add seen.json
           git diff --cached --quiet && exit 0
           git commit -m "Durumu güncelle"
-          git pull --rebase -q
-          git push
+          # Araya başka bir kayıt girdiyse çakışmada bu turun durumu geçerli sayılır; itme reddedilirse bir kez daha denenir
+          git pull --rebase -q -X theirs || { git rebase --abort; git pull --rebase -q -X theirs; }
+          git push || { git pull --rebase -q -X theirs && git push; }
