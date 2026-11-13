@@ -92,12 +92,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 81,
+    "ok": 82,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 81,
+    "ok": 82,
     "down": false
    }
   },
@@ -171,6 +171,19 @@
      "m": "Rüzgarın, güney ve güneybatı yönlerden kuvvetli olarak (40-60 km/saat), 13.11.2026 Cuma günü sabah saatlerinden itibaren ise fırtına ve kısa süreli kuvvetli fırtına (60-90 km/saat) şeklinde esmesi bekleniyor. 14.11.2026 Cumartesi akşam saatlerinden itibaren etkisini kaybetmesi beklenen kuvvetli rüzgar ve fırtınanın sebep olabileceği ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi,…",
      "b": "2026-11-12T09:00:00.000Z",
      "e": "2026-11-14T16:00:00.000Z"
+    },
+    {
+     "n": "2026111312",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Kuvvetli sağanak ve gök gürültülü sağanak yağış bekleniyor. Kuvvetli yağışlarla birlikte ani sel, su baskını, yıldırım, yerel dolu yağışı, fırtına ve ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-14T15:00:00.357Z",
+     "e": "2026-11-15T03:00:00.357Z"
     },
     {
      "n": "2026111311",
