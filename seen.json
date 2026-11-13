@@ -87,5 +87,174 @@
  },
  "madde_last_id": 464,
  "madde_text_day": "2026-11-13",
- "event_remind_day": "2026-11-12"
+ "event_remind_day": "2026-11-12",
+ "uyari": {
+  "probe": {
+   "gib_dvd": {
+    "fail": 0,
+    "ok": 1,
+    "down": false
+   },
+   "earsiv": {
+    "fail": 0,
+    "ok": 1,
+    "down": false
+   }
+  },
+  "kesinti": {
+   "ms365:f4af3f05-0501-4c7e-9ecd-3d65076c55af": {
+    "s": "Microsoft 365 (kurumsal) · Outlook/Exchange",
+    "d": "aksama",
+    "a": "Kurumsal e-posta (Outlook/Exchange) ve bağlı Microsoft 365 hizmetlerinde erişim sorunu bildiriliyor (Microsoft durum sayfası).",
+    "t": "2026-11-13T05:31+00:00",
+    "gone": 0,
+    "pushed": false
+   },
+   "msc:Microsoft 365 (bireysel)": {
+    "s": "Microsoft 365 (bireysel)",
+    "d": "aksama",
+    "a": "Microsoft 365 (bireysel) hizmetinde erişim sorunu bildiriliyor (Microsoft durum sayfası).",
+    "t": "2026-11-13T05:31+00:00",
+    "gone": 0,
+    "pushed": false
+   }
+  },
+  "meteo_sent": {}
+ },
+ "uyari_son": {
+  "meteo": {
+   "10": [
+    {
+     "n": "2026111101",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "m": "Rüzgarın, güney ve güneybatı yönlerden kuvvetli olarak (40-60 km/saat), 13.11.2026 Cuma günü sabah saatlerinden itibaren ise fırtına ve kısa süreli kuvvetli fırtına (60-90 km/saat) şeklinde esmesi bekleniyor. 14.11.2026 Cumartesi akşam saatlerinden itibaren etkisini kaybetmesi beklenen kuvvetli rüzgar ve fırtınanın sebep olabileceği ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi,…",
+     "b": "2026-11-12T09:00:00.000Z",
+     "e": "2026-11-14T16:00:00.000Z"
+    }
+   ],
+   "11": [
+    {
+     "n": "2026111101",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "m": "Rüzgarın, güney ve güneybatı yönlerden kuvvetli olarak (40-60 km/saat), 13.11.2026 Cuma günü sabah saatlerinden itibaren ise fırtına ve kısa süreli kuvvetli fırtına (60-90 km/saat) şeklinde esmesi bekleniyor. 14.11.2026 Cumartesi akşam saatlerinden itibaren etkisini kaybetmesi beklenen kuvvetli rüzgar ve fırtınanın sebep olabileceği ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi,…",
+     "b": "2026-11-12T09:00:00.000Z",
+     "e": "2026-11-14T16:00:00.000Z"
+    }
+   ],
+   "16": [
+    {
+     "n": "2026111101",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "m": "Rüzgarın, güney ve güneybatı yönlerden kuvvetli olarak (40-60 km/saat), 13.11.2026 Cuma günü sabah saatlerinden itibaren ise fırtına ve kısa süreli kuvvetli fırtına (60-90 km/saat) şeklinde esmesi bekleniyor. 14.11.2026 Cumartesi akşam saatlerinden itibaren etkisini kaybetmesi beklenen kuvvetli rüzgar ve fırtınanın sebep olabileceği ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi,…",
+     "b": "2026-11-12T09:00:00.000Z",
+     "e": "2026-11-14T16:00:00.000Z"
+    }
+   ],
+   "17": [
+    {
+     "n": "2026111101",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "m": "Rüzgarın, güney ve güneybatı yönlerden kuvvetli olarak (40-60 km/saat), 13.11.2026 Cuma günü sabah saatlerinden itibaren ise fırtına ve kısa süreli kuvvetli fırtına (60-90 km/saat) şeklinde esmesi bekleniyor. 14.11.2026 Cumartesi akşam saatlerinden itibaren etkisini kaybetmesi beklenen kuvvetli rüzgar ve fırtınanın sebep olabileceği ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi,…",
+     "b": "2026-11-12T09:00:00.000Z",
+     "e": "2026-11-14T16:00:00.000Z"
+    }
+   ],
+   "22": [
+    {
+     "n": "2026111101",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "m": "Rüzgarın, güney ve güneybatı yönlerden kuvvetli olarak (40-60 km/saat), 13.11.2026 Cuma günü sabah saatlerinden itibaren ise fırtına ve kısa süreli kuvvetli fırtına (60-90 km/saat) şeklinde esmesi bekleniyor. 14.11.2026 Cumartesi akşam saatlerinden itibaren etkisini kaybetmesi beklenen kuvvetli rüzgar ve fırtınanın sebep olabileceği ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi,…",
+     "b": "2026-11-12T09:00:00.000Z",
+     "e": "2026-11-14T16:00:00.000Z"
+    }
+   ],
+   "34": [
+    {
+     "n": "2026111101",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "m": "Rüzgarın, güney ve güneybatı yönlerden kuvvetli olarak (40-60 km/saat), 13.11.2026 Cuma günü sabah saatlerinden itibaren ise fırtına ve kısa süreli kuvvetli fırtına (60-90 km/saat) şeklinde esmesi bekleniyor. 14.11.2026 Cumartesi akşam saatlerinden itibaren etkisini kaybetmesi beklenen kuvvetli rüzgar ve fırtınanın sebep olabileceği ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi,…",
+     "b": "2026-11-12T09:00:00.000Z",
+     "e": "2026-11-14T16:00:00.000Z"
+    }
+   ],
+   "39": [
+    {
+     "n": "2026111101",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "m": "Rüzgarın, güney ve güneybatı yönlerden kuvvetli olarak (40-60 km/saat), 13.11.2026 Cuma günü sabah saatlerinden itibaren ise fırtına ve kısa süreli kuvvetli fırtına (60-90 km/saat) şeklinde esmesi bekleniyor. 14.11.2026 Cumartesi akşam saatlerinden itibaren etkisini kaybetmesi beklenen kuvvetli rüzgar ve fırtınanın sebep olabileceği ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi,…",
+     "b": "2026-11-12T09:00:00.000Z",
+     "e": "2026-11-14T16:00:00.000Z"
+    }
+   ],
+   "41": [
+    {
+     "n": "2026111101",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "m": "Rüzgarın, güney ve güneybatı yönlerden kuvvetli olarak (40-60 km/saat), 13.11.2026 Cuma günü sabah saatlerinden itibaren ise fırtına ve kısa süreli kuvvetli fırtına (60-90 km/saat) şeklinde esmesi bekleniyor. 14.11.2026 Cumartesi akşam saatlerinden itibaren etkisini kaybetmesi beklenen kuvvetli rüzgar ve fırtınanın sebep olabileceği ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi,…",
+     "b": "2026-11-12T09:00:00.000Z",
+     "e": "2026-11-14T16:00:00.000Z"
+    }
+   ],
+   "54": [
+    {
+     "n": "2026111101",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "m": "Rüzgarın, güney ve güneybatı yönlerden kuvvetli olarak (40-60 km/saat), 13.11.2026 Cuma günü sabah saatlerinden itibaren ise fırtına ve kısa süreli kuvvetli fırtına (60-90 km/saat) şeklinde esmesi bekleniyor. 14.11.2026 Cumartesi akşam saatlerinden itibaren etkisini kaybetmesi beklenen kuvvetli rüzgar ve fırtınanın sebep olabileceği ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi,…",
+     "b": "2026-11-12T09:00:00.000Z",
+     "e": "2026-11-14T16:00:00.000Z"
+    }
+   ],
+   "59": [
+    {
+     "n": "2026111101",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "m": "Rüzgarın, güney ve güneybatı yönlerden kuvvetli olarak (40-60 km/saat), 13.11.2026 Cuma günü sabah saatlerinden itibaren ise fırtına ve kısa süreli kuvvetli fırtına (60-90 km/saat) şeklinde esmesi bekleniyor. 14.11.2026 Cumartesi akşam saatlerinden itibaren etkisini kaybetmesi beklenen kuvvetli rüzgar ve fırtınanın sebep olabileceği ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi,…",
+     "b": "2026-11-12T09:00:00.000Z",
+     "e": "2026-11-14T16:00:00.000Z"
+    }
+   ],
+   "77": [
+    {
+     "n": "2026111101",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "m": "Rüzgarın, güney ve güneybatı yönlerden kuvvetli olarak (40-60 km/saat), 13.11.2026 Cuma günü sabah saatlerinden itibaren ise fırtına ve kısa süreli kuvvetli fırtına (60-90 km/saat) şeklinde esmesi bekleniyor. 14.11.2026 Cumartesi akşam saatlerinden itibaren etkisini kaybetmesi beklenen kuvvetli rüzgar ve fırtınanın sebep olabileceği ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi,…",
+     "b": "2026-11-12T09:00:00.000Z",
+     "e": "2026-11-14T16:00:00.000Z"
+    }
+   ]
+  }
+ }
 }
