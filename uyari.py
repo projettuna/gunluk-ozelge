@@ -25,7 +25,7 @@ APP_URL = "https://tmpro.tmproapp.workers.dev/"
 UA = {"User-Agent": "Mozilla/5.0 (TMPRO uyari)"}
 MGM_H = {**UA, "Origin": "https://www.mgm.gov.tr", "Referer": "https://www.mgm.gov.tr/"}
 ANKARA = 6
-START = datetime(2026, 11, 13, 9, 0, tzinfo=TR)
+START = datetime(2099, 1, 1, tzinfo=TR)  # ayrı uyarı bildirimi kapalı: uyarılar yalnız Günaydın içinde
 
 RENK = {"yellow": "Sarı", "orange": "Turuncu", "red": "Kırmızı"}
 RENK_SIRA = {"yellow": 1, "orange": 2, "red": 3}
