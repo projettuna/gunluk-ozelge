@@ -1,5 +1,5 @@
 {
- "last_id": 39148,
+ "last_id": 39150,
  "updated": "2026-11-07T14:58:44+03:00",
  "karar_seen": [
   "1222018300",
@@ -85,19 +85,19 @@
  "release_day": {
   "2.7": "2026-11-09"
  },
- "madde_last_id": 465,
+ "madde_last_id": 466,
  "madde_text_day": "2026-11-13",
  "event_remind_day": "2026-11-13",
  "uyari": {
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 92,
+    "ok": 93,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 92,
+    "ok": 93,
     "down": false
    }
   },
