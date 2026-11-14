@@ -86,18 +86,18 @@
   "2.7": "2026-11-09"
  },
  "madde_last_id": 466,
- "madde_text_day": "2026-11-13",
+ "madde_text_day": "2026-11-14",
  "event_remind_day": "2026-11-13",
  "uyari": {
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 161,
+    "ok": 162,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 161,
+    "ok": 162,
     "down": false
    }
   },
