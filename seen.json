@@ -92,27 +92,16 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 160,
+    "ok": 161,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 160,
+    "ok": 161,
     "down": false
    }
   },
   "kesinti": {
-   "msc:Microsoft 365 (bireysel)": {
-    "s": "Microsoft 365 (bireysel)",
-    "d": "aksama",
-    "a": "Microsoft 365 (bireysel) hizmetinde erişim sorunu bildiriliyor (Microsoft durum sayfası).",
-    "t": "2026-11-13T05:31+00:00",
-    "gone": 1,
-    "pushed": false,
-    "p": "Microsoft",
-    "apps": [],
-    "tb": false
-   },
    "ms365:78aed2ae-2c7a-4748-8d46-674dec2631b7": {
     "s": "Microsoft 365 (kurumsal) · Outlook/Exchange",
     "d": "aksama",
@@ -145,7 +134,7 @@
     ],
     "t": "2026-11-13T05:31+00:00",
     "tb": false,
-    "end": "2026-11-13T22:45+00:00"
+    "end": "2026-11-14T04:52+00:00"
    }
   }
  },
