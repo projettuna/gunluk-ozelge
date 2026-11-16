@@ -74,7 +74,8 @@
   "200c21cf-e054-1cae-d59c-392e4bfeb7eb",
   "3f74fda2-2bcc-2e07-cba9-d70341eac100",
   "cf5e7e20-d83b-c191-5aef-aea5db7b85ae",
-  "a197642b-592f-0273-fcf4-c14f6dd49c2c"
+  "a197642b-592f-0273-fcf4-c14f6dd49c2c",
+  "26c50c85-1b90-49e4-b3f1-46e26ef679b5"
  ],
  "rg_seen": [
   "https://www.resmigazete.gov.tr/eskiler/2026/11/20261110-6.htm"
@@ -85,19 +86,19 @@
  "release_day": {
   "2.7": "2026-11-09"
  },
- "madde_last_id": 466,
+ "madde_last_id": 467,
  "madde_text_day": "2026-11-16",
  "event_remind_day": "2026-11-16",
  "uyari": {
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 264,
+    "ok": 265,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 264,
+    "ok": 265,
     "down": false
    }
   },
