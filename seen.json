@@ -93,12 +93,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 296,
+    "ok": 297,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 296,
+    "ok": 297,
     "down": false
    }
   },
@@ -108,7 +108,158 @@
   "bitti": {}
  },
  "uyari_son": {
-  "meteo": {}
+  "meteo": {
+   "10": [
+    {
+     "n": "2026111601",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
+     "b": "2026-11-16T21:00:00.000Z",
+     "e": "2026-11-16T21:00:00.000Z"
+    }
+   ],
+   "16": [
+    {
+     "n": "2026111601",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
+     "b": "2026-11-16T21:00:00.000Z",
+     "e": "2026-11-16T21:00:00.000Z"
+    }
+   ],
+   "17": [
+    {
+     "n": "2026111601",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
+     "b": "2026-11-16T21:00:00.000Z",
+     "e": "2026-11-16T21:00:00.000Z"
+    }
+   ],
+   "22": [
+    {
+     "n": "2026111601",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
+     "b": "2026-11-16T21:00:00.000Z",
+     "e": "2026-11-16T21:00:00.000Z"
+    }
+   ],
+   "34": [
+    {
+     "n": "2026111601",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
+     "b": "2026-11-16T21:00:00.000Z",
+     "e": "2026-11-16T21:00:00.000Z"
+    }
+   ],
+   "35": [
+    {
+     "n": "2026111601",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
+     "b": "2026-11-16T21:00:00.000Z",
+     "e": "2026-11-16T21:00:00.000Z"
+    }
+   ],
+   "39": [
+    {
+     "n": "2026111601",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
+     "b": "2026-11-16T21:00:00.000Z",
+     "e": "2026-11-16T21:00:00.000Z"
+    }
+   ],
+   "41": [
+    {
+     "n": "2026111601",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
+     "b": "2026-11-16T21:00:00.000Z",
+     "e": "2026-11-16T21:00:00.000Z"
+    }
+   ],
+   "59": [
+    {
+     "n": "2026111601",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
+     "b": "2026-11-16T21:00:00.000Z",
+     "e": "2026-11-16T21:00:00.000Z"
+    }
+   ],
+   "77": [
+    {
+     "n": "2026111601",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
+     "b": "2026-11-16T21:00:00.000Z",
+     "e": "2026-11-16T21:00:00.000Z"
+    }
+   ]
+  }
  },
  "weekly_sent": "2026-46"
 }
