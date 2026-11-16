@@ -93,12 +93,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 301,
+    "ok": 302,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 301,
+    "ok": 302,
     "down": false
    }
   },
@@ -120,8 +120,8 @@
       "sağanak ve fırtına"
      ],
      "m": "Öğle saatlerine doğru etkisi arttırarak Osmaniye çevreleri, Hatay’ın kıyı ve Kahramanmaraş’ın batı kesimlerinde kuvvetli (21-50 kg) olması beklendiğinden yaşanabilecek ani sel, su baskını ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-16T21:00:00.000Z",
-     "e": "2026-11-16T21:00:00.000Z"
+     "b": "2026-11-17T07:00:00.000Z",
+     "e": "2026-11-17T20:59:00.000Z"
     }
    ],
    "46": [
@@ -135,8 +135,8 @@
       "sağanak ve fırtına"
      ],
      "m": "Öğle saatlerine doğru etkisi arttırarak Osmaniye çevreleri, Hatay’ın kıyı ve Kahramanmaraş’ın batı kesimlerinde kuvvetli (21-50 kg) olması beklendiğinden yaşanabilecek ani sel, su baskını ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-16T21:00:00.000Z",
-     "e": "2026-11-16T21:00:00.000Z"
+     "b": "2026-11-17T07:00:00.000Z",
+     "e": "2026-11-17T20:59:00.000Z"
     }
    ],
    "80": [
@@ -150,8 +150,8 @@
       "sağanak ve fırtına"
      ],
      "m": "Öğle saatlerine doğru etkisi arttırarak Osmaniye çevreleri, Hatay’ın kıyı ve Kahramanmaraş’ın batı kesimlerinde kuvvetli (21-50 kg) olması beklendiğinden yaşanabilecek ani sel, su baskını ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-16T21:00:00.000Z",
-     "e": "2026-11-16T21:00:00.000Z"
+     "b": "2026-11-17T07:00:00.000Z",
+     "e": "2026-11-17T20:59:00.000Z"
     }
    ],
    "10": [
@@ -166,7 +166,7 @@
      ],
      "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
      "b": "2026-11-16T21:00:00.000Z",
-     "e": "2026-11-16T21:00:00.000Z"
+     "e": "2026-11-17T09:00:00.000Z"
     }
    ],
    "16": [
@@ -181,7 +181,7 @@
      ],
      "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
      "b": "2026-11-16T21:00:00.000Z",
-     "e": "2026-11-16T21:00:00.000Z"
+     "e": "2026-11-17T09:00:00.000Z"
     }
    ],
    "17": [
@@ -196,7 +196,7 @@
      ],
      "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
      "b": "2026-11-16T21:00:00.000Z",
-     "e": "2026-11-16T21:00:00.000Z"
+     "e": "2026-11-17T09:00:00.000Z"
     }
    ],
    "22": [
@@ -211,7 +211,7 @@
      ],
      "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
      "b": "2026-11-16T21:00:00.000Z",
-     "e": "2026-11-16T21:00:00.000Z"
+     "e": "2026-11-17T09:00:00.000Z"
     }
    ],
    "34": [
@@ -226,7 +226,7 @@
      ],
      "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
      "b": "2026-11-16T21:00:00.000Z",
-     "e": "2026-11-16T21:00:00.000Z"
+     "e": "2026-11-17T09:00:00.000Z"
     }
    ],
    "35": [
@@ -241,7 +241,7 @@
      ],
      "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
      "b": "2026-11-16T21:00:00.000Z",
-     "e": "2026-11-16T21:00:00.000Z"
+     "e": "2026-11-17T09:00:00.000Z"
     }
    ],
    "39": [
@@ -256,7 +256,7 @@
      ],
      "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
      "b": "2026-11-16T21:00:00.000Z",
-     "e": "2026-11-16T21:00:00.000Z"
+     "e": "2026-11-17T09:00:00.000Z"
     }
    ],
    "41": [
@@ -271,7 +271,7 @@
      ],
      "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
      "b": "2026-11-16T21:00:00.000Z",
-     "e": "2026-11-16T21:00:00.000Z"
+     "e": "2026-11-17T09:00:00.000Z"
     }
    ],
    "59": [
@@ -286,7 +286,7 @@
      ],
      "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
      "b": "2026-11-16T21:00:00.000Z",
-     "e": "2026-11-16T21:00:00.000Z"
+     "e": "2026-11-17T09:00:00.000Z"
     }
    ],
    "77": [
@@ -301,7 +301,7 @@
      ],
      "m": "Gece saatlerinden itibaren Trakya kesimi ile İstanbul, Kocaeli, Bursa’nın doğusu, Yalova, Balıkesir’in Ege kıyıları, Çanakkale'nin batı kıyıları ile İzmir'in Bergama ve Dikili çevrelerinde kuvvetli (21-50 kg) olması bekleniyor.",
      "b": "2026-11-16T21:00:00.000Z",
-     "e": "2026-11-16T21:00:00.000Z"
+     "e": "2026-11-17T09:00:00.000Z"
     }
    ]
   }
