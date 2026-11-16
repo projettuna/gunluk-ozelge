@@ -173,6 +173,14 @@ def fetch_outages():
             guid = (re.search(r"<guid[^>]*>(.*?)</guid>", item) or [None, "x"])[1]
             exch = "Exchange" in desc or "Outlook" in desc
             apps = apps_in(desc)
+            title = unescape((re.search(r"<title>(.*?)</title>", item, re.S) or [None, ""])[1])
+            pub = unescape((re.search(r"<pubDate>(.*?)</pubDate>", item) or [None, ""])[1])
+            if os.environ.get("UYARI_DEBUG"):
+                print("MS kurumsal kaydı:", guid, "|", title, "|", st, "|", pub, "|", desc[:300].replace("\n", " "))
+            # Yalnız kullanıcıların doğrudan etkilendiği büyük kesintiler: Outlook/Teams/OneDrive/SharePoint vb. geçmeli.
+            # (Bu akış yönetim merkezi duyurularını da içerir; uygulama adı geçmeyen kayıt "çökme" sayılmaz.)
+            if not apps:
+                continue
             out["ms365:" + guid] = {"s": "Microsoft 365 (kurumsal)" + (" · Outlook/Exchange" if exch else ""), "d": st,
                                     "a": ("Kurumsal e-posta (Outlook/Exchange) ve bağlı Microsoft 365 hizmetlerinde" if exch
                                           else "Kurumsal Microsoft 365 hizmetlerinde") + " erişim sorunu bildiriliyor (Microsoft durum sayfası).",
@@ -276,10 +284,15 @@ def run(db, state, muted=None, dry=False):
     #    kaynakta art arda GONE_AFTER tur görünmeyip teyit edilince, aynı sağlayıcıda süren başka sorun yoksa
     #    tüm aktif üyelere tek bildirim. Sessiz saatte (22-08) çözülürse sabah 08:00'den sonra gider.
     pend = st.setdefault("bitti", {})
+    for k in list(pend):
+        if utc_now - datetime.fromisoformat(pend[k].get("end") or pend[k]["t"]) > timedelta(hours=6):
+            del pend[k]  # çok bekleyen "giderildi" artık anlamsız: gönderilmez
     for o in resolved:
         start = datetime.fromisoformat(o["t"])
         if o.get("tb", False) and utc_now - start < timedelta(minutes=30):
             continue  # kısa süreli dalgalanma: bildirim yok
+        if not o.get("apps") and not (o.get("p") or "").startswith(("GİB", "e-Arşiv")):
+            continue  # uygulama adı geçmeyen küçük duyuru: "giderildi" bildirimi yok
         g = pend.setdefault(o.get("p") or o["s"], {"apps": [], "t": o["t"], "tb": o.get("tb", False)})
         g["apps"] = list(dict.fromkeys(g["apps"] + (o.get("apps") or [])))
         g["end"] = utc_now.isoformat(timespec="minutes")
