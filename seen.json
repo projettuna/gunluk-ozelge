@@ -95,12 +95,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 480,
+    "ok": 481,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 480,
+    "ok": 481,
     "down": false
    }
   },
@@ -123,7 +123,7 @@
      ],
      "m": "Öğle saatlerine doğru etkisi arttırarak Osmaniye çevreleri, Hatay’ın kıyı ve Kahramanmaraş’ın batı kesimlerinde kuvvetli (21-50 kg) olması beklendiğinden yaşanabilecek ani sel, su baskını ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-17T07:00:00.000Z",
-     "e": "2026-11-17T20:59:00.000Z"
+     "e": "2026-11-18T20:59:00.000Z"
     }
    ],
    "46": [
@@ -138,7 +138,7 @@
      ],
      "m": "Öğle saatlerine doğru etkisi arttırarak Osmaniye çevreleri, Hatay’ın kıyı ve Kahramanmaraş’ın batı kesimlerinde kuvvetli (21-50 kg) olması beklendiğinden yaşanabilecek ani sel, su baskını ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-17T07:00:00.000Z",
-     "e": "2026-11-17T20:59:00.000Z"
+     "e": "2026-11-18T20:59:00.000Z"
     }
    ],
    "80": [
@@ -153,7 +153,142 @@
      ],
      "m": "Öğle saatlerine doğru etkisi arttırarak Osmaniye çevreleri, Hatay’ın kıyı ve Kahramanmaraş’ın batı kesimlerinde kuvvetli (21-50 kg) olması beklendiğinden yaşanabilecek ani sel, su baskını ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-17T07:00:00.000Z",
-     "e": "2026-11-17T20:59:00.000Z"
+     "e": "2026-11-18T20:59:00.000Z"
+    }
+   ],
+   "11": [
+    {
+     "n": "2026111701",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Güney yönlerden kuvvetli, yer yer fırtına ve kısa süreli kuvvetli fırtına (60-80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-17T21:00:00.000Z",
+     "e": "2026-11-19T10:00:00.000Z"
+    }
+   ],
+   "16": [
+    {
+     "n": "2026111701",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Güney yönlerden kuvvetli, yer yer fırtına ve kısa süreli kuvvetli fırtına (60-80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-17T21:00:00.000Z",
+     "e": "2026-11-19T10:00:00.000Z"
+    }
+   ],
+   "22": [
+    {
+     "n": "2026111701",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Güney yönlerden kuvvetli, yer yer fırtına ve kısa süreli kuvvetli fırtına (60-80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-17T21:00:00.000Z",
+     "e": "2026-11-19T10:00:00.000Z"
+    }
+   ],
+   "34": [
+    {
+     "n": "2026111701",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Güney yönlerden kuvvetli, yer yer fırtına ve kısa süreli kuvvetli fırtına (60-80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-17T21:00:00.000Z",
+     "e": "2026-11-19T10:00:00.000Z"
+    }
+   ],
+   "39": [
+    {
+     "n": "2026111701",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Güney yönlerden kuvvetli, yer yer fırtına ve kısa süreli kuvvetli fırtına (60-80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-17T21:00:00.000Z",
+     "e": "2026-11-19T10:00:00.000Z"
+    }
+   ],
+   "41": [
+    {
+     "n": "2026111701",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Güney yönlerden kuvvetli, yer yer fırtına ve kısa süreli kuvvetli fırtına (60-80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-17T21:00:00.000Z",
+     "e": "2026-11-19T10:00:00.000Z"
+    }
+   ],
+   "54": [
+    {
+     "n": "2026111701",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Güney yönlerden kuvvetli, yer yer fırtına ve kısa süreli kuvvetli fırtına (60-80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-17T21:00:00.000Z",
+     "e": "2026-11-19T10:00:00.000Z"
+    }
+   ],
+   "59": [
+    {
+     "n": "2026111701",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Güney yönlerden kuvvetli, yer yer fırtına ve kısa süreli kuvvetli fırtına (60-80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-17T21:00:00.000Z",
+     "e": "2026-11-19T10:00:00.000Z"
+    }
+   ],
+   "77": [
+    {
+     "n": "2026111701",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Güney yönlerden kuvvetli, yer yer fırtına ve kısa süreli kuvvetli fırtına (60-80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-17T21:00:00.000Z",
+     "e": "2026-11-19T10:00:00.000Z"
     }
    ]
   }
