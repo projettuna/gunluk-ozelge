@@ -96,12 +96,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 661,
+    "ok": 662,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 661,
+    "ok": 662,
     "down": false
    }
   },
@@ -112,6 +112,21 @@
  },
  "uyari_son": {
   "meteo": {
+   "29": [
+    {
+     "n": "2026111810",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Güney ve güneybatı yönlerden kuvvetli rüzgar ve fırtına (50-80 km/saat) beklendiğinden çatı uçması, ulaşımda aksamalar, soba ve doğal gaz kaynaklı zehirlenmeler, ağaç devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-18T19:00:00.000Z",
+     "e": "2026-11-19T15:00:00.000Z"
+    }
+   ],
    "61": [
     {
      "n": "2026111809",
