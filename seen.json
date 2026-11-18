@@ -1,5 +1,5 @@
 {
- "last_id": 39150,
+ "last_id": 39151,
  "updated": "2026-11-07T14:58:44+03:00",
  "karar_seen": [
   "1222018300",
@@ -84,24 +84,24 @@
   "https://www.resmigazete.gov.tr/eskiler/2026/11/20261110-6.htm"
  ],
  "no_ozelge_notice": "17.11.2026",
- "last_ozelge_mail": "13.11.2026",
+ "last_ozelge_mail": "18.11.2026",
  "release_notified": "2.7",
  "release_day": {
   "2.7": "2026-11-09"
  },
- "madde_last_id": 470,
+ "madde_last_id": 471,
  "madde_text_day": "2026-11-18",
  "event_remind_day": "2026-11-18",
  "uyari": {
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 636,
+    "ok": 637,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 636,
+    "ok": 637,
     "down": false
    }
   },
