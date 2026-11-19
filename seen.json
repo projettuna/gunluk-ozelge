@@ -96,12 +96,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 772,
+    "ok": 773,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 772,
+    "ok": 773,
     "down": false
    }
   },
@@ -423,6 +423,21 @@
      "m": "Yerel olarak kuvvetli (21-50 kg/m2) sağanak ve zaman zaman gök gürültülü sağanak yağış bekleniyor. Kuvvetli yağışlarla birlikte sel, su baskını, heyelan, ulaşımda aksamalar, kuvvetli rüzgar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-18T21:00:00.000Z",
      "e": "2026-11-20T09:00:00.000Z"
+    }
+   ],
+   "10": [
+    {
+     "n": "2026111910",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Güney yönlerden kuvvetli, yer yer kısa süreli fırtına (50-70, yer yer hamleli 80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-20T00:00:00.355Z",
+     "e": "2026-11-20T13:00:00.355Z"
     }
    ],
    "16": [
