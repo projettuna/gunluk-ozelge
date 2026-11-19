@@ -101,19 +101,15 @@ def kanun_text(meta):
 
 
 def danistay_text(url):
-    raw = decode(*fetch(url, timeout=90))
-    try:
-        raw = json.loads(raw).get("data") or raw
-    except ValueError:
-        pass
-    inner = re.search(r"&lt;html.*?&lt;/html&gt;", raw, re.S | re.I)
-    return html_to_text(html.unescape(inner.group(0)) if inner else raw)
+    import ozelge
+    kid = ozelge.karar_id_of(url)
+    return html_to_text(ozelge.karar_doc(kid)) if kid else ""
 
 
 def text_for(item):
     url, tur = item.get("url") or "", item.get("tur") or ""
     u = urlparse(url)
-    if "danistay.gov.tr" in u.netloc and "getDokuman" in u.path:
+    if "danistay.gov.tr" in u.netloc and ("getDokuman" in u.path or "/karar/" in u.path):
         return danistay_text(url)
     if u.netloc.endswith("gib.gov.tr"):
         parts = [p for p in u.path.split("/") if p]

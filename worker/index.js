@@ -207,23 +207,32 @@ function excerpt(text, ws, max) {
 const KARAR = /Danıştay|Anayasa|Yargıtay/i;
 const stripHtml = h => String(h || "").replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, " ").replace(/<br\s*\/?>|<\/p>|<\/div>/gi, "\n").replace(/<[^>]+>/g, " ")
   .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n\n").trim();
-// Danıştay karar arama (canlı). Erişilemezse sessizce boş döner.
+// Danıştay karar arama (canlı; 18.11.2026'dan beri Bedesten altyapısında). Erişilemezse sessizce boş döner.
+const DNS_API = "https://bedesten.adalet.gov.tr/emsal-karar/", DNS_H = { "Content-Type": "application/json; charset=UTF-8", "User-Agent": "Mozilla/5.0", "Accept": "application/json" };
+async function danistayAra(kw, n, ms) {
+  const r = await fetch(DNS_API + "getEmsalKarar", { method: "POST", headers: DNS_H,
+    body: JSON.stringify({ data: { itemTypeList: ["DANISTAYKARAR"], andKelimeler: kw, orKelimeler: [], notKelimeler: [], pageSize: Math.max(10, n), pageNumber: 1 } }), signal: AbortSignal.timeout(ms) });
+  if (!r.ok) return null;
+  return ((await r.json())?.data?.emsalKararList || []).slice(0, n);
+}
+async function danistayBelge(k, kw, ms) {
+  try {
+    const d = await fetch(DNS_API + "getDocContent", { method: "POST", headers: DNS_H, body: JSON.stringify({ data: { documentId: String(k.documentId) } }), signal: AbortSignal.timeout(ms) });
+    const c = (await d.json())?.data;
+    if (!c?.content || /pdf/i.test(c.mimeType || "")) return null;
+    const t = new TextDecoder("utf-8").decode(Uint8Array.from(atob(c.content), ch => ch.charCodeAt(0)));
+    return { tur: "Danıştay kararı", title: `${k.birimAdi || "Danıştay"} E. ${k.esasNo || ""}, K. ${k.kararNo || ""}`, meta: k.kararTarihiStr || "",
+      url: `https://karararama.danistay.gov.tr/karar/${k.documentId}?aranacakKelimeler=${encodeURIComponent(kw.join(","))}`, metin: stripHtml(t) };
+  } catch { return null; }
+}
 async function danistayLive(q) {
   const words = [...new Set(q.toLocaleLowerCase("tr").replace(/[^a-zçğıöşü0-9 ]/g, " ").split(/\s+/).filter(w => w.length >= 5 && !STOP.has(w)))];
   const tries = [words.slice(0, 3), words.slice(0, 2)].filter(t => t.length);
   for (const kw of tries) {
     try {
-      const r = await fetch("https://karararama.danistay.gov.tr/aramalist", { method: "POST", headers: { "Content-Type": "application/json; charset=UTF-8", "User-Agent": "Mozilla/5.0" },
-        body: JSON.stringify({ data: { andKelimeler: kw, pageSize: 4, pageNumber: 1 } }), signal: AbortSignal.timeout(7000) });
-      if (!r.ok) continue;
-      const list = ((await r.json())?.data?.data || []).slice(0, 3);
-      if (!list.length) continue;
-      const docs = await Promise.all(list.map(async k => {
-        const url = `https://karararama.danistay.gov.tr/getDokuman?id=${k.id}&arananKelime=${encodeURIComponent(kw.join(","))}`;
-        try { const d = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(7000) }); let t = await d.text(); try { t = JSON.parse(t).data || t; } catch {}
-          return { tur: "Danıştay kararı", title: `${k.daireKurul || k.daire || "Danıştay"} E. ${k.esasNo || ""}, K. ${k.kararNo || ""}`, meta: k.kararTarihi || "", url, metin: stripHtml(t) }; } catch { return null; }
-      }));
-      return docs.filter(Boolean);
+      const list = await danistayAra(kw, 3, 7000);
+      if (!list || !list.length) continue;
+      return (await Promise.all(list.map(k => danistayBelge(k, kw, 7000)))).filter(Boolean);
     } catch {}
   }
   return [];
@@ -240,15 +249,10 @@ async function danistayList(q, n) {
 }
 async function danistayList0(q, n) {
   try {
-    const r = await fetch("https://karararama.danistay.gov.tr/aramalist", { method: "POST", headers: { "Content-Type": "application/json; charset=UTF-8", "User-Agent": "Mozilla/5.0" },
-      body: JSON.stringify({ data: { andKelimeler: q.split(/\s+/).filter(w => w.length >= 3), pageSize: Math.min(20, n), pageNumber: 1 } }), signal: AbortSignal.timeout(8000) });
-    if (!r.ok) return [];
-    const list = ((await r.json())?.data?.data || []).slice(0, Math.min(20, n));
-    const docs = await Promise.all(list.map(async k => {
-      try { const d = await fetch(`https://karararama.danistay.gov.tr/getDokuman?id=${k.id}&arananKelime=${encodeURIComponent(q.split(/\s+/).join(","))}`, { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(8000) }); let t = await d.text(); try { t = JSON.parse(t).data || t; } catch {}
-        return { tur: "Danıştay kararı", title: `${k.daireKurul || k.daire || "Danıştay"} E. ${k.esasNo || ""}, K. ${k.kararNo || ""}`, meta: k.kararTarihi || "", url: `https://karararama.danistay.gov.tr/getDokuman?id=${k.id}`, metin: stripHtml(t) }; } catch { return null; }
-    }));
-    return docs.filter(Boolean);
+    const kw = q.split(/\s+/).filter(w => w.length >= 3);
+    const list = await danistayAra(kw, Math.min(20, n), 8000);
+    if (!list) return [];
+    return (await Promise.all(list.map(k => danistayBelge(k, kw, 8000)))).filter(Boolean);
   } catch { return []; }
 }
 async function ask(req, env) {

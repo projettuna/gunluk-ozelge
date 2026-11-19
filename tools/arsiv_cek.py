@@ -96,8 +96,8 @@ def danistay(var_olan):
                 for dn in range(4):
                     try:
                         time.sleep(1.5 + 4 * dn)
-                        d = json.loads(ozelge.http(ozelge.DANISTAY + "/aramalist", {"data": {"andKelimeler": kw, "pageSize": 10, "pageNumber": pg}}, timeout=90))
-                        lst = (d.get("data") or {}).get("data") or []
+                        d = json.loads(ozelge.http(ozelge.DANISTAY_API + "/getEmsalKarar", {"data": {"itemTypeList": ["DANISTAYKARAR"], "andKelimeler": kw, "orKelimeler": [], "notKelimeler": [], "pageSize": 10, "pageNumber": pg}}, timeout=90))
+                        lst = (d.get("data") or {}).get("emsalKararList") or []
                         break
                     except Exception as e:  # noqa: BLE001
                         kod = f"liste:{type(e).__name__}:{getattr(e, 'code', '')}"
@@ -107,11 +107,11 @@ def danistay(var_olan):
                     break
                 rows = []
                 for k in lst:
-                    kid = str(k.get("id") or "")
+                    kid = str(k.get("documentId") or "")
                     gid = int(kid) if kid.isdigit() and len(kid) < 18 else zlib.crc32(kid.encode())
                     if not kid or gid in var_olan:
                         continue
-                    url = f"{ozelge.DANISTAY}/getDokuman?id={kid}&arananKelime={ozelge.quote(','.join(kw))}"
+                    url = ozelge.karar_link(kid, kw)
                     txt = ""
                     for dn in range(3):
                         try:
@@ -127,8 +127,8 @@ def danistay(var_olan):
                     if len(txt) < 300:
                         continue
                     var_olan.add(gid)
-                    rows.append({"tur": "Danıştay kararı", "gid": gid, "title": f"{k.get('daireKurul') or k.get('daire') or 'Danıştay'} E. {k.get('esasNo') or ''}, K. {k.get('kararNo') or ''}",
-                                 "meta": k.get("kararTarihi") or "", "url": url, "metin": txt})
+                    rows.append({"tur": "Danıştay kararı", "gid": gid, "title": f"{k.get('birimAdi') or 'Danıştay'} E. {k.get('esasNo') or ''}, K. {k.get('kararNo') or ''}",
+                                 "meta": k.get("kararTarihiStr") or "", "url": url, "metin": txt})
                 if rows:
                     write(rows)
                     yeni += len(rows)

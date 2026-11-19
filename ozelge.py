@@ -17,6 +17,7 @@ Kullanım:
   python ozelge.py            # kontrol et, gerekirse gönder, seen.json'u güncelle
   python ozelge.py --dry-run  # gönderme, kaydetme, sadece yazdır
 """
+import base64
 import html
 import json
 import os
@@ -34,6 +35,7 @@ from urllib.request import Request, urlopen
 
 OZELGE_API = "https://gib.gov.tr/api/gibportal/mevzuat/ozelge/list?page=0&size={size}&sortFieldName=id&sortType=DESC"
 DANISTAY = "https://karararama.danistay.gov.tr"
+DANISTAY_API = "https://bedesten.adalet.gov.tr/emsal-karar"
 DANISTAY_WORDS = ["vergi usul kanunu", "359"]
 STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seen.json")
 TR = timezone(timedelta(hours=3))
@@ -252,31 +254,42 @@ def get_resmi_gazete():
 
 # ---------------------------------------------------------------- Danıştay kararları
 
-def get_kararlar(size=30):
-    body = {"data": {"andKelimeler": DANISTAY_WORDS, "pageSize": size, "pageNumber": 1}}
-    data = json.loads(http(DANISTAY + "/aramalist", body, timeout=90))
+def get_kararlar(size=10, words=None):
+    """Danıştay karar arama 18.11.2026'da Bedesten altyapısına taşındı; liste karar tarihine göre yeniden eskiye gelir."""
+    body = {"data": {"itemTypeList": ["DANISTAYKARAR"], "andKelimeler": words or DANISTAY_WORDS, "orKelimeler": [], "notKelimeler": [],
+                     "sortFieldKod": "3", "sortDirection": "DESC", "pageSize": size, "pageNumber": 1}}
+    data = json.loads(http(DANISTAY_API + "/getEmsalKarar", body, timeout=90))
     return [{
-        "id": str(r["id"]),
-        "daire": r.get("daireKurul") or r.get("daire") or "Danıştay",
-        "esas": r.get("esasNo", ""),
-        "karar": r.get("kararNo", ""),
-        "tarih": r.get("kararTarihi", ""),
-    } for r in data["data"]["data"]]
+        "id": str(r["documentId"]),
+        "daire": r.get("birimAdi") or "Danıştay",
+        "esas": r.get("esasNo") or "",
+        "karar": r.get("kararNo") or "",
+        "tarih": r.get("kararTarihiStr") or "",
+    } for r in ((data.get("data") or {}).get("emsalKararList") or [])]
 
 
-def karar_link(karar_id):
-    return f"{DANISTAY}/getDokuman?id={karar_id}&arananKelime={quote(','.join(DANISTAY_WORDS))}"
+def karar_link(karar_id, words=None):
+    # Sayfa aranacakKelimeler olmadan açılmıyor
+    return f"{DANISTAY}/karar/{karar_id}?aranacakKelimeler={quote(','.join(words or DANISTAY_WORDS))}"
+
+
+def karar_id_of(url):
+    """Eski (getDokuman?id=) ve yeni (/karar/<id>) bağlantılardan karar numarası."""
+    m = re.search(r"[?&]id=(\d+)", url or "") or re.search(r"/karar/(\d+)", url or "")
+    return m.group(1) if m else None
+
+
+def karar_doc(karar_id):
+    """Kararın tam HTML'i (bulunamazsa boş)."""
+    data = json.loads(http(DANISTAY_API + "/getDocContent", {"data": {"documentId": str(karar_id)}}, timeout=90)).get("data") or {}
+    if not data.get("content") or "pdf" in (data.get("mimeType") or "").lower():
+        return ""
+    return base64.b64decode(data["content"]).decode("utf-8", "replace")
 
 
 def karar_snippet(karar_id):
     """(359'a değinen kısım, kararın tam HTML'i) döndürür; değinmiyorsa (None, None)."""
-    raw = http(karar_link(karar_id), timeout=90)
-    try:
-        raw = json.loads(raw).get("data") or raw
-    except ValueError:
-        pass
-    inner = re.search(r"&lt;html.*?&lt;/html&gt;", raw, re.S | re.I)
-    doc = html.unescape(inner.group(0)) if inner else raw
+    doc = karar_doc(karar_id)
     text = strip_tags(re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", doc, flags=re.S | re.I))
     m = MADDE_359.search(text)
     if not m:
