@@ -340,11 +340,25 @@ def uyarilar():
 
 
 def phone():
-    # arşive giden eski kararlar da telefonun çalıştığını gösterir, bu yüzden created_at
+    # telefon her saatlik çalışmasında yargitay_ping yazar; yeni karar çıkmaması tek başına arıza değildir
+    rows, _ = db("private_settings?key=eq.yargitay_ping&select=value")
+    if rows:
+        p = json.loads(rows[0]["value"])
+        t, info = ts(p.get("t")), p.get("info") or {}
+        if t and NOW - t > timedelta(hours=6):
+            bad("telefon", "uyari", "Yargıtay telefonu 6 saattir çalışmıyor; telefon açık ve Wi-Fi'da mı? "
+                "Termux'u açıp 'sv-enable crond && termux-wake-lock' yazın.")
+        elif info.get("cokme"):
+            bad("telefon", "uyari", f"Yargıtay telefonundaki betik hata verdi: {info['cokme'][:150]}")
+        elif info.get("sorgu") and info.get("arama_hatasi", 0) >= info["sorgu"]:
+            bad("telefon", "uyari", "Yargıtay telefonu çalışıyor ama karar servisine ulaşamıyor (bedesten.adalet.gov.tr).")
+        return
+    # telefon henüz yeni betiğe geçmediyse eski ölçüt: son eklenen karar
     rows, _ = db("items?select=created_at&tur=eq.Yarg%C4%B1tay%20(Ceza)&order=created_at.desc&limit=1")
     last = ts(rows[0]["created_at"]) if rows else None
     if last and NOW - last > timedelta(days=10):
-        bad("telefon", "uyari", "10 gündür telefondan yeni Yargıtay kararı gelmedi; telefon/Termux açık mı?")
+        bad("telefon", "uyari", "10 gündür Yargıtay kararı gelmedi; telefondaki betiğin güncellenmesi gerekiyor "
+            "(Termux: cd ~/tmpro && curl -fsSLO https://tmpro.tmproapp.workers.dev/turkiye/yargitay.py).")
 
 
 # ---------------------------------------------------------------- bildirim

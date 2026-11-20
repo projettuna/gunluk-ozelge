@@ -39,6 +39,24 @@ HEADERS = {"Content-Type": "application/json; charset=utf-8", "AdaletApplication
            "User-Agent": "TMPRO-karar-takip/1.0"}
 PAUSE = 6
 TEST, SEED = "--test" in sys.argv, "--seed" in sys.argv
+SELF_URL = "https://tmpro.tmproapp.workers.dev/turkiye/yargitay.py"
+
+
+def self_update():
+    """Betiğin yeni sürümü yayındaysa kendini günceller; telefona elle dokunmak gerekmez."""
+    me = os.path.abspath(__file__)
+    try:
+        with urlopen(Request(SELF_URL, headers={"User-Agent": HEADERS["User-Agent"]}), timeout=30) as r:
+            new = r.read()
+        old = open(me, "rb").read()
+        if new and new != old and b"def main" in new:
+            compile(new, me, "exec")
+            with open(me + ".yeni", "wb") as f:
+                f.write(new)
+            os.replace(me + ".yeni", me)
+            print("Betik güncellendi; yeni sürüm bir sonraki çalışmada kullanılacak")
+    except Exception as e:  # noqa: BLE001
+        print(f"Güncelleme denetlenemedi: {e}")
 
 
 def post(path, body, timeout=60):
@@ -87,13 +105,25 @@ def ozet(text):
     return ("… " if a else "") + text[a:a + 900].strip() + "…"
 
 
-def send(rows):
-    url = os.environ["TMPRO_SUPABASE_URL"].rstrip("/") + "/rest/v1/rpc/ingest_items"
+def rpc(name, payload):
+    url = os.environ["TMPRO_SUPABASE_URL"].rstrip("/") + "/rest/v1/rpc/" + name
     key = os.environ["TMPRO_ANON_KEY"]
-    body = json.dumps({"token": os.environ["TMPRO_INGEST_TOKEN"], "rows": rows, "seed": SEED}).encode()
+    body = json.dumps({"token": os.environ["TMPRO_INGEST_TOKEN"], **payload}).encode()
     req = Request(url, data=body, method="POST", headers={"apikey": key, "Content-Type": "application/json"})
     with urlopen(req, timeout=60) as r:
         return json.loads(r.read() or b"0")
+
+
+def send(rows):
+    return rpc("ingest_items", {"rows": rows, "seed": SEED})
+
+
+def ping(info):
+    """Nöbetçiye telefonun çalıştığını ve servise ulaşıp ulaşmadığını bildirir."""
+    try:
+        rpc("yargitay_ping", {"info": info})
+    except Exception as e:  # noqa: BLE001
+        print(f"Durum bildirilemedi: {e}")
 
 
 def tarih_key(r):
@@ -107,7 +137,7 @@ def main():
             seen = set(json.load(f))
     except (FileNotFoundError, ValueError):
         seen = set()
-    found = {}
+    found, errors = {}, []
     for q in QUERIES:
         res = []
         for page in range(1, (6 if SEED else 3)):
@@ -115,6 +145,7 @@ def main():
                 part = search(q, page)
             except Exception as e:  # noqa: BLE001
                 print(f"Arama hatası ({q}, sayfa {page}): {e}")
+                errors.append(f"{q}: {e}"[:200])
                 break
             res += part
             time.sleep(PAUSE)
@@ -136,7 +167,7 @@ def main():
             print(f"{r['daire']} E.{r['esas']} K.{r['karar']} ({r['tarih']}): {len(t)} krk, vergi: {bool(VERGI.search(t))}")
             time.sleep(PAUSE)
         return
-    rows = []
+    rows, added = [], 0
     todo = new if SEED else new[:40]
     for i, r in enumerate(todo, 1):
         if i % 20 == 0:
@@ -153,12 +184,22 @@ def main():
         rows.append({"title": f"Yargıtay {r['daire']} E. {r['esas']}, K. {r['karar']}", "meta": r["tarih"],
                      "url": SITE + r["id"], "ozet": ozet(t), "metin": t})
     if rows:
-        print(f"Veritabanına eklenen: {send(rows)} / {len(rows)}")
+        added = send(rows)
+        print(f"Veritabanına eklenen: {added} / {len(rows)}")
     else:
         print("Eklenecek yeni vergi kararı yok")
     with open(STATE, "w", encoding="utf-8") as f:
         json.dump(sorted(seen), f)
+    ping({"bulunan": len(found), "yeni_aday": len(new), "eklenen": added,
+          "arama_hatasi": len(errors), "sorgu": len(QUERIES), "hata": errors[:3]})
 
 
 if __name__ == "__main__":
-    main()
+    if not TEST:
+        self_update()
+    try:
+        main()
+    except Exception as e:  # noqa: BLE001
+        if not TEST:
+            ping({"cokme": str(e)[:300]})
+        raise
