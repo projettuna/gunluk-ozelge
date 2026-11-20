@@ -96,12 +96,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 10,
+    "ok": 11,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 885,
+    "ok": 886,
     "down": false
    }
   },
@@ -112,6 +112,90 @@
  },
  "uyari_son": {
   "meteo": {
+   "34": [
+    {
+     "n": "2026112001",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Sağanak ve gök gürültülü sağanak yağışların yerel kuvvetli (21-45 kg/m2) olması beklendiğinden sel, su baskını, yıldırım, yerel dolu yağışı ve kuvvetli rüzgar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-20T13:00:00.000Z",
+     "e": "2026-11-20T23:00:00.000Z"
+    },
+    {
+     "n": "2026111903",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Güney yönlerden halen aralıklarla devam eden rüzgarın, akşam saatlerinden sonra etkisini artırarak kuvvetli, yer yer kısa süreli fırtına (50-70, yer yer hamleli 80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-19T11:05:00.796Z",
+     "e": "2026-11-20T10:00:00.796Z"
+    }
+   ],
+   "41": [
+    {
+     "n": "2026112001",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Sağanak ve gök gürültülü sağanak yağışların yerel kuvvetli (21-45 kg/m2) olması beklendiğinden sel, su baskını, yıldırım, yerel dolu yağışı ve kuvvetli rüzgar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-20T13:00:00.000Z",
+     "e": "2026-11-20T23:00:00.000Z"
+    },
+    {
+     "n": "2026111905",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Kuzey kesimleri güney yönlerden kuvvetli, yer yer kısa süreli fırtına (50-70, yer yer hamleli 80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-20T00:00:00.331Z",
+     "e": "2026-11-20T10:00:00.331Z"
+    },
+    {
+     "n": "2026111904",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Güney yönlerden kuvvetli, yer yer kısa süreli fırtına (50-70, yer yer hamleli 80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-20T00:00:00.381Z",
+     "e": "2026-11-20T10:00:00.381Z"
+    }
+   ],
+   "54": [
+    {
+     "n": "2026112001",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Sağanak ve gök gürültülü sağanak yağışların yerel kuvvetli (21-45 kg/m2) olması beklendiğinden sel, su baskını, yıldırım, yerel dolu yağışı ve kuvvetli rüzgar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-20T13:00:00.000Z",
+     "e": "2026-11-20T23:00:00.000Z"
+    }
+   ],
    "17": [
     {
      "n": "2026111913",
@@ -209,49 +293,6 @@
      "m": "Güney yönlerden kuvvetli, yer yer kısa süreli fırtına (50-70, yer yer hamleli 80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-19T21:00:00.748Z",
      "e": "2026-11-20T13:00:00.748Z"
-    }
-   ],
-   "41": [
-    {
-     "n": "2026111905",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli rüzgâr ve fırtına"
-     ],
-     "k": [
-      "fırtına"
-     ],
-     "m": "Kuzey kesimleri güney yönlerden kuvvetli, yer yer kısa süreli fırtına (50-70, yer yer hamleli 80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-20T00:00:00.331Z",
-     "e": "2026-11-20T10:00:00.331Z"
-    },
-    {
-     "n": "2026111904",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli rüzgâr ve fırtına"
-     ],
-     "k": [
-      "fırtına"
-     ],
-     "m": "Güney yönlerden kuvvetli, yer yer kısa süreli fırtına (50-70, yer yer hamleli 80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-20T00:00:00.381Z",
-     "e": "2026-11-20T10:00:00.381Z"
-    }
-   ],
-   "34": [
-    {
-     "n": "2026111903",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli rüzgâr ve fırtına"
-     ],
-     "k": [
-      "fırtına"
-     ],
-     "m": "Güney yönlerden halen aralıklarla devam eden rüzgarın, akşam saatlerinden sonra etkisini artırarak kuvvetli, yer yer kısa süreli fırtına (50-70, yer yer hamleli 80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-19T11:05:00.796Z",
-     "e": "2026-11-20T10:00:00.796Z"
     }
    ],
    "22": [
