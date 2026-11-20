@@ -18,7 +18,7 @@
   "1236953600",
   "1236974900"
  ],
- "teblig_full_scan": "19.11.2026",
+ "teblig_full_scan": "20.11.2026",
  "last_teblig_id": 11919,
  "last_kanun_id": 661,
  "last_sirkuler_id": 1150,
@@ -96,12 +96,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 839,
+    "ok": 840,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 839,
+    "ok": 840,
     "down": false
    }
   },
@@ -125,19 +125,6 @@
      "m": "Güney yönlerden kuvvetli, yer yer kısa süreli fırtına (50-70, yer yer hamleli 80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-19T21:00:00.527Z",
      "e": "2026-11-20T13:00:00.527Z"
-    },
-    {
-     "n": "2026111912",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli rüzgâr ve fırtına"
-     ],
-     "k": [
-      "fırtına"
-     ],
-     "m": "Güney yönlerden kuvvetli, yer yer kısa süreli fırtına (50-70, yer yer hamleli 80 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, baca gazı zehirlenmesi, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-19T21:00:00.413Z",
-     "e": "2026-11-20T03:00:00.413Z"
     }
    ],
    "10": [
