@@ -96,12 +96,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 77,
+    "ok": 78,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 952,
+    "ok": 953,
     "down": false
    }
   },
@@ -549,5 +549,5 @@
    ]
   }
  },
- "weekly_sent": "2026-46"
+ "weekly_sent": "2026-47"
 }
