@@ -144,10 +144,11 @@ def ping(info):
     for i in range(10):
         try:
             rpc("yargitay_ping", {"info": info})
-            return
+            return True
         except Exception as e:  # noqa: BLE001
             print(f"Durum bildirilemedi ({i + 1}/10): {e}", flush=True)
             time.sleep(60)
+    return False
 
 
 def tarih_key(r):
@@ -200,6 +201,7 @@ def main():
             t = document(r["id"])
         except Exception as e:  # noqa: BLE001
             print(f"Metin alınamadı: {e}")
+            errors.append(f"metin: {e}"[:200])
             continue
         seen.add(r["id"])
         time.sleep(PAUSE)
@@ -214,8 +216,11 @@ def main():
         print("Eklenecek yeni vergi kararı yok")
     with open(STATE, "w", encoding="utf-8") as f:
         json.dump(sorted(seen), f)
-    ping({"bulunan": len(found), "yeni_aday": len(new), "eklenen": added,
-          "arama_hatasi": len(errors), "sorgu": len(QUERIES), "hata": errors[:3]})
+    sent = ping({"bulunan": len(found), "yeni_aday": len(new), "eklenen": added,
+                 "arama_hatasi": sum(1 for e in errors if not e.startswith("metin:")),
+                 "metin_hatasi": sum(1 for e in errors if e.startswith("metin:")),
+                 "sorgu": len(QUERIES), "hata": errors[:3]})
+    return sent and not errors
 
 
 if __name__ == "__main__":
@@ -225,8 +230,10 @@ if __name__ == "__main__":
     if not TEST:
         self_update()
     try:
-        main()
+        ok = main()
     except Exception as e:  # noqa: BLE001
         if not TEST:
             ping({"cokme": str(e)[:300]})
         raise
+    if not TEST and not ok:
+        sys.exit(2)  # döngü 10 dk sonra yeniden dener
