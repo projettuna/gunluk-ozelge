@@ -18,6 +18,7 @@ import html
 import json
 import os
 import re
+import socket
 import sys
 import time
 from urllib.error import HTTPError
@@ -118,12 +119,35 @@ def send(rows):
     return rpc("ingest_items", {"rows": rows, "seed": SEED})
 
 
-def ping(info):
-    """Nöbetçiye telefonun çalıştığını ve servise ulaşıp ulaşmadığını bildirir."""
+def online():
     try:
-        rpc("yargitay_ping", {"info": info})
-    except Exception as e:  # noqa: BLE001
-        print(f"Durum bildirilemedi: {e}")
+        socket.getaddrinfo("bedesten.adalet.gov.tr", 443)
+        socket.getaddrinfo(os.environ["TMPRO_SUPABASE_URL"].split("/")[2], 443)
+        return True
+    except OSError:
+        return False
+
+
+def wait_net(minutes=20):
+    """Telefon Wi-Fi'dan düşmüşse bağlantı gelene kadar dakikada bir dener."""
+    for i in range(minutes):
+        if online():
+            return True
+        if i == 0:
+            print("İnternet yok, bağlantı bekleniyor…", flush=True)
+        time.sleep(60)
+    return online()
+
+
+def ping(info):
+    """Nöbetçiye telefonun çalıştığını ve servise ulaşıp ulaşmadığını bildirir; bağlantı koptuysa bekleyip yeniden dener."""
+    for i in range(10):
+        try:
+            rpc("yargitay_ping", {"info": info})
+            return
+        except Exception as e:  # noqa: BLE001
+            print(f"Durum bildirilemedi ({i + 1}/10): {e}", flush=True)
+            time.sleep(60)
 
 
 def tarih_key(r):
@@ -195,6 +219,9 @@ def main():
 
 
 if __name__ == "__main__":
+    if not wait_net():
+        print("20 dakikadır internet yok, bu tur atlandı")
+        sys.exit(1)
     if not TEST:
         self_update()
     try:
