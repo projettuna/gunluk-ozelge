@@ -14,8 +14,8 @@ cat > "$D/dongu.sh" <<'X'
 #!/data/data/com.termux/files/usr/bin/bash
 D=/data/data/com.termux/files/home/tmpro
 cd "$D" || exit 1
-termux-wake-lock 2>/dev/null
 echo $$ > "$D/dongu.pid"
+termux-wake-lock 2>/dev/null &
 while true; do
   ( . ./.env && /data/data/com.termux/files/usr/bin/python yargitay.py ) >> log.txt 2>&1
   tail -n 400 log.txt > log.tmp && mv log.tmp log.txt
@@ -42,7 +42,7 @@ grep -q 'tmpro/baslat.sh' "$HOME/.bashrc" || echo '~/tmpro/baslat.sh' >> "$HOME/
 crontab -r 2>/dev/null || true
 
 "$D/baslat.sh"
-sleep 2
+sleep 8
 if [ -f "$D/dongu.pid" ] && kill -0 "$(cat "$D/dongu.pid")" 2>/dev/null; then
   echo "TAMAM: Yargıtay döngüsü çalışıyor. İlk arama şimdi başladı, birkaç dakika sürer."
 else
