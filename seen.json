@@ -96,12 +96,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 106,
+    "ok": 107,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 981,
+    "ok": 982,
     "down": false
    }
   },
@@ -112,81 +112,6 @@
  },
  "uyari_son": {
   "meteo": {
-   "37": [
-    {
-     "n": "2026111901",
-     "r": "yellow",
-     "h": [
-      "Gök gürültülü sağanak"
-     ],
-     "k": [
-      "sağanak ve fırtına"
-     ],
-     "m": "Yerel kuvvetli sağanak ve gök gürültülü sağanak yağış bekleniyor. Kuvvetli yağışlarla birlikte ani sel, su baskını, yağış anında kuvvetli rüzgar, heyelan, ulaşımda aksamalar, yıldırım gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
-     "b": "2026-11-20T12:00:00.309Z",
-     "e": "2026-11-20T20:59:59.309Z"
-    }
-   ],
-   "67": [
-    {
-     "n": "2026111901",
-     "r": "yellow",
-     "h": [
-      "Gök gürültülü sağanak"
-     ],
-     "k": [
-      "sağanak ve fırtına"
-     ],
-     "m": "Yerel kuvvetli sağanak ve gök gürültülü sağanak yağış bekleniyor. Kuvvetli yağışlarla birlikte ani sel, su baskını, yağış anında kuvvetli rüzgar, heyelan, ulaşımda aksamalar, yıldırım gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
-     "b": "2026-11-20T12:00:00.309Z",
-     "e": "2026-11-20T20:59:59.309Z"
-    }
-   ],
-   "74": [
-    {
-     "n": "2026111901",
-     "r": "yellow",
-     "h": [
-      "Gök gürültülü sağanak"
-     ],
-     "k": [
-      "sağanak ve fırtına"
-     ],
-     "m": "Yerel kuvvetli sağanak ve gök gürültülü sağanak yağış bekleniyor. Kuvvetli yağışlarla birlikte ani sel, su baskını, yağış anında kuvvetli rüzgar, heyelan, ulaşımda aksamalar, yıldırım gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
-     "b": "2026-11-20T12:00:00.309Z",
-     "e": "2026-11-20T20:59:59.309Z"
-    }
-   ],
-   "78": [
-    {
-     "n": "2026111901",
-     "r": "yellow",
-     "h": [
-      "Gök gürültülü sağanak"
-     ],
-     "k": [
-      "sağanak ve fırtına"
-     ],
-     "m": "Yerel kuvvetli sağanak ve gök gürültülü sağanak yağış bekleniyor. Kuvvetli yağışlarla birlikte ani sel, su baskını, yağış anında kuvvetli rüzgar, heyelan, ulaşımda aksamalar, yıldırım gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
-     "b": "2026-11-20T12:00:00.309Z",
-     "e": "2026-11-20T20:59:59.309Z"
-    }
-   ],
-   "81": [
-    {
-     "n": "2026111901",
-     "r": "yellow",
-     "h": [
-      "Gök gürültülü sağanak"
-     ],
-     "k": [
-      "sağanak ve fırtına"
-     ],
-     "m": "Yerel kuvvetli sağanak ve gök gürültülü sağanak yağış bekleniyor. Kuvvetli yağışlarla birlikte ani sel, su baskını, yağış anında kuvvetli rüzgar, heyelan, ulaşımda aksamalar, yıldırım gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
-     "b": "2026-11-20T12:00:00.309Z",
-     "e": "2026-11-20T20:59:59.309Z"
-    }
-   ],
    "31": [
     {
      "n": "2026112003",
