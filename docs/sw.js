@@ -30,12 +30,23 @@ async function saveInbox(n) {
   } catch (e) {}
 }
 
+// Teslim kaydı: bildirimin cihaza ne zaman ulaştığı (gecikme ölçümü). Hata olursa bildirim yine gösterilir.
+const SB = "https://hnolhapzcisavhkwyzhs.supabase.co", SB_KEY = "sb_publishable_tlfwqtscxxv2vdSHe3PstQ_XO1db8p9";
+async function ack(tag, sent) {
+  try {
+    const sub = await self.registration.pushManager.getSubscription();
+    if (!sub) return;
+    await fetch(SB + "/rest/v1/rpc/push_ack", { method: "POST", headers: { apikey: SB_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_endpoint: sub.endpoint, p_tag: String(tag || ""), p_sent: Number(sent) || null }) });
+  } catch (e) {}
+}
+
 self.addEventListener("push", event => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch { data = { body: event.data && event.data.text() }; }
   const title = data.title || "TMPRO";
   const n = { title, body: data.body || "Yeni mevzuat kaydı var.", url: data.url || "./", tag: data.tag || "tmpro", at: Date.now(), read: false };
-  event.waitUntil(Promise.all([saveInbox(n), self.registration.showNotification(title, {
+  event.waitUntil(Promise.all([saveInbox(n), ack(n.tag, data.sent), self.registration.showNotification(title, {
     body: data.body || "Yeni mevzuat kaydı var.",
     icon: "icon-192.png?v=3",
     badge: "icon-192.png?v=3",

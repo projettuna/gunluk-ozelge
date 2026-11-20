@@ -171,6 +171,7 @@ async function morning(j, env) {
   const tomorrow = new Date(now.getTime() + 864e5).toISOString().slice(0, 10);
   const wx = {}, out = [];
   let sent = 0, alerts = null, iller = [];
+  const statuses = [], t0 = Date.now();
   try {
     iller = await (await env.ASSETS.fetch(new Request("https://assets.local/iller.json"))).json();
     try { iller = iller.concat(await (await env.ASSETS.fetch(new Request("https://assets.local/ilceler.json"))).json()); } catch {}
@@ -186,10 +187,12 @@ async function morning(j, env) {
     u.plaka = plakaOf(u.lat, u.lon, u.city, iller);
     const msg = composeMorning(u, await wx[k], hol, today, tomorrow, alerts, iller);
     if (j.preview) { out.push(msg); continue; }
+    msg.sent = Date.now();  // cihaz teslim saatini bununla karşılaştırır (gecikme ölçümü)
     const res = await Promise.all((u.subs || []).map(s => sendOne(s, JSON.stringify(msg), j.vapid).catch(() => 0)));
     sent += res.filter(x => x >= 200 && x < 300).length;
+    statuses.push(...res);
   }
-  return j.preview ? { today, preview: out } : { today, users: (j.users || []).length, sent };
+  return j.preview ? { today, preview: out } : { today, users: (j.users || []).length, sent, statuses, ms: Date.now() - t0 };
 }
 
 // ---- Mevzuat asistanı: üyenin oturumuyla kayıtları arar, Claude ile kaynaklı yanıt üretir ----
@@ -601,7 +604,7 @@ export default {
     if (url.pathname === "/api/push" && req.method === "POST") {
       let j; try { j = await req.json(); } catch { return new Response("bad json", { status: 400 }); }
       if (!j?.vapid?.private || !j?.vapid?.public || !Array.isArray(j.subs)) return new Response("bad request", { status: 400 });
-      const payload = JSON.stringify(j.payload || {});
+      const payload = JSON.stringify({ ...(j.payload || {}), sent: Date.now() });
       const res = await Promise.all(j.subs.slice(0, 500).map(s => sendOne(s, payload, j.vapid).catch(() => 0)));
       return Response.json({ sent: res.filter(x => x >= 200 && x < 300).length, statuses: res });
     }

@@ -361,6 +361,46 @@ def phone():
             "(Termux: cd ~/tmpro && curl -fsSLO https://tmpro.tmproapp.workers.dev/turkiye/yargitay.py).")
 
 
+def gunaydin():
+    """08:30 Günaydın: zamanlayıcı çalıştı mı, aktarıcı Apple/Google'a teslim etti mi, cihazlara kaç saniyede ulaştı."""
+    tr = datetime.now(TR)
+    if tr.hour < 8 or (tr.hour == 8 and tr.minute < 40) or tr.hour >= 14:
+        return
+    code, body, _ = http(f"{SB}/rest/v1/rpc/morning_status", {}, sbh(), "POST")
+    if code == 404:  # supabase/bildirim_teslim.sql henüz çalıştırılmadı
+        print("  günaydın: morning_status yok (bildirim_teslim.sql bekleniyor)")
+        return
+    if code >= 300:
+        raise RuntimeError(f"db {code}")
+    st = json.loads(body) or {}
+    c, r = st.get("cron") or {}, st.get("relay") or {}
+    start = ts(c.get("start"))
+    if not start or start.astimezone(TR).date() != tr.date():
+        bad("günaydın", "kritik", "Bugünkü 08:30 Günaydın zamanlayıcısı hiç çalışmadı (pg_cron)")
+        return
+    if c.get("status") != "succeeded":
+        bad("günaydın", "kritik", f"Günaydın zamanlayıcısı hata verdi: {str(c.get('msg'))[:120]}")
+        return
+    b = r.get("body") or {}
+    acks = st.get("acks") or []
+    gec = sorted(a["gecikme_sn"] for a in acks if a.get("gecikme_sn") is not None)
+    print(f"  günaydın: başlangıç {start.astimezone(TR):%H:%M:%S}, aktarıcı {r.get('code')}, "
+          f"üye {b.get('users')}, teslim {b.get('sent')}/{len(b.get('statuses') or []) or st.get('subs')}, "
+          f"süre {b.get('ms')} ms, cihaz onayı {len(acks)}" + (f", gecikme sn {gec}" if gec else ""))
+    if not r:
+        if tr.hour < 12:  # pg_net yanıtı 6 saat tutar; öğleden sonra kayıt silinmiş olabilir
+            bad("günaydın", "kritik", "Günaydın aktarıcıya gönderildi ama yanıt gelmedi (worker /api/morning)")
+        return
+    if r.get("code") != 200 or r.get("timed_out"):
+        bad("günaydın", "kritik", f"Günaydın aktarıcısı yanıtı {r.get('code')}{' (zaman aşımı)' if r.get('timed_out') else ''}")
+    elif not b.get("sent"):
+        bad("günaydın", "kritik", "Günaydın hiçbir cihaza teslim edilemedi (Apple/Google reddetti)")
+    elif b.get("statuses") and b["sent"] < len(b["statuses"]):
+        kotu = sorted({x for x in b["statuses"] if not 200 <= x < 300})
+        bad("günaydın", "uyari", f"Günaydın {len(b['statuses']) - b['sent']} cihaza ulaşmadı (yanıt {kotu}); "
+            "410/404 ise o cihazda bildirim izni yenilenmeli")
+
+
 # ---------------------------------------------------------------- bildirim
 
 def push_admins(title, body):
@@ -387,7 +427,7 @@ def main():
         print("Supabase ayarı yok")
         return
     for name, fn in (("site", site), ("aktarıcı", relay), ("veritabanı", database), ("kurulum", setup),
-                     ("tarama", main_job), ("kaynaklar", sources), ("üye girişi ve ekranlar", e2e), ("e-posta", mails), ("yedek", backup), ("yapay zekâ", ai), ("haberler", news_fresh), ("döviz ve altın", piyasa), ("zamanlayıcı", zamanlayici), ("uyarılar", uyarilar), ("telefon", phone)):
+                     ("tarama", main_job), ("kaynaklar", sources), ("üye girişi ve ekranlar", e2e), ("e-posta", mails), ("yedek", backup), ("yapay zekâ", ai), ("haberler", news_fresh), ("döviz ve altın", piyasa), ("zamanlayıcı", zamanlayici), ("uyarılar", uyarilar), ("telefon", phone), ("günaydın", gunaydin)):
         check(name, fn)
     if TEST:
         bad("deneme", "kritik", "Bu bir deneme uyarısıdır, nöbetçi çalışıyor")

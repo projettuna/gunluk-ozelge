@@ -249,6 +249,10 @@ def get_resmi_gazete():
             d = re.search(r"/(\d{4})(\d{2})(\d{2})", href)
             out.append({"id": href, "title": title, "url": href,
                         "meta": f"Resmî Gazete {d.group(3)}.{d.group(2)}.{d.group(1)}" if d else "Resmî Gazete"})
+    # Sayfa yapısı değişirse "vergiyle ilgili 0" sessizce sürmesin: hiç günlük bağlantı yoksa kaynak alınamadı sayılır
+    if not seen:
+        raise RuntimeError("Resmî Gazete sayfasında günlük içerik bağlantısı bulunamadı (sayfa yapısı değişmiş olabilir)")
+    print(f"Resmî Gazete: sayfada {len(seen)} başlık, vergiyle ilgili {len(out)}")
     return out
 
 
