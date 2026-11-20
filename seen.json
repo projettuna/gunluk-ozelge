@@ -95,13 +95,13 @@
  "uyari": {
   "probe": {
    "gib_dvd": {
-    "fail": 0,
-    "ok": 874,
+    "fail": 1,
+    "ok": 0,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 874,
+    "ok": 875,
     "down": false
    }
   },
