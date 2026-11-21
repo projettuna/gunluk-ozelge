@@ -52,8 +52,11 @@ echo $$ > "$D/dongu.pid"
 termux-wake-lock 2>/dev/null &
 while true; do
   echo "=== $(date '+%d.%m %H:%M') ===" >> log.txt
-  ( . ./.env && /data/data/com.termux/files/usr/bin/python yargitay.py ) >> log.txt 2>&1
-  if [ $? -eq 0 ]; then bekle=3600; else bekle=600; fi
+  # -u: satırlar anında log'a yazılsın; timeout: takılan tur 25 dk sonra kesilsin
+  ( . ./.env && timeout 1500 /data/data/com.termux/files/usr/bin/python -u yargitay.py ) >> log.txt 2>&1
+  kod=$?
+  echo "--- tur bitti $(date '+%H:%M'), kod $kod" >> log.txt
+  if [ $kod -eq 0 ]; then bekle=3600; else bekle=600; fi
   tail -n 400 log.txt > log.tmp && mv log.tmp log.txt
   sleep $bekle
 done
