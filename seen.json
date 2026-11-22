@@ -96,12 +96,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 149,
+    "ok": 150,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1024,
+    "ok": 1025,
     "down": false
    }
   },
@@ -232,23 +232,21 @@
      "e": "2026-11-23T20:59:00.000Z"
     }
    ],
-   "34": [
-    {
-     "n": "2026112207",
-     "r": "yellow",
-     "h": [
-      "Gök gürültülü sağanak"
-     ],
-     "k": [
-      "sağanak ve fırtına"
-     ],
-     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-23T13:00:00.000Z",
-     "e": "2026-11-23T20:59:00.000Z"
-    }
-   ],
    "41": [
     {
+     "n": "2026112212",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Rüzgarın; güney ve güneybatı yönlerden kuvvetli yer yer fırtına (50-70 km/sa yer yer 80-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması, soba ve baca gazı zehirlenmeleri ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-23T12:00:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    },
+    {
      "n": "2026112207",
      "r": "yellow",
      "h": [
@@ -262,7 +260,20 @@
      "e": "2026-11-23T20:59:00.000Z"
     }
    ],
-   "11": [
+   "54": [
+    {
+     "n": "2026112212",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Rüzgarın; güney ve güneybatı yönlerden kuvvetli yer yer fırtına (50-70 km/sa yer yer 80-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması, soba ve baca gazı zehirlenmeleri ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-23T12:00:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    },
     {
      "n": "2026112206",
      "r": "yellow",
@@ -277,7 +288,20 @@
      "e": "2026-11-24T00:00:00.000Z"
     }
    ],
-   "54": [
+   "11": [
+    {
+     "n": "2026112211",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Rüzgarın; güney ve güneybatı yönlerden kuvvetli yer yer fırtına (50-70 km/sa yer yer 80-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması, soba ve baca gazı zehirlenmeleri ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-23T09:00:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    },
     {
      "n": "2026112206",
      "r": "yellow",
@@ -294,6 +318,19 @@
    ],
    "16": [
     {
+     "n": "2026112211",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Rüzgarın; güney ve güneybatı yönlerden kuvvetli yer yer fırtına (50-70 km/sa yer yer 80-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması, soba ve baca gazı zehirlenmeleri ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-23T09:00:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    },
+    {
      "n": "2026112205",
      "r": "yellow",
      "h": [
@@ -305,10 +342,51 @@
      "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-23T13:00:00.000Z",
      "e": "2026-11-23T20:59:00.000Z"
+    }
+   ],
+   "43": [
+    {
+     "n": "2026112211",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Rüzgarın; güney ve güneybatı yönlerden kuvvetli yer yer fırtına (50-70 km/sa yer yer 80-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması, soba ve baca gazı zehirlenmeleri ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-23T09:00:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    },
+    {
+     "n": "2026112208",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-23T14:00:27.467Z",
+     "e": "2026-11-23T20:59:27.467Z"
     }
    ],
    "77": [
     {
+     "n": "2026112211",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Rüzgarın; güney ve güneybatı yönlerden kuvvetli yer yer fırtına (50-70 km/sa yer yer 80-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması, soba ve baca gazı zehirlenmeleri ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-23T09:00:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    },
+    {
      "n": "2026112205",
      "r": "yellow",
      "h": [
@@ -322,37 +400,20 @@
      "e": "2026-11-23T20:59:00.000Z"
     }
    ],
-   "35": [
-    {
-     "n": "2026112204",
-     "r": "yellow",
-     "h": [
-      "Gök gürültülü sağanak"
-     ],
-     "k": [
-      "sağanak ve fırtına"
-     ],
-     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-23T12:00:00.000Z",
-     "e": "2026-11-23T20:59:00.000Z"
-    }
-   ],
-   "45": [
-    {
-     "n": "2026112204",
-     "r": "yellow",
-     "h": [
-      "Gök gürültülü sağanak"
-     ],
-     "k": [
-      "sağanak ve fırtına"
-     ],
-     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-23T12:00:00.000Z",
-     "e": "2026-11-23T20:59:00.000Z"
-    }
-   ],
    "10": [
+    {
+     "n": "2026112210",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "güney ve güneybatı yönlerden kuvvetli yer yer fırtına (50-70 km/sa yer yer 80-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması, soba ve baca gazı zehirlenmeleri ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-23T03:00:00.000Z",
+     "e": "2026-11-23T19:00:00.000Z"
+    },
     {
      "n": "2026112203",
      "r": "yellow",
@@ -382,6 +443,19 @@
    ],
    "17": [
     {
+     "n": "2026112210",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "güney ve güneybatı yönlerden kuvvetli yer yer fırtına (50-70 km/sa yer yer 80-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması, soba ve baca gazı zehirlenmeleri ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-23T03:00:00.000Z",
+     "e": "2026-11-23T19:00:00.000Z"
+    },
+    {
      "n": "2026112202",
      "r": "yellow",
      "h": [
@@ -393,6 +467,135 @@
      "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-23T09:00:00.000Z",
      "e": "2026-11-23T20:59:00.000Z"
+    }
+   ],
+   "34": [
+    {
+     "n": "2026112210",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "güney ve güneybatı yönlerden kuvvetli yer yer fırtına (50-70 km/sa yer yer 80-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması, soba ve baca gazı zehirlenmeleri ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-23T03:00:00.000Z",
+     "e": "2026-11-23T19:00:00.000Z"
+    },
+    {
+     "n": "2026112207",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-23T13:00:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    }
+   ],
+   "35": [
+    {
+     "n": "2026112210",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "güney ve güneybatı yönlerden kuvvetli yer yer fırtına (50-70 km/sa yer yer 80-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması, soba ve baca gazı zehirlenmeleri ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-23T03:00:00.000Z",
+     "e": "2026-11-23T19:00:00.000Z"
+    },
+    {
+     "n": "2026112204",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-23T12:00:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    }
+   ],
+   "45": [
+    {
+     "n": "2026112210",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "güney ve güneybatı yönlerden kuvvetli yer yer fırtına (50-70 km/sa yer yer 80-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması, soba ve baca gazı zehirlenmeleri ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-23T03:00:00.000Z",
+     "e": "2026-11-23T19:00:00.000Z"
+    },
+    {
+     "n": "2026112204",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-23T12:00:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    }
+   ],
+   "22": [
+    {
+     "n": "2026112209",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Rüzgarın; güney ve güneybatı yönlerden kuvvetli yer yer fırtına (50-70 km/sa yer yer 80-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması, soba ve baca gazı zehirlenmeleri ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-23T03:00:00.000Z",
+     "e": "2026-11-23T17:00:00.000Z"
+    }
+   ],
+   "39": [
+    {
+     "n": "2026112209",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Rüzgarın; güney ve güneybatı yönlerden kuvvetli yer yer fırtına (50-70 km/sa yer yer 80-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması, soba ve baca gazı zehirlenmeleri ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-23T03:00:00.000Z",
+     "e": "2026-11-23T17:00:00.000Z"
+    }
+   ],
+   "59": [
+    {
+     "n": "2026112209",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Rüzgarın; güney ve güneybatı yönlerden kuvvetli yer yer fırtına (50-70 km/sa yer yer 80-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması, soba ve baca gazı zehirlenmeleri ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-23T03:00:00.000Z",
+     "e": "2026-11-23T17:00:00.000Z"
     }
    ]
   }
