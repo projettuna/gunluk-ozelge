@@ -96,12 +96,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 148,
+    "ok": 149,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1023,
+    "ok": 1024,
     "down": false
    }
   },
@@ -229,6 +229,169 @@
      ],
      "m": "Yurdun doğu kesimlerinde halen devam eden yağışların Muş, Ağrı, Van, Bitlis çevreleri ile Diyarbakır'ın doğu, Bingöl'ün güney, Batman ve Siirt'in kuzey kesimlerinde yerel olarak kuvvetli (21-50 kg/m2) sağanak, yüksek kesimlerinde ise karla karışık yağmur ve kar şeklinde olması beklendiğinden kuvvetli yağışların oluşturacağı ani sel, su baskını, ani kuvvetli rüzgar ile ulaşımda aksamalar gibi…",
      "b": "2026-11-22T08:20:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    }
+   ],
+   "34": [
+    {
+     "n": "2026112207",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-23T13:00:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    }
+   ],
+   "41": [
+    {
+     "n": "2026112207",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-23T13:00:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    }
+   ],
+   "11": [
+    {
+     "n": "2026112206",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-23T15:00:00.000Z",
+     "e": "2026-11-24T00:00:00.000Z"
+    }
+   ],
+   "54": [
+    {
+     "n": "2026112206",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-23T15:00:00.000Z",
+     "e": "2026-11-24T00:00:00.000Z"
+    }
+   ],
+   "16": [
+    {
+     "n": "2026112205",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-23T13:00:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    }
+   ],
+   "77": [
+    {
+     "n": "2026112205",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-23T13:00:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    }
+   ],
+   "35": [
+    {
+     "n": "2026112204",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-23T12:00:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    }
+   ],
+   "45": [
+    {
+     "n": "2026112204",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-23T12:00:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    }
+   ],
+   "10": [
+    {
+     "n": "2026112203",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-23T13:00:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    },
+    {
+     "n": "2026112202",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-23T09:00:00.000Z",
+     "e": "2026-11-23T20:59:00.000Z"
+    }
+   ],
+   "17": [
+    {
+     "n": "2026112202",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-23T09:00:00.000Z",
      "e": "2026-11-23T20:59:00.000Z"
     }
    ]
