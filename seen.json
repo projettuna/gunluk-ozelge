@@ -96,12 +96,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 213,
+    "ok": 214,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1088,
+    "ok": 1089,
     "down": false
    }
   },
@@ -476,6 +476,21 @@
      "m": "Rüzgarın; güney ve güneybatı yönlerden kuvvetli yer yer fırtına (50-70 km/sa yer yer 80-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması, soba ve baca gazı zehirlenmeleri ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
      "b": "2026-11-23T03:00:00.000Z",
      "e": "2026-11-23T17:00:00.000Z"
+    }
+   ],
+   "7": [
+    {
+     "n": "2026112301",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Sağanak ve gök gürültülü sağanak yağışların yerel kuvvetli olması beklendiğinden sel, su baskını, yıldırım, yerel küçük çaplı dolu ve yağış anında kuvvetli rüzgar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-23T21:00:00.000Z",
+     "e": "2026-11-24T15:00:00.000Z"
     }
    ]
   }
