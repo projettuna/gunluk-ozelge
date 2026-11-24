@@ -100,12 +100,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 307,
+    "ok": 308,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1182,
+    "ok": 1183,
     "down": false
    }
   },
@@ -452,19 +452,6 @@
      "m": "Sağanak yağışların yerel kuvvetli (21-50 kg/m2) olması beklendiğinden sel, su baskını, heyelan ve ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
      "b": "2026-11-23T21:00:00.000Z",
      "e": "2026-11-24T15:00:00.000Z"
-    },
-    {
-     "n": "2026112206",
-     "r": "yellow",
-     "h": [
-      "Gök gürültülü sağanak"
-     ],
-     "k": [
-      "sağanak ve fırtına"
-     ],
-     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-23T15:00:00.000Z",
-     "e": "2026-11-24T00:00:00.000Z"
     }
    ],
    "7": [
@@ -480,21 +467,6 @@
      "m": "Sağanak ve gök gürültülü sağanak yağışların yerel kuvvetli olması beklendiğinden sel, su baskını, yıldırım, yerel küçük çaplı dolu ve yağış anında kuvvetli rüzgar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
      "b": "2026-11-23T21:00:00.000Z",
      "e": "2026-11-24T15:00:00.000Z"
-    }
-   ],
-   "11": [
-    {
-     "n": "2026112206",
-     "r": "yellow",
-     "h": [
-      "Gök gürültülü sağanak"
-     ],
-     "k": [
-      "sağanak ve fırtına"
-     ],
-     "m": "Kuvvetli yağışların oluşturacağı ani sel, su baskını, yıldırım, fırtına ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-23T15:00:00.000Z",
-     "e": "2026-11-24T00:00:00.000Z"
     }
    ]
   }
