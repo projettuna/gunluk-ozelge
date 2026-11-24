@@ -93,19 +93,19 @@
  "release_day": {
   "2.7": "2026-11-09"
  },
- "madde_last_id": 564,
- "madde_text_day": "2026-11-23",
+ "madde_last_id": 566,
+ "madde_text_day": "2026-11-24",
  "event_remind_day": "2026-11-23",
  "uyari": {
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 314,
+    "ok": 315,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1189,
+    "ok": 1190,
     "down": false
    }
   },
@@ -116,127 +116,24 @@
  },
  "uyari_son": {
   "meteo": {
-   "28": [
-    {
-     "n": "2026112307",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli rüzgâr ve fırtına"
-     ],
-     "k": [
-      "fırtına"
-     ],
-     "m": "Güney yönlerden rüzgarın, fırtına ve yer yer kuvvetli fırtına (60-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması ile soba ve doğal gaz kaynaklı baca gazı zehirlenme riski gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
-     "b": "2026-11-23T11:00:00.000Z",
-     "e": "2026-11-24T05:00:00.000Z"
-    },
-    {
-     "n": "2026112306",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli yağış",
-      "Kar"
-     ],
-     "k": [
-      "kuvvetli yağış",
-      "kar"
-     ],
-     "m": "Sağanak yağışların yerel kuvvetli (21-60 kg/m2) olması bekleniyor. Zamanla soğumaya bağlı olarak iç ve yüksek kesimlerde (1000 m üzeri) karla karışık yağmur ve kar şeklinde görülecek kuvvetli yağışların sebep olabileceği sel, su baskını, heyelan, kar yağışı görülecek yerlerde buzlanma ve don olayı ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
-     "b": "2026-11-24T10:00:00.000Z",
-     "e": "2026-11-25T09:00:00.000Z"
-    }
-   ],
-   "52": [
-    {
-     "n": "2026112307",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli rüzgâr ve fırtına"
-     ],
-     "k": [
-      "fırtına"
-     ],
-     "m": "Güney yönlerden rüzgarın, fırtına ve yer yer kuvvetli fırtına (60-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması ile soba ve doğal gaz kaynaklı baca gazı zehirlenme riski gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
-     "b": "2026-11-23T11:00:00.000Z",
-     "e": "2026-11-24T05:00:00.000Z"
-    },
-    {
-     "n": "2026112305",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli yağış",
-      "Kar"
-     ],
-     "k": [
-      "kuvvetli yağış",
-      "kar"
-     ],
-     "m": "Sağanak yağışların yerel kuvvetli (21-60 kg/m2) olması bekleniyor. Zamanla soğumaya bağlı olarak iç ve yüksek kesimlerde (1000 m üzeri) karla karışık yağmur ve kar şeklinde görülecek kuvvetli yağışların sebep olabileceği sel, su baskını, heyelan, kar yağışı görülecek yerlerde buzlanma ve don olayı ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
-     "b": "2026-11-24T07:00:00.000Z",
-     "e": "2026-11-25T06:00:00.000Z"
-    }
-   ],
-   "55": [
-    {
-     "n": "2026112307",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli rüzgâr ve fırtına"
-     ],
-     "k": [
-      "fırtına"
-     ],
-     "m": "Güney yönlerden rüzgarın, fırtına ve yer yer kuvvetli fırtına (60-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması ile soba ve doğal gaz kaynaklı baca gazı zehirlenme riski gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
-     "b": "2026-11-23T11:00:00.000Z",
-     "e": "2026-11-24T05:00:00.000Z"
-    },
-    {
-     "n": "2026112305",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli yağış",
-      "Kar"
-     ],
-     "k": [
-      "kuvvetli yağış",
-      "kar"
-     ],
-     "m": "Sağanak yağışların yerel kuvvetli (21-60 kg/m2) olması bekleniyor. Zamanla soğumaya bağlı olarak iç ve yüksek kesimlerde (1000 m üzeri) karla karışık yağmur ve kar şeklinde görülecek kuvvetli yağışların sebep olabileceği sel, su baskını, heyelan, kar yağışı görülecek yerlerde buzlanma ve don olayı ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
-     "b": "2026-11-24T07:00:00.000Z",
-     "e": "2026-11-25T06:00:00.000Z"
-    }
-   ],
-   "61": [
-    {
-     "n": "2026112307",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli rüzgâr ve fırtına"
-     ],
-     "k": [
-      "fırtına"
-     ],
-     "m": "Güney yönlerden rüzgarın, fırtına ve yer yer kuvvetli fırtına (60-90 km/sa) şeklinde esmesi beklendiğinden ağaç ve direk devrilmesi, çatı uçması ile soba ve doğal gaz kaynaklı baca gazı zehirlenme riski gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
-     "b": "2026-11-23T11:00:00.000Z",
-     "e": "2026-11-24T05:00:00.000Z"
-    },
-    {
-     "n": "2026112306",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli yağış",
-      "Kar"
-     ],
-     "k": [
-      "kuvvetli yağış",
-      "kar"
-     ],
-     "m": "Sağanak yağışların yerel kuvvetli (21-60 kg/m2) olması bekleniyor. Zamanla soğumaya bağlı olarak iç ve yüksek kesimlerde (1000 m üzeri) karla karışık yağmur ve kar şeklinde görülecek kuvvetli yağışların sebep olabileceği sel, su baskını, heyelan, kar yağışı görülecek yerlerde buzlanma ve don olayı ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
-     "b": "2026-11-24T10:00:00.000Z",
-     "e": "2026-11-25T09:00:00.000Z"
-    }
-   ],
    "8": [
+    {
+     "n": "2026112306",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli yağış",
+      "Kar"
+     ],
+     "k": [
+      "kuvvetli yağış",
+      "kar"
+     ],
+     "m": "Sağanak yağışların yerel kuvvetli (21-60 kg/m2) olması bekleniyor. Zamanla soğumaya bağlı olarak iç ve yüksek kesimlerde (1000 m üzeri) karla karışık yağmur ve kar şeklinde görülecek kuvvetli yağışların sebep olabileceği sel, su baskını, heyelan, kar yağışı görülecek yerlerde buzlanma ve don olayı ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-24T10:00:00.000Z",
+     "e": "2026-11-25T09:00:00.000Z"
+    }
+   ],
+   "28": [
     {
      "n": "2026112306",
      "r": "yellow",
@@ -287,6 +184,23 @@
      "e": "2026-11-25T09:00:00.000Z"
     }
    ],
+   "61": [
+    {
+     "n": "2026112306",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli yağış",
+      "Kar"
+     ],
+     "k": [
+      "kuvvetli yağış",
+      "kar"
+     ],
+     "m": "Sağanak yağışların yerel kuvvetli (21-60 kg/m2) olması bekleniyor. Zamanla soğumaya bağlı olarak iç ve yüksek kesimlerde (1000 m üzeri) karla karışık yağmur ve kar şeklinde görülecek kuvvetli yağışların sebep olabileceği sel, su baskını, heyelan, kar yağışı görülecek yerlerde buzlanma ve don olayı ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-24T10:00:00.000Z",
+     "e": "2026-11-25T09:00:00.000Z"
+    }
+   ],
    "69": [
     {
      "n": "2026112306",
@@ -302,6 +216,40 @@
      "m": "Sağanak yağışların yerel kuvvetli (21-60 kg/m2) olması bekleniyor. Zamanla soğumaya bağlı olarak iç ve yüksek kesimlerde (1000 m üzeri) karla karışık yağmur ve kar şeklinde görülecek kuvvetli yağışların sebep olabileceği sel, su baskını, heyelan, kar yağışı görülecek yerlerde buzlanma ve don olayı ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
      "b": "2026-11-24T10:00:00.000Z",
      "e": "2026-11-25T09:00:00.000Z"
+    }
+   ],
+   "52": [
+    {
+     "n": "2026112305",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli yağış",
+      "Kar"
+     ],
+     "k": [
+      "kuvvetli yağış",
+      "kar"
+     ],
+     "m": "Sağanak yağışların yerel kuvvetli (21-60 kg/m2) olması bekleniyor. Zamanla soğumaya bağlı olarak iç ve yüksek kesimlerde (1000 m üzeri) karla karışık yağmur ve kar şeklinde görülecek kuvvetli yağışların sebep olabileceği sel, su baskını, heyelan, kar yağışı görülecek yerlerde buzlanma ve don olayı ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-24T07:00:00.000Z",
+     "e": "2026-11-25T06:00:00.000Z"
+    }
+   ],
+   "55": [
+    {
+     "n": "2026112305",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli yağış",
+      "Kar"
+     ],
+     "k": [
+      "kuvvetli yağış",
+      "kar"
+     ],
+     "m": "Sağanak yağışların yerel kuvvetli (21-60 kg/m2) olması bekleniyor. Zamanla soğumaya bağlı olarak iç ve yüksek kesimlerde (1000 m üzeri) karla karışık yağmur ve kar şeklinde görülecek kuvvetli yağışların sebep olabileceği sel, su baskını, heyelan, kar yağışı görülecek yerlerde buzlanma ve don olayı ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
+     "b": "2026-11-24T07:00:00.000Z",
+     "e": "2026-11-25T06:00:00.000Z"
     }
    ],
    "38": [
