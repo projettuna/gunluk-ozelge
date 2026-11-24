@@ -630,10 +630,19 @@ export default {
     }
     if (url.pathname === "/api/altin") {
       return cached("altin", 300, async () => {
-        const [xau, xag, k] = await Promise.all([metal("XAU"), metal("XAG"), tcmb(null)]);
+        // Kaynak anlık hata verirse bir kez daha denenir; yine olmazsa son başarılı fiyat (en fazla 1 gün) "eski" işaretiyle döner
+        let [xau, xag, k] = await Promise.all([metal("XAU"), metal("XAG"), tcmb(null)]);
+        if (!xau) xau = await metal("XAU");
         const usd = k.kurlar?.find(x => x.kod === "USD")?.satis || null;
-        if (!xau || !usd) return { error: "altın fiyatı alınamadı" };
-        return { onsUsd: xau.usd, gumusOnsUsd: xag?.usd || null, usdTry: usd, kurTarih: k.tarih, at: xau.at || new Date().toISOString() };
+        const last = new Request("https://cache.tmpro/altin-son");
+        if (!xau || !usd) {
+          const old = await caches.default.match(last);
+          if (old) return { ...(await old.json()), eski: true };
+          return { error: "altın fiyatı alınamadı" };
+        }
+        const out = { onsUsd: xau.usd, gumusOnsUsd: xag?.usd || null, usdTry: usd, kurTarih: k.tarih, at: xau.at || new Date().toISOString() };
+        await caches.default.put(last, new Response(JSON.stringify(out), { headers: { "Content-Type": "application/json", "Cache-Control": "public, max-age=86400" } }));
+        return out;
       });
     }
     return env.ASSETS.fetch(req);
