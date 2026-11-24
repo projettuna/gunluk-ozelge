@@ -100,12 +100,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 309,
+    "ok": 310,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1184,
+    "ok": 1185,
     "down": false
    }
   },
