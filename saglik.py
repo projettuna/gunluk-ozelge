@@ -96,7 +96,11 @@ def piyasa():
         bad("kur", "uyari", f"Döviz kurları alınamıyor (HTTP {code}); TCMB kaynağı değişmiş olabilir")
     code, body, _ = http(APP + "api/altin")
     try:
-        ok = bool(json.loads(body).get("onsUsd"))
+        j = json.loads(body)
+        ok = bool(j.get("onsUsd"))
+        if ok and j.get("eski"):  # kaynak anlık düştü, son fiyat gösteriliyor: 3 saati geçmedikçe sorun sayılmaz
+            at = datetime.fromisoformat(str(j.get("at") or "").replace("Z", "+00:00"))
+            ok = datetime.now(timezone.utc) - at < timedelta(hours=3)
     except Exception:  # noqa: BLE001
         ok = False
     if code != 200 or not ok:
