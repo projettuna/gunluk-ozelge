@@ -101,12 +101,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 571,
+    "ok": 572,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1446,
+    "ok": 1447,
     "down": false
    }
   },
@@ -117,21 +117,6 @@
  },
  "uyari_son": {
   "meteo": {
-   "57": [
-    {
-     "n": "2026112405",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli rüzgâr ve fırtına"
-     ],
-     "k": [
-      "fırtına"
-     ],
-     "m": "Rüzgarın batı yönlerden kuvvetli ve fırtına şeklinde (60-80 km/sa, zaman zaman 90 km/sa) esmesi bekleniyor. Kuvvetli rüzgar ve fırtınayla birlikte ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi, gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-24T22:00:00.000Z",
-     "e": "2026-11-25T14:00:00.000Z"
-    }
-   ],
    "13": [
     {
      "n": "2026112404",
