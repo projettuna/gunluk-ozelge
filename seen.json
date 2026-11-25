@@ -88,7 +88,7 @@
   "https://www.resmigazete.gov.tr/eskiler/2026/11/20261124-2.htm",
   "https://www.resmigazete.gov.tr/eskiler/2026/11/20261124-3.htm"
  ],
- "no_ozelge_notice": "24.11.2026",
+ "no_ozelge_notice": "25.11.2026",
  "last_ozelge_mail": "18.11.2026",
  "release_notified": "2.7",
  "release_day": {
@@ -101,12 +101,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 583,
+    "ok": 584,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1458,
+    "ok": 1459,
     "down": false
    }
   },
@@ -116,53 +116,7 @@
   "bitti": {}
  },
  "uyari_son": {
-  "meteo": {
-   "13": [
-    {
-     "n": "2026112404",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli rüzgâr ve fırtına"
-     ],
-     "k": [
-      "fırtına"
-     ],
-     "m": "Rüzgarın güneybatı yönlerden kuvvetli ve fırtına şeklinde (50-80 km/sa, yükseklerde yer yer 90 km/sa) esmesi bekleniyor. Kuvvetli rüzgar ve fırtınayla birlikte ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi, kar yağışı olan yerlerde tipi, soba ve doğal gaz kaynaklı zehirlenmeler gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-24T17:00:00.000Z",
-     "e": "2026-11-25T15:00:00.000Z"
-    }
-   ],
-   "30": [
-    {
-     "n": "2026112404",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli rüzgâr ve fırtına"
-     ],
-     "k": [
-      "fırtına"
-     ],
-     "m": "Rüzgarın güneybatı yönlerden kuvvetli ve fırtına şeklinde (50-80 km/sa, yükseklerde yer yer 90 km/sa) esmesi bekleniyor. Kuvvetli rüzgar ve fırtınayla birlikte ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi, kar yağışı olan yerlerde tipi, soba ve doğal gaz kaynaklı zehirlenmeler gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-24T17:00:00.000Z",
-     "e": "2026-11-25T15:00:00.000Z"
-    }
-   ],
-   "65": [
-    {
-     "n": "2026112404",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli rüzgâr ve fırtına"
-     ],
-     "k": [
-      "fırtına"
-     ],
-     "m": "Rüzgarın güneybatı yönlerden kuvvetli ve fırtına şeklinde (50-80 km/sa, yükseklerde yer yer 90 km/sa) esmesi bekleniyor. Kuvvetli rüzgar ve fırtınayla birlikte ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi, kar yağışı olan yerlerde tipi, soba ve doğal gaz kaynaklı zehirlenmeler gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-24T17:00:00.000Z",
-     "e": "2026-11-25T15:00:00.000Z"
-    }
-   ]
-  }
+  "meteo": {}
  },
  "weekly_sent": "2026-47"
 }
