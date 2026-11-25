@@ -96,17 +96,17 @@
  },
  "madde_last_id": 569,
  "madde_text_day": "2026-11-25",
- "event_remind_day": "2026-11-24",
+ "event_remind_day": "2026-11-25",
  "uyari": {
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 474,
+    "ok": 475,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1349,
+    "ok": 1350,
     "down": false
    }
   },
@@ -382,40 +382,6 @@
      "m": "Sağanak yağışların yerel kuvvetli (21-60 kg/m2) olması bekleniyor. Zamanla soğumaya bağlı olarak iç ve yüksek kesimlerde (1000 m üzeri) karla karışık yağmur ve kar şeklinde görülecek kuvvetli yağışların sebep olabileceği sel, su baskını, heyelan, kar yağışı görülecek yerlerde buzlanma ve don olayı ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
      "b": "2026-11-24T10:00:00.000Z",
      "e": "2026-11-25T09:00:00.000Z"
-    }
-   ],
-   "52": [
-    {
-     "n": "2026112305",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli yağış",
-      "Kar"
-     ],
-     "k": [
-      "kuvvetli yağış",
-      "kar"
-     ],
-     "m": "Sağanak yağışların yerel kuvvetli (21-60 kg/m2) olması bekleniyor. Zamanla soğumaya bağlı olarak iç ve yüksek kesimlerde (1000 m üzeri) karla karışık yağmur ve kar şeklinde görülecek kuvvetli yağışların sebep olabileceği sel, su baskını, heyelan, kar yağışı görülecek yerlerde buzlanma ve don olayı ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
-     "b": "2026-11-24T07:00:00.000Z",
-     "e": "2026-11-25T06:00:00.000Z"
-    }
-   ],
-   "55": [
-    {
-     "n": "2026112305",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli yağış",
-      "Kar"
-     ],
-     "k": [
-      "kuvvetli yağış",
-      "kar"
-     ],
-     "m": "Sağanak yağışların yerel kuvvetli (21-60 kg/m2) olması bekleniyor. Zamanla soğumaya bağlı olarak iç ve yüksek kesimlerde (1000 m üzeri) karla karışık yağmur ve kar şeklinde görülecek kuvvetli yağışların sebep olabileceği sel, su baskını, heyelan, kar yağışı görülecek yerlerde buzlanma ve don olayı ile ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunması gerekmektedir.",
-     "b": "2026-11-24T07:00:00.000Z",
-     "e": "2026-11-25T06:00:00.000Z"
     }
    ]
   }
