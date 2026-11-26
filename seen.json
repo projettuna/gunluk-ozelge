@@ -87,7 +87,9 @@
  "rg_seen": [
   "https://www.resmigazete.gov.tr/eskiler/2026/11/20261110-6.htm",
   "https://www.resmigazete.gov.tr/eskiler/2026/11/20261124-2.htm",
-  "https://www.resmigazete.gov.tr/eskiler/2026/11/20261124-3.htm"
+  "https://www.resmigazete.gov.tr/eskiler/2026/11/20261124-3.htm",
+  "https://www.resmigazete.gov.tr/eskiler/2026/11/20261127-12.pdf",
+  "https://www.resmigazete.gov.tr/eskiler/2026/11/20261127-15.pdf"
  ],
  "no_ozelge_notice": "26.11.2026",
  "last_ozelge_mail": "18.11.2026",
@@ -102,12 +104,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 747,
+    "ok": 748,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1622,
+    "ok": 1623,
     "down": false
    }
   },
