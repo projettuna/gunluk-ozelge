@@ -89,7 +89,7 @@
   "https://www.resmigazete.gov.tr/eskiler/2026/11/20261124-2.htm",
   "https://www.resmigazete.gov.tr/eskiler/2026/11/20261124-3.htm"
  ],
- "no_ozelge_notice": "25.11.2026",
+ "no_ozelge_notice": "26.11.2026",
  "last_ozelge_mail": "18.11.2026",
  "release_notified": "2.7",
  "release_day": {
@@ -102,12 +102,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 729,
+    "ok": 730,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1604,
+    "ok": 1605,
     "down": false
    }
   },
