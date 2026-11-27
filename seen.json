@@ -22,7 +22,7 @@
   "1237867800",
   "1238397100"
  ],
- "teblig_full_scan": "26.11.2026",
+ "teblig_full_scan": "27.11.2026",
  "last_teblig_id": 11921,
  "last_kanun_id": 661,
  "last_sirkuler_id": 1150,
@@ -104,12 +104,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 753,
+    "ok": 754,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1628,
+    "ok": 1629,
     "down": false
    }
   },
