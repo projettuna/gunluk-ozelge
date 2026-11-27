@@ -26,7 +26,7 @@
  "last_teblig_id": 11922,
  "last_kanun_id": 661,
  "last_sirkuler_id": 1150,
- "last_cbk_id": 469,
+ "last_cbk_id": 470,
  "last_icgenelge_id": 722,
  "aym_seen": [
   "921f9bc3-5e1d-4c44-9ae8-647b5c432ba3",
@@ -97,19 +97,19 @@
  "release_day": {
   "2.7": "2026-11-09"
  },
- "madde_last_id": 574,
+ "madde_last_id": 575,
  "madde_text_day": "2026-11-27",
  "event_remind_day": "2026-11-27",
  "uyari": {
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 777,
+    "ok": 778,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1652,
+    "ok": 1653,
     "down": false
    }
   },
