@@ -97,19 +97,19 @@
  "release_day": {
   "2.7": "2026-11-09"
  },
- "madde_last_id": 570,
- "madde_text_day": "2026-11-26",
+ "madde_last_id": 572,
+ "madde_text_day": "2026-11-27",
  "event_remind_day": "2026-11-26",
  "uyari": {
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 755,
+    "ok": 756,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1630,
+    "ok": 1631,
     "down": false
    }
   },
