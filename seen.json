@@ -20,7 +20,8 @@
   "1237768600",
   "1237780400",
   "1237867800",
-  "1238397100"
+  "1238397100",
+  "1238559100"
  ],
  "teblig_full_scan": "27.11.2026",
  "last_teblig_id": 11922,
@@ -97,19 +98,19 @@
  "release_day": {
   "2.7": "2026-11-09"
  },
- "madde_last_id": 575,
+ "madde_last_id": 576,
  "madde_text_day": "2026-11-27",
  "event_remind_day": "2026-11-27",
  "uyari": {
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 802,
+    "ok": 803,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1677,
+    "ok": 1678,
     "down": false
    }
   },
