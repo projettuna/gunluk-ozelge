@@ -106,12 +106,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 911,
+    "ok": 912,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1786,
+    "ok": 1787,
     "down": false
    }
   },
@@ -124,53 +124,103 @@
   "meteo": {
    "10": [
     {
-     "n": "2026112801",
+     "n": "2026112805",
      "r": "yellow",
      "h": [
-      "Kuvvetli yağış",
       "Kuvvetli rüzgâr ve fırtına"
      ],
      "k": [
-      "kuvvetli yağış",
       "fırtına"
      ],
-     "m": "Kuvvetli rüzgar ve fırtına ile birlikte yerel olarak kuvvetli (21-50 kg/m2) sağanak yağışların, gece saatlerinden itibaren Edirne ve Kırklareli’nin yüksek kesimlerinde karla karışık yağmur ve kar şeklinde devam etmesi beklendiğinden; sel, su baskını, kuvvetli rüzgar ve fırtına, çatı uçması, ağaç ve direk devrilmesi, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-27T21:00:00.000Z",
-     "e": "2026-11-29T20:59:00.000Z"
-    }
-   ],
-   "17": [
+     "m": "Bu akşam saatlerinden 01.12.2026 Salı öğle saatlerine kadar Marmara ile Kuzey Ege’de kuzey yönlerden fırtına ve kısa süreli kuvvetli fırtına (70-90 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T15:00:00.000Z",
+     "e": "2026-12-01T09:00:00.000Z"
+    },
     {
      "n": "2026112801",
      "r": "yellow",
      "h": [
-      "Kuvvetli yağış",
+      "Kuvvetli yağış"
+     ],
+     "k": [
+      "kuvvetli yağış"
+     ],
+     "m": "Kuvvetli rüzgar ve fırtına ile birlikte yerel olarak kuvvetli (21-50 kg/m2) sağanak yağışların, gece saatlerinden itibaren Edirne ve Kırklareli’nin yüksek kesimlerinde karla karışık yağmur ve kar şeklinde devam etmesi beklendiğinden; sel, su baskını, kuvvetli rüzgar ve fırtına, çatı uçması, ağaç ve direk devrilmesi, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T21:00:00.000Z",
+     "e": "2026-11-29T20:59:00.000Z"
+    }
+   ],
+   "11": [
+    {
+     "n": "2026112805",
+     "r": "yellow",
+     "h": [
       "Kuvvetli rüzgâr ve fırtına"
      ],
      "k": [
-      "kuvvetli yağış",
       "fırtına"
      ],
+     "m": "Bu akşam saatlerinden 01.12.2026 Salı öğle saatlerine kadar Marmara ile Kuzey Ege’de kuzey yönlerden fırtına ve kısa süreli kuvvetli fırtına (70-90 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T15:00:00.000Z",
+     "e": "2026-12-01T09:00:00.000Z"
+    }
+   ],
+   "16": [
+    {
+     "n": "2026112805",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Bu akşam saatlerinden 01.12.2026 Salı öğle saatlerine kadar Marmara ile Kuzey Ege’de kuzey yönlerden fırtına ve kısa süreli kuvvetli fırtına (70-90 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T15:00:00.000Z",
+     "e": "2026-12-01T09:00:00.000Z"
+    }
+   ],
+   "17": [
+    {
+     "n": "2026112805",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Bu akşam saatlerinden 01.12.2026 Salı öğle saatlerine kadar Marmara ile Kuzey Ege’de kuzey yönlerden fırtına ve kısa süreli kuvvetli fırtına (70-90 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T15:00:00.000Z",
+     "e": "2026-12-01T09:00:00.000Z"
+    },
+    {
+     "n": "2026112801",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli yağış"
+     ],
+     "k": [
+      "kuvvetli yağış"
+     ],
      "m": "Kuvvetli rüzgar ve fırtına ile birlikte yerel olarak kuvvetli (21-50 kg/m2) sağanak yağışların, gece saatlerinden itibaren Edirne ve Kırklareli’nin yüksek kesimlerinde karla karışık yağmur ve kar şeklinde devam etmesi beklendiğinden; sel, su baskını, kuvvetli rüzgar ve fırtına, çatı uçması, ağaç ve direk devrilmesi, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-27T21:00:00.000Z",
+     "b": "2026-11-28T21:00:00.000Z",
      "e": "2026-11-29T20:59:00.000Z"
     }
    ],
    "22": [
     {
-     "n": "2026112801",
+     "n": "2026112805",
      "r": "yellow",
      "h": [
-      "Kuvvetli yağış",
       "Kuvvetli rüzgâr ve fırtına"
      ],
      "k": [
-      "kuvvetli yağış",
       "fırtına"
      ],
-     "m": "Kuvvetli rüzgar ve fırtına ile birlikte yerel olarak kuvvetli (21-50 kg/m2) sağanak yağışların, gece saatlerinden itibaren Edirne ve Kırklareli’nin yüksek kesimlerinde karla karışık yağmur ve kar şeklinde devam etmesi beklendiğinden; sel, su baskını, kuvvetli rüzgar ve fırtına, çatı uçması, ağaç ve direk devrilmesi, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-27T21:00:00.000Z",
-     "e": "2026-11-29T20:59:00.000Z"
+     "m": "Bu akşam saatlerinden 01.12.2026 Salı öğle saatlerine kadar Marmara ile Kuzey Ege’de kuzey yönlerden fırtına ve kısa süreli kuvvetli fırtına (70-90 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T15:00:00.000Z",
+     "e": "2026-12-01T09:00:00.000Z"
     },
     {
      "n": "2026112701",
@@ -184,40 +234,77 @@
      "m": "Aralıklı ve yerel olarak kuvvetli (21-50 kg/m2) sağanak ve yer yer gök gürültülü sağanak yağış beklendiğinden sel, su baskını, yıldırım, yağış anında kuvvetli rüzgar ve fırtına, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-27T17:00:00.000Z",
      "e": "2026-11-28T17:00:00.000Z"
+    },
+    {
+     "n": "2026112801",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli yağış"
+     ],
+     "k": [
+      "kuvvetli yağış"
+     ],
+     "m": "Kuvvetli rüzgar ve fırtına ile birlikte yerel olarak kuvvetli (21-50 kg/m2) sağanak yağışların, gece saatlerinden itibaren Edirne ve Kırklareli’nin yüksek kesimlerinde karla karışık yağmur ve kar şeklinde devam etmesi beklendiğinden; sel, su baskını, kuvvetli rüzgar ve fırtına, çatı uçması, ağaç ve direk devrilmesi, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T21:00:00.000Z",
+     "e": "2026-11-29T20:59:00.000Z"
     }
    ],
    "34": [
     {
-     "n": "2026112801",
+     "n": "2026112805",
      "r": "yellow",
      "h": [
-      "Kuvvetli yağış",
       "Kuvvetli rüzgâr ve fırtına"
      ],
      "k": [
-      "kuvvetli yağış",
       "fırtına"
      ],
-     "m": "Kuvvetli rüzgar ve fırtına ile birlikte yerel olarak kuvvetli (21-50 kg/m2) sağanak yağışların, gece saatlerinden itibaren Edirne ve Kırklareli’nin yüksek kesimlerinde karla karışık yağmur ve kar şeklinde devam etmesi beklendiğinden; sel, su baskını, kuvvetli rüzgar ve fırtına, çatı uçması, ağaç ve direk devrilmesi, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-27T21:00:00.000Z",
-     "e": "2026-11-29T20:59:00.000Z"
-    }
-   ],
-   "39": [
+     "m": "Bu akşam saatlerinden 01.12.2026 Salı öğle saatlerine kadar Marmara ile Kuzey Ege’de kuzey yönlerden fırtına ve kısa süreli kuvvetli fırtına (70-90 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T15:00:00.000Z",
+     "e": "2026-12-01T09:00:00.000Z"
+    },
     {
      "n": "2026112801",
      "r": "yellow",
      "h": [
-      "Kuvvetli yağış",
+      "Kuvvetli yağış"
+     ],
+     "k": [
+      "kuvvetli yağış"
+     ],
+     "m": "Kuvvetli rüzgar ve fırtına ile birlikte yerel olarak kuvvetli (21-50 kg/m2) sağanak yağışların, gece saatlerinden itibaren Edirne ve Kırklareli’nin yüksek kesimlerinde karla karışık yağmur ve kar şeklinde devam etmesi beklendiğinden; sel, su baskını, kuvvetli rüzgar ve fırtına, çatı uçması, ağaç ve direk devrilmesi, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T21:00:00.000Z",
+     "e": "2026-11-29T20:59:00.000Z"
+    }
+   ],
+   "35": [
+    {
+     "n": "2026112805",
+     "r": "yellow",
+     "h": [
       "Kuvvetli rüzgâr ve fırtına"
      ],
      "k": [
-      "kuvvetli yağış",
       "fırtına"
      ],
-     "m": "Kuvvetli rüzgar ve fırtına ile birlikte yerel olarak kuvvetli (21-50 kg/m2) sağanak yağışların, gece saatlerinden itibaren Edirne ve Kırklareli’nin yüksek kesimlerinde karla karışık yağmur ve kar şeklinde devam etmesi beklendiğinden; sel, su baskını, kuvvetli rüzgar ve fırtına, çatı uçması, ağaç ve direk devrilmesi, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-27T21:00:00.000Z",
-     "e": "2026-11-29T20:59:00.000Z"
+     "m": "Bu akşam saatlerinden 01.12.2026 Salı öğle saatlerine kadar Marmara ile Kuzey Ege’de kuzey yönlerden fırtına ve kısa süreli kuvvetli fırtına (70-90 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T15:00:00.000Z",
+     "e": "2026-12-01T09:00:00.000Z"
+    }
+   ],
+   "39": [
+    {
+     "n": "2026112805",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Bu akşam saatlerinden 01.12.2026 Salı öğle saatlerine kadar Marmara ile Kuzey Ege’de kuzey yönlerden fırtına ve kısa süreli kuvvetli fırtına (70-90 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T15:00:00.000Z",
+     "e": "2026-12-01T09:00:00.000Z"
     },
     {
      "n": "2026112702",
@@ -244,23 +331,169 @@
      "m": "Aralıklı ve yerel olarak kuvvetli (21-50 kg/m2) sağanak ve yer yer gök gürültülü sağanak yağış beklendiğinden sel, su baskını, yıldırım, yağış anında kuvvetli rüzgar ve fırtına, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-27T17:00:00.000Z",
      "e": "2026-11-28T17:00:00.000Z"
-    }
-   ],
-   "2": [
+    },
     {
-     "n": "2026112803",
+     "n": "2026112801",
      "r": "yellow",
      "h": [
-      "Kuvvetli yağış",
-      "Kar"
+      "Kuvvetli yağış"
      ],
      "k": [
-      "kuvvetli yağış",
-      "kar"
+      "kuvvetli yağış"
      ],
-     "m": "Güneydoğu Anadolu bölgesi ile Malatya, Elazığ, Ağrı, Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Şırnak, Muş ve Hakkari çevrelerinde yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren ise Şırnak’ın kuzey ve doğusu, Ağrı ve Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Muş ve Hakkari çevrelerinde kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su…",
-     "b": "2026-11-29T02:00:00.000Z",
-     "e": "2026-11-30T03:00:00.000Z"
+     "m": "Kuvvetli rüzgar ve fırtına ile birlikte yerel olarak kuvvetli (21-50 kg/m2) sağanak yağışların, gece saatlerinden itibaren Edirne ve Kırklareli’nin yüksek kesimlerinde karla karışık yağmur ve kar şeklinde devam etmesi beklendiğinden; sel, su baskını, kuvvetli rüzgar ve fırtına, çatı uçması, ağaç ve direk devrilmesi, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T21:00:00.000Z",
+     "e": "2026-11-29T20:59:00.000Z"
+    }
+   ],
+   "41": [
+    {
+     "n": "2026112805",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Bu akşam saatlerinden 01.12.2026 Salı öğle saatlerine kadar Marmara ile Kuzey Ege’de kuzey yönlerden fırtına ve kısa süreli kuvvetli fırtına (70-90 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T15:00:00.000Z",
+     "e": "2026-12-01T09:00:00.000Z"
+    }
+   ],
+   "43": [
+    {
+     "n": "2026112805",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Bu akşam saatlerinden 01.12.2026 Salı öğle saatlerine kadar Marmara ile Kuzey Ege’de kuzey yönlerden fırtına ve kısa süreli kuvvetli fırtına (70-90 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T15:00:00.000Z",
+     "e": "2026-12-01T09:00:00.000Z"
+    }
+   ],
+   "45": [
+    {
+     "n": "2026112805",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Bu akşam saatlerinden 01.12.2026 Salı öğle saatlerine kadar Marmara ile Kuzey Ege’de kuzey yönlerden fırtına ve kısa süreli kuvvetli fırtına (70-90 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T15:00:00.000Z",
+     "e": "2026-12-01T09:00:00.000Z"
+    }
+   ],
+   "54": [
+    {
+     "n": "2026112805",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Bu akşam saatlerinden 01.12.2026 Salı öğle saatlerine kadar Marmara ile Kuzey Ege’de kuzey yönlerden fırtına ve kısa süreli kuvvetli fırtına (70-90 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T15:00:00.000Z",
+     "e": "2026-12-01T09:00:00.000Z"
+    }
+   ],
+   "59": [
+    {
+     "n": "2026112805",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Bu akşam saatlerinden 01.12.2026 Salı öğle saatlerine kadar Marmara ile Kuzey Ege’de kuzey yönlerden fırtına ve kısa süreli kuvvetli fırtına (70-90 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T15:00:00.000Z",
+     "e": "2026-12-01T09:00:00.000Z"
+    }
+   ],
+   "77": [
+    {
+     "n": "2026112805",
+     "r": "yellow",
+     "h": [
+      "Kuvvetli rüzgâr ve fırtına"
+     ],
+     "k": [
+      "fırtına"
+     ],
+     "m": "Bu akşam saatlerinden 01.12.2026 Salı öğle saatlerine kadar Marmara ile Kuzey Ege’de kuzey yönlerden fırtına ve kısa süreli kuvvetli fırtına (70-90 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T15:00:00.000Z",
+     "e": "2026-12-01T09:00:00.000Z"
+    }
+   ],
+   "1": [
+    {
+     "n": "2026112804",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Doğu Akdeniz’de beklenen yağışların; gece saatlerinden itibaren Hatay, Osmaniye çevreleri ile Kahramanmaraş’ın güney, Adana’nın doğu kesimlerinde yerel kuvvetli olması beklendiğinden sel, su baskını, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T21:00:00.000Z",
+     "e": "2026-11-29T13:00:00.000Z"
+    }
+   ],
+   "31": [
+    {
+     "n": "2026112804",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Doğu Akdeniz’de beklenen yağışların; gece saatlerinden itibaren Hatay, Osmaniye çevreleri ile Kahramanmaraş’ın güney, Adana’nın doğu kesimlerinde yerel kuvvetli olması beklendiğinden sel, su baskını, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T21:00:00.000Z",
+     "e": "2026-11-29T13:00:00.000Z"
+    }
+   ],
+   "46": [
+    {
+     "n": "2026112804",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Doğu Akdeniz’de beklenen yağışların; gece saatlerinden itibaren Hatay, Osmaniye çevreleri ile Kahramanmaraş’ın güney, Adana’nın doğu kesimlerinde yerel kuvvetli olması beklendiğinden sel, su baskını, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T21:00:00.000Z",
+     "e": "2026-11-29T13:00:00.000Z"
+    }
+   ],
+   "80": [
+    {
+     "n": "2026112804",
+     "r": "yellow",
+     "h": [
+      "Gök gürültülü sağanak"
+     ],
+     "k": [
+      "sağanak ve fırtına"
+     ],
+     "m": "Doğu Akdeniz’de beklenen yağışların; gece saatlerinden itibaren Hatay, Osmaniye çevreleri ile Kahramanmaraş’ın güney, Adana’nın doğu kesimlerinde yerel kuvvetli olması beklendiğinden sel, su baskını, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
+     "b": "2026-11-28T21:00:00.000Z",
+     "e": "2026-11-29T13:00:00.000Z"
     }
    ],
    "4": [
@@ -268,14 +501,12 @@
      "n": "2026112803",
      "r": "yellow",
      "h": [
-      "Kuvvetli yağış",
-      "Kar"
+      "Kuvvetli yağış"
      ],
      "k": [
-      "kuvvetli yağış",
-      "kar"
+      "kuvvetli yağış"
      ],
-     "m": "Güneydoğu Anadolu bölgesi ile Malatya, Elazığ, Ağrı, Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Şırnak, Muş ve Hakkari çevrelerinde yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren ise Şırnak’ın kuzey ve doğusu, Ağrı ve Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Muş ve Hakkari çevrelerinde kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su…",
+     "m": "Yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su baskını, buzlanma ve don, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-29T02:00:00.000Z",
      "e": "2026-11-30T03:00:00.000Z"
     }
@@ -285,14 +516,12 @@
      "n": "2026112803",
      "r": "yellow",
      "h": [
-      "Kuvvetli yağış",
-      "Kar"
+      "Kuvvetli yağış"
      ],
      "k": [
-      "kuvvetli yağış",
-      "kar"
+      "kuvvetli yağış"
      ],
-     "m": "Güneydoğu Anadolu bölgesi ile Malatya, Elazığ, Ağrı, Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Şırnak, Muş ve Hakkari çevrelerinde yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren ise Şırnak’ın kuzey ve doğusu, Ağrı ve Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Muş ve Hakkari çevrelerinde kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su…",
+     "m": "Yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su baskını, buzlanma ve don, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-29T02:00:00.000Z",
      "e": "2026-11-30T03:00:00.000Z"
     }
@@ -302,48 +531,12 @@
      "n": "2026112803",
      "r": "yellow",
      "h": [
-      "Kuvvetli yağış",
-      "Kar"
+      "Kuvvetli yağış"
      ],
      "k": [
-      "kuvvetli yağış",
-      "kar"
+      "kuvvetli yağış"
      ],
-     "m": "Güneydoğu Anadolu bölgesi ile Malatya, Elazığ, Ağrı, Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Şırnak, Muş ve Hakkari çevrelerinde yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren ise Şırnak’ın kuzey ve doğusu, Ağrı ve Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Muş ve Hakkari çevrelerinde kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su…",
-     "b": "2026-11-29T02:00:00.000Z",
-     "e": "2026-11-30T03:00:00.000Z"
-    }
-   ],
-   "21": [
-    {
-     "n": "2026112803",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli yağış",
-      "Kar"
-     ],
-     "k": [
-      "kuvvetli yağış",
-      "kar"
-     ],
-     "m": "Güneydoğu Anadolu bölgesi ile Malatya, Elazığ, Ağrı, Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Şırnak, Muş ve Hakkari çevrelerinde yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren ise Şırnak’ın kuzey ve doğusu, Ağrı ve Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Muş ve Hakkari çevrelerinde kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su…",
-     "b": "2026-11-29T02:00:00.000Z",
-     "e": "2026-11-30T03:00:00.000Z"
-    }
-   ],
-   "23": [
-    {
-     "n": "2026112803",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli yağış",
-      "Kar"
-     ],
-     "k": [
-      "kuvvetli yağış",
-      "kar"
-     ],
-     "m": "Güneydoğu Anadolu bölgesi ile Malatya, Elazığ, Ağrı, Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Şırnak, Muş ve Hakkari çevrelerinde yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren ise Şırnak’ın kuzey ve doğusu, Ağrı ve Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Muş ve Hakkari çevrelerinde kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su…",
+     "m": "Yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su baskını, buzlanma ve don, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-29T02:00:00.000Z",
      "e": "2026-11-30T03:00:00.000Z"
     }
@@ -353,31 +546,12 @@
      "n": "2026112803",
      "r": "yellow",
      "h": [
-      "Kuvvetli yağış",
-      "Kar"
+      "Kuvvetli yağış"
      ],
      "k": [
-      "kuvvetli yağış",
-      "kar"
+      "kuvvetli yağış"
      ],
-     "m": "Güneydoğu Anadolu bölgesi ile Malatya, Elazığ, Ağrı, Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Şırnak, Muş ve Hakkari çevrelerinde yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren ise Şırnak’ın kuzey ve doğusu, Ağrı ve Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Muş ve Hakkari çevrelerinde kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su…",
-     "b": "2026-11-29T02:00:00.000Z",
-     "e": "2026-11-30T03:00:00.000Z"
-    }
-   ],
-   "27": [
-    {
-     "n": "2026112803",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli yağış",
-      "Kar"
-     ],
-     "k": [
-      "kuvvetli yağış",
-      "kar"
-     ],
-     "m": "Güneydoğu Anadolu bölgesi ile Malatya, Elazığ, Ağrı, Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Şırnak, Muş ve Hakkari çevrelerinde yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren ise Şırnak’ın kuzey ve doğusu, Ağrı ve Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Muş ve Hakkari çevrelerinde kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su…",
+     "m": "Yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su baskını, buzlanma ve don, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-29T02:00:00.000Z",
      "e": "2026-11-30T03:00:00.000Z"
     }
@@ -387,48 +561,12 @@
      "n": "2026112803",
      "r": "yellow",
      "h": [
-      "Kuvvetli yağış",
-      "Kar"
+      "Kuvvetli yağış"
      ],
      "k": [
-      "kuvvetli yağış",
-      "kar"
+      "kuvvetli yağış"
      ],
-     "m": "Güneydoğu Anadolu bölgesi ile Malatya, Elazığ, Ağrı, Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Şırnak, Muş ve Hakkari çevrelerinde yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren ise Şırnak’ın kuzey ve doğusu, Ağrı ve Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Muş ve Hakkari çevrelerinde kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su…",
-     "b": "2026-11-29T02:00:00.000Z",
-     "e": "2026-11-30T03:00:00.000Z"
-    }
-   ],
-   "44": [
-    {
-     "n": "2026112803",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli yağış",
-      "Kar"
-     ],
-     "k": [
-      "kuvvetli yağış",
-      "kar"
-     ],
-     "m": "Güneydoğu Anadolu bölgesi ile Malatya, Elazığ, Ağrı, Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Şırnak, Muş ve Hakkari çevrelerinde yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren ise Şırnak’ın kuzey ve doğusu, Ağrı ve Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Muş ve Hakkari çevrelerinde kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su…",
-     "b": "2026-11-29T02:00:00.000Z",
-     "e": "2026-11-30T03:00:00.000Z"
-    }
-   ],
-   "47": [
-    {
-     "n": "2026112803",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli yağış",
-      "Kar"
-     ],
-     "k": [
-      "kuvvetli yağış",
-      "kar"
-     ],
-     "m": "Güneydoğu Anadolu bölgesi ile Malatya, Elazığ, Ağrı, Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Şırnak, Muş ve Hakkari çevrelerinde yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren ise Şırnak’ın kuzey ve doğusu, Ağrı ve Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Muş ve Hakkari çevrelerinde kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su…",
+     "m": "Yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su baskını, buzlanma ve don, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-29T02:00:00.000Z",
      "e": "2026-11-30T03:00:00.000Z"
     }
@@ -438,14 +576,12 @@
      "n": "2026112803",
      "r": "yellow",
      "h": [
-      "Kuvvetli yağış",
-      "Kar"
+      "Kuvvetli yağış"
      ],
      "k": [
-      "kuvvetli yağış",
-      "kar"
+      "kuvvetli yağış"
      ],
-     "m": "Güneydoğu Anadolu bölgesi ile Malatya, Elazığ, Ağrı, Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Şırnak, Muş ve Hakkari çevrelerinde yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren ise Şırnak’ın kuzey ve doğusu, Ağrı ve Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Muş ve Hakkari çevrelerinde kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su…",
+     "m": "Yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su baskını, buzlanma ve don, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-29T02:00:00.000Z",
      "e": "2026-11-30T03:00:00.000Z"
     }
@@ -455,31 +591,12 @@
      "n": "2026112803",
      "r": "yellow",
      "h": [
-      "Kuvvetli yağış",
-      "Kar"
+      "Kuvvetli yağış"
      ],
      "k": [
-      "kuvvetli yağış",
-      "kar"
+      "kuvvetli yağış"
      ],
-     "m": "Güneydoğu Anadolu bölgesi ile Malatya, Elazığ, Ağrı, Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Şırnak, Muş ve Hakkari çevrelerinde yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren ise Şırnak’ın kuzey ve doğusu, Ağrı ve Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Muş ve Hakkari çevrelerinde kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su…",
-     "b": "2026-11-29T02:00:00.000Z",
-     "e": "2026-11-30T03:00:00.000Z"
-    }
-   ],
-   "63": [
-    {
-     "n": "2026112803",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli yağış",
-      "Kar"
-     ],
-     "k": [
-      "kuvvetli yağış",
-      "kar"
-     ],
-     "m": "Güneydoğu Anadolu bölgesi ile Malatya, Elazığ, Ağrı, Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Şırnak, Muş ve Hakkari çevrelerinde yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren ise Şırnak’ın kuzey ve doğusu, Ağrı ve Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Muş ve Hakkari çevrelerinde kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su…",
+     "m": "Yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su baskını, buzlanma ve don, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-29T02:00:00.000Z",
      "e": "2026-11-30T03:00:00.000Z"
     }
@@ -489,31 +606,12 @@
      "n": "2026112803",
      "r": "yellow",
      "h": [
-      "Kuvvetli yağış",
-      "Kar"
+      "Kuvvetli yağış"
      ],
      "k": [
-      "kuvvetli yağış",
-      "kar"
+      "kuvvetli yağış"
      ],
-     "m": "Güneydoğu Anadolu bölgesi ile Malatya, Elazığ, Ağrı, Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Şırnak, Muş ve Hakkari çevrelerinde yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren ise Şırnak’ın kuzey ve doğusu, Ağrı ve Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Muş ve Hakkari çevrelerinde kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su…",
-     "b": "2026-11-29T02:00:00.000Z",
-     "e": "2026-11-30T03:00:00.000Z"
-    }
-   ],
-   "72": [
-    {
-     "n": "2026112803",
-     "r": "yellow",
-     "h": [
-      "Kuvvetli yağış",
-      "Kar"
-     ],
-     "k": [
-      "kuvvetli yağış",
-      "kar"
-     ],
-     "m": "Güneydoğu Anadolu bölgesi ile Malatya, Elazığ, Ağrı, Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Şırnak, Muş ve Hakkari çevrelerinde yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren ise Şırnak’ın kuzey ve doğusu, Ağrı ve Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Muş ve Hakkari çevrelerinde kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su…",
+     "m": "Yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su baskını, buzlanma ve don, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-29T02:00:00.000Z",
      "e": "2026-11-30T03:00:00.000Z"
     }
@@ -523,14 +621,12 @@
      "n": "2026112803",
      "r": "yellow",
      "h": [
-      "Kuvvetli yağış",
-      "Kar"
+      "Kuvvetli yağış"
      ],
      "k": [
-      "kuvvetli yağış",
-      "kar"
+      "kuvvetli yağış"
      ],
-     "m": "Güneydoğu Anadolu bölgesi ile Malatya, Elazığ, Ağrı, Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Şırnak, Muş ve Hakkari çevrelerinde yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren ise Şırnak’ın kuzey ve doğusu, Ağrı ve Erzurum’un güney kesimleri, Bingöl, Bitlis, Van, Muş ve Hakkari çevrelerinde kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su…",
+     "m": "Yerel kuvvetli yağmur ve sağanak, akşam saatlerinden itibaren kuvvetli karla karışık yağmur ve kar şeklinde olması beklendiğinden sel, su baskını, buzlanma ve don, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-29T02:00:00.000Z",
      "e": "2026-11-30T03:00:00.000Z"
     }
