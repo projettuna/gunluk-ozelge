@@ -106,12 +106,12 @@
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 917,
+    "ok": 918,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1792,
+    "ok": 1793,
     "down": false
    }
   },
@@ -204,19 +204,6 @@
      "m": "Kuzey yönlerden fırtına ve kısa süreli kuvvetli fırtına (70-90 km/saat) şeklinde esmesi beklendiğinden ulaşımda aksamalar, çatı uçması, ağaç ve direklerin devrilmesi gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-28T15:00:00.000Z",
      "e": "2026-12-01T09:00:00.000Z"
-    },
-    {
-     "n": "2026112701",
-     "r": "yellow",
-     "h": [
-      "Gök gürültülü sağanak"
-     ],
-     "k": [
-      "sağanak ve fırtına"
-     ],
-     "m": "Aralıklı ve yerel olarak kuvvetli (21-50 kg/m2) sağanak ve yer yer gök gürültülü sağanak yağış beklendiğinden sel, su baskını, yıldırım, yağış anında kuvvetli rüzgar ve fırtına, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-27T17:00:00.000Z",
-     "e": "2026-11-28T17:00:00.000Z"
     }
    ],
    "11": [
@@ -318,19 +305,6 @@
      "m": "Aralıklı ve yerel olarak kuvvetli (21-50 kg/m2) sağanak ve yer yer gök gürültülü sağanak yağış beklendiğinden sel, su baskını, yıldırım, yağış anında kuvvetli rüzgar ve fırtına, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
      "b": "2026-11-27T20:00:00.000Z",
      "e": "2026-11-29T06:00:00.000Z"
-    },
-    {
-     "n": "2026112701",
-     "r": "yellow",
-     "h": [
-      "Gök gürültülü sağanak"
-     ],
-     "k": [
-      "sağanak ve fırtına"
-     ],
-     "m": "Aralıklı ve yerel olarak kuvvetli (21-50 kg/m2) sağanak ve yer yer gök gürültülü sağanak yağış beklendiğinden sel, su baskını, yıldırım, yağış anında kuvvetli rüzgar ve fırtına, ulaşımda aksamalar gibi olumsuzluklara karşı dikkatli ve tedbirli olunmalıdır.",
-     "b": "2026-11-27T17:00:00.000Z",
-     "e": "2026-11-28T17:00:00.000Z"
     },
     {
      "n": "2026112810",
