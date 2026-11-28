@@ -101,17 +101,17 @@
  },
  "madde_last_id": 577,
  "madde_text_day": "2026-11-28",
- "event_remind_day": "2026-11-27",
+ "event_remind_day": "2026-11-28",
  "uyari": {
   "probe": {
    "gib_dvd": {
     "fail": 0,
-    "ok": 904,
+    "ok": 905,
     "down": false
    },
    "earsiv": {
     "fail": 0,
-    "ok": 1779,
+    "ok": 1780,
     "down": false
    }
   },
